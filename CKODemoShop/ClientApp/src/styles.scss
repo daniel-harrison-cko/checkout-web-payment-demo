@@ -1,1 +1,25 @@
 /* You can add global styles to this file, and also import other style files */
+$color-background: #f8f8f8f8;
+
+$margin: 15px;
+$padding: $margin;
+
+body {
+  background-color: $color-background;
+}
+
+billing-and-shipping {
+  padding: $margin;
+  display: flex;
+  flex-direction: row;
+
+  mat-card {
+    flex: 1 1 auto;
+    margin: $margin;
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+  }
+}

@@ -6,11 +6,15 @@ import { AppRoutingModule } from './app-routing.module';
 import { AngularMaterialModule } from './angular-material.module';
 import { AppComponent } from './app.component';
 import { ShopComponent } from './components/shop/shop.component';
+import { BillingAndShippingComponent } from './components/billing-and-shipping/billing-and-shipping.component';
+import { AddressFormComponent } from './components/address-form/address-form.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    ShopComponent
+    ShopComponent,
+    BillingAndShippingComponent,
+    AddressFormComponent
   ],
   imports: [
     BrowserModule,
