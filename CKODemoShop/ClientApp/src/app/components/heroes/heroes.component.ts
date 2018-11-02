@@ -28,7 +28,7 @@ const HEROES: Hero[] = <Hero[]>[
     universe: 'DC',
     rank: 4,
     imgSrc: 'https://static.comicvine.com/uploads/scale_small/13/132327/6507037-28872490_1638064799604695_1250122498385004714_n.jpg',
-    description: 'The most recognized superhero in pop culture, Superman has been elevated to mythic folkhero status. Rocketed to Earth from the dying planet Krypton, baby Kal-El was found by a farming couple who named the boy Clark Kent and raised him as their own. Discovering his enormous powers, they instilled in him strong moral values—and inspired him to become a hero.'
+    description: 'Rocketed to Earth from the dying planet Krypton, baby Kal-El was found by a farming couple who named the boy Clark Kent and raised him as their own. Discovering his enormous powers, they instilled in him strong moral values—and inspired him to become a hero.'
   },
   {
     name: 'Iron Man',
@@ -63,14 +63,14 @@ const HEROES: Hero[] = <Hero[]>[
     universe: 'DC',
     rank: 9,
     imgSrc: 'https://www.writeups.org/wp-content/uploads/Flash-DC-Comics-Wally-West.jpg',
-    description: 'Young Barry Allen’s life stopped the minute his mother was murdered. The true killer never found, its mystery obsessed Barry, driving him to become a forensic scientist. Consumed by his work, he spent his life chained to his desk, solving every case that flew across it. But when a freak lightning bolt hits a nearby shelf in his lab, Barry receives super-speed, becoming the Flash. Now, he’ll race up buildings, across oceans, and around the world to get his man—while getting introduced to a world so much bigger than his old life of microscopes and cold cases.'
+    description: 'Young Barry Allen’s life stopped the minute his mother was murdered. The true killer never found, its mystery obsessed Barry, driving him to become a forensic scientist. Consumed by his work, he spent his life chained to his desk, solving every case that flew across it. But when a freak lightning bolt hits a nearby shelf in his lab, Barry receives super-speed, becoming the Flash.'
   },
   {
     name: 'Green Lantern',
     universe: 'DC',
     rank: 10,
     imgSrc: 'https://upload.wikimedia.org/wikipedia/en/6/69/Greenlantern.PNG',
-    description: 'Mastering that power and being a Green Lantern means facing your fears, and for headstrong Hal Jordan, that’s something he’s been avoiding his whole life.When just a boy, Hal witnessed his greatest nightmare—his pilot father dying in a tragic plane crash. Nevertheless determined to follow in his footsteps, Hal repressed his fears, becoming a reckless, defiant test pilot. But when a dying alien crashes on Earth, the irresponsible Hal is chosen to be that alien’s successor in the Green Lantern Corps, a universe-wide peacekeeping force over 3,600 members strong.'
+    description: 'Mastering that power and being a Green Lantern means facing your fears, and for headstrong Hal Jordan, that’s something he’s been avoiding his whole life. When a dying alien crashes on Earth, the irresponsible Hal is chosen to be that alien’s successor in the Green Lantern Corps, a universe-wide peacekeeping force over 3,600 members strong.'
   }
 ]
 

@@ -9,14 +9,18 @@ import { BillingAndShippingComponent } from './components/billing-and-shipping/b
 import { AddressFormComponent } from './components/address-form/address-form.component';
 import { HeroesComponent } from './components/heroes/heroes.component';
 import { HeroComponent } from './components/hero/hero.component';
+import { HeroDetailComponent } from './components/hero-detail/hero-detail.component';
+import { SpacesToDashesPipe } from './pipes/spaces-to-dashes.pipe';
 
 @NgModule({
   declarations: [
     AppComponent,
     HeroesComponent,
     HeroComponent,
+    HeroDetailComponent,
     BillingAndShippingComponent,
-    AddressFormComponent
+    AddressFormComponent,
+    SpacesToDashesPipe
   ],
   imports: [
     BrowserModule,

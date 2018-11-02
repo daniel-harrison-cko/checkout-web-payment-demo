@@ -1,6 +1,6 @@
 <mat-card class="hero-card">
   <mat-card-header>
-    <div mat-card-avatar [ngStyle]="{ 'background-image': 'url(' + hero.universeImgSrc + ')'}"></div>
+    <div mat-card-avatar [ngStyle]="{ 'background-image': 'url(/assets/img/logo-' + (hero.universe | lowercase) + '-universe.jpg)'}"></div>
     <mat-card-title>{{hero.name}}</mat-card-title>
     <mat-card-subtitle>Rank {{hero.rank}}</mat-card-subtitle>
   </mat-card-header>
@@ -9,6 +9,6 @@
     <p>{{hero.description}}</p>
   </mat-card-content>
   <mat-card-actions>
-    <a mat-button [routerLink]="['/hero/' + (hero.name | lowercase)]">MORE</a>
+    <a mat-button [routerLink]="['/hero/' + (hero.name | lowercase | spacesToDashes)]">MORE</a>
   </mat-card-actions>
 </mat-card>
