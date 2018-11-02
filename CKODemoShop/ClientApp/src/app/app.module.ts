@@ -11,6 +11,7 @@ import { HeroesComponent } from './components/heroes/heroes.component';
 import { HeroComponent } from './components/hero/hero.component';
 import { HeroDetailComponent } from './components/hero-detail/hero-detail.component';
 import { SpacesToDashesPipe } from './pipes/spaces-to-dashes.pipe';
+import { HttpClientModule } from '@angular/common/http';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { SpacesToDashesPipe } from './pipes/spaces-to-dashes.pipe';
     SpacesToDashesPipe
   ],
   imports: [
+    HttpClientModule,
     BrowserModule,
     BrowserAnimationsModule,
     AppRoutingModule,
