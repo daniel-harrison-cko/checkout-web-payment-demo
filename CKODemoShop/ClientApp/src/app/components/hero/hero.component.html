@@ -1,0 +1,14 @@
+<mat-card class="hero-card">
+  <mat-card-header>
+    <div mat-card-avatar [ngStyle]="{ 'background-image': 'url(' + hero.universeImgSrc + ')'}"></div>
+    <mat-card-title>{{hero.name}}</mat-card-title>
+    <mat-card-subtitle>Rank {{hero.rank}}</mat-card-subtitle>
+  </mat-card-header>
+  <div mat-card-image [ngStyle]="{ 'background-image': 'url(' + hero.imgSrc + ')'}"></div>
+  <mat-card-content>
+    <p>{{hero.description}}</p>
+  </mat-card-content>
+  <mat-card-actions>
+    <a mat-button [routerLink]="['/hero/' + (hero.name | lowercase)]">MORE</a>
+  </mat-card-actions>
+</mat-card>

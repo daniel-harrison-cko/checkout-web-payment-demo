@@ -8,8 +8,31 @@ body {
   background-color: $color-background;
 }
 
+.mat-card-avatar {
+  background-size: contain;
+}
+
+heroes {
+  padding: $padding;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-around;
+
+  hero {
+    max-width: 15%;
+    margin-bottom: 2 * $margin;
+
+    .mat-card-image {
+      height: 300px;
+      background-size: cover;
+      background-repeat: no-repeat;
+    }
+  }
+}
+
 billing-and-shipping {
-  padding: $margin;
+  padding: $padding;
   display: flex;
   flex-direction: row;
 
