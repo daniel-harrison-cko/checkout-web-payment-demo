@@ -8,6 +8,7 @@ import { IHero } from '../../interfaces/hero.interface';
 })
 export class HeroesComponent {
   private heroes: IHero[];
+  private title: string = 'Hall of Heroes';
 
   constructor(heroService: HeroService) {
     heroService.getAllHeroes()

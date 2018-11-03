@@ -12,6 +12,7 @@ import { HeroComponent } from './components/hero/hero.component';
 import { HeroDetailComponent } from './components/hero-detail/hero-detail.component';
 import { SpacesToDashesPipe } from './pipes/spaces-to-dashes.pipe';
 import { HttpClientModule } from '@angular/common/http';
+import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,9 @@ import { HttpClientModule } from '@angular/common/http';
     BrowserModule,
     BrowserAnimationsModule,
     AppRoutingModule,
-    AngularMaterialModule
+    AngularMaterialModule,
+    FormsModule,
+    ReactiveFormsModule
   ],
   providers: [],
   bootstrap: [AppComponent]

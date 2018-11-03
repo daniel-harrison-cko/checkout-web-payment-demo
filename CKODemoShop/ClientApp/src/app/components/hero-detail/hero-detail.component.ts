@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HeroService } from '../../services/hero.service';
 import { IHero } from '../../interfaces/hero.interface';
+import { FormBuilder, Validators } from '@angular/forms';
 
 @Component({
   selector: 'hero-detail',
@@ -11,7 +12,11 @@ export class HeroDetailComponent {
   private hero: IHero;
   private error: Error;
   private name: string;
-  constructor(heroService: HeroService, activatedRoute: ActivatedRoute) {
+  pointsForm = this.formBuilder.group({
+    points: ['', [Validators.required, Validators.min(1)]]
+  });
+
+  constructor(heroService: HeroService, activatedRoute: ActivatedRoute, private formBuilder: FormBuilder) {
     activatedRoute.params.subscribe(
       async (params: any) => {
         this.name = params['name'];
