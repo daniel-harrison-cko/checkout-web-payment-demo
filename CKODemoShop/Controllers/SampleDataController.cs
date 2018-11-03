@@ -90,19 +90,23 @@ namespace CKODemoShop.Controllers
                 Description = "Mastering that power and being a Green Lantern means facing your fears, and for headstrong Hal Jordan, that’s something he’s been avoiding his whole life. When a dying alien crashes on Earth, the irresponsible Hal is chosen to be that alien’s successor in the Green Lantern Corps, a universe-wide peacekeeping force over 3,600 members strong."
             }
         };
+        private static string SpacesToDashes(string str)
+        {
+            return str.Replace(' ', '-');
+        }
 
         [HttpGet("[action]/{name}")]
         [ProducesResponseType(200, Type = typeof(IHero))]
         [ProducesResponseType(404)]
         public IActionResult GetHero(string name)
         {
-            if(!Heroes.Any(hero => hero.Name.ToLower() == name))
+            if(!Heroes.Any(hero => SpacesToDashes(hero.Name).ToLower() == name))
             {
                 return NotFound();
             }
             else
             {
-                return Ok(Heroes.Where(hero => hero.Name.ToLower() == name).Single());
+                return Ok(Heroes.Where(hero => SpacesToDashes(hero.Name).ToLower() == name).Single());
             }
         }
 
