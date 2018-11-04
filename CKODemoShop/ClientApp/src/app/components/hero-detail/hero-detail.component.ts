@@ -13,7 +13,7 @@ export class HeroDetailComponent {
   private error: Error;
   private name: string;
   pointsForm = this.formBuilder.group({
-    points: ['', [Validators.required, Validators.min(1)]]
+    points: [1, [Validators.required, Validators.min(1)]]
   });
 
   constructor(heroService: HeroService, activatedRoute: ActivatedRoute, private formBuilder: FormBuilder) {

@@ -9,6 +9,21 @@ $color-background: #f8f8f8f8;
 $margin: 15px;
 $padding: $margin;
 
+.example-radio-group {
+  display: inline-flex;
+  flex-direction: column;
+  padding-top: 4px;
+  padding-bottom: $padding;
+}
+
+.example-radio-button {
+  margin: 5px;
+}
+
+.example-selected-value {
+  margin: 15px 0;
+}
+
 body {
   background-color: $color-background;
 }
@@ -24,7 +39,7 @@ heroes {
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  justify-content: space-around;
+  justify-content: space-evenly;
 
   h1 {
     width: 100%;
@@ -48,6 +63,7 @@ heroes {
       max-width: 20%;
     }
 
+    display: inline-flex;
     margin: $margin;
     flex: 1 1 auto;
 
@@ -79,6 +95,10 @@ hero-detail {
 
   mat-sidenav-container {
     flex: 1 1 auto;
+
+    mat-sidenav.mat-drawer.mat-sidenav {
+      min-width: 30%;
+    }
 
     mat-sidenav-content.mat-drawer-content {
       display: flex;
@@ -137,6 +157,13 @@ hero-detail {
         }
       }
     }
+  }
+}
+
+payment-component {
+  form {
+    display: flex;
+    flex-direction: column;
   }
 }
 
