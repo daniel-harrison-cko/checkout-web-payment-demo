@@ -1,0 +1,4 @@
+<p><span class="name">{{customer.name}}</span></p><br />
+<p><span class="address_line1">{{customer.billingAddress.address_line1}}</span>{{customer.billingAddress.address_line2 ? ' - ' : ''}}<span *ngIf="customer.billingAddress.address_line2" class="address_line2">{{customer.billingAddress.address_line2}}</span></p>
+<p><span class="zip">{{customer.billingAddress.zip}}</span>&nbsp;<span class="city">{{customer.billingAddress.city}}</span>,&nbsp;<span class="state">{{customer.billingAddress.state}}</span></p>
+<p><span class="country">{{customer.billingAddress.country | uppercase}}</span></p>

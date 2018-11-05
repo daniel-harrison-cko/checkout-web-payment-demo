@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { IAddress } from '../../interfaces/address.interface';
+import { ICustomer } from '../../interfaces/customer.interface';
 
 @Component({
   selector: 'payment-component',
@@ -9,8 +11,10 @@ export class PaymentComponent {
   isLinear = true;
   firstFormGroup: FormGroup;
   secondFormGroup: FormGroup;
+  thirdFormGroup: FormGroup;
   selectedPaymentMethod: string;
   paymentMethods: string[] = ['Credit Card', 'iDeal', 'giropay', 'PayPal'];
+  customer: ICustomer;
 
   constructor(private _formBuilder: FormBuilder) { }
 
@@ -27,9 +31,24 @@ export class PaymentComponent {
       zip: ['', Validators.required],
       country: ['', Validators.required]
     });
+    this.thirdFormGroup = this._formBuilder.group({
+      payment_method: ['', Validators.required]
+    })
+  }
+
+  createCustomer() {
+    this.customer = {
+      createdOn: Date.now(),
+      name: this.firstFormGroup.get('name').value,
+      id: '12345',
+      email: this.firstFormGroup.get('email').value,
+      addresses: [<IAddress>this.secondFormGroup.value],
+      billingAddress: <IAddress>this.secondFormGroup.value,
+      shippingAddress: <IAddress>this.secondFormGroup.value
+    };
   }
 
   test() {
-    alert('test');
+    console.log(this.customer);
   }
 }

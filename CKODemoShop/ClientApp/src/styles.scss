@@ -6,7 +6,7 @@ $desktop-large: "(min-width: 1600px)";
 
 $color-background: #f8f8f8f8;
 
-$margin: 15px;
+$margin: 16px;
 $padding: $margin;
 
 .example-radio-group {
@@ -28,10 +28,28 @@ body {
   background-color: $color-background;
 }
 
+.toolbar-title {
+  color: white !important;
+  text-decoration: none !important;
+}
+
+.toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.toolbar-item {
+  margin-left: $margin;
+  margin-right: $margin;
+}
+
 .mat-card-avatar {
   background-size: cover;
   background-repeat: no-repeat;
   background-position: center;
+}
+
+.mat-drawer-container {
+  background: none;
 }
 
 heroes {
@@ -164,6 +182,40 @@ payment-component {
   form {
     display: flex;
     flex-direction: column;
+  }
+}
+
+app-verify-and-pay {
+  p {
+    margin: 0px;
+  }
+}
+
+app-customer-summary {
+  display: block;
+  padding-top: $padding;
+  padding-bottom: $padding;
+
+  .address_line1, .address_line2 {
+    white-space: nowrap;
+  }
+}
+
+app-order-summary {
+  display: block;
+  padding-top: $padding;
+  padding-bottom: $padding;
+
+  .order-summary {
+    width: 100%;
+
+    tr.mat-footer-row {
+      font-weight: bold;
+    }
+
+    .mat-table-sticky {
+      border-top: 1px solid #e0e0e0;
+    }
   }
 }
 

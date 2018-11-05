@@ -13,7 +13,10 @@ import { HeroDetailComponent } from './components/hero-detail/hero-detail.compon
 import { SpacesToDashesPipe } from './pipes/spaces-to-dashes.pipe';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
-import { PaymentComponent } from './components/payment-component/payment.component';
+import { PaymentComponent } from './components/payment/payment.component';
+import { CustomerSummaryComponent } from './components/customer-summary/customer-summary.component';
+import { VerifyAndPayComponent } from './components/verify-and-pay/verify-and-pay.component';
+import { OrderSummaryComponent } from './components/order-summary/order-summary.component';
 
 @NgModule({
   declarations: [
@@ -24,6 +27,9 @@ import { PaymentComponent } from './components/payment-component/payment.compone
     PaymentComponent,
     BillingAndShippingComponent,
     AddressFormComponent,
+    VerifyAndPayComponent,
+    CustomerSummaryComponent,
+    OrderSummaryComponent,
     SpacesToDashesPipe
   ],
   imports: [
