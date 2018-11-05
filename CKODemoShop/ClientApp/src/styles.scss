@@ -12,7 +12,7 @@ $padding: $margin;
 .example-radio-group {
   display: inline-flex;
   flex-direction: column;
-  padding-top: 4px;
+  padding-top: $padding;
   padding-bottom: $padding;
 }
 
@@ -22,6 +22,17 @@ $padding: $margin;
 
 .example-selected-value {
   margin: 15px 0;
+}
+
+.gtc-checkbox {
+  max-width: 500px;
+  text-align: justify;
+  padding-top: $padding;
+  padding-bottom: $padding;
+
+  .mat-checkbox-label {
+    white-space: normal;
+  }
 }
 
 body {

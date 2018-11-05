@@ -1,6 +1,6 @@
 <mat-vertical-stepper [linear]="isLinear" #stepper>
-  <mat-step [stepControl]="firstFormGroup">
-    <form [formGroup]="firstFormGroup">
+  <mat-step [stepControl]="customerFormGroup">
+    <form [formGroup]="customerFormGroup">
       <ng-template matStepLabel>Fill out your name and email</ng-template>
       <mat-form-field>
         <input matInput placeholder="Full name" formControlName="name" required>
@@ -13,8 +13,8 @@
       </div>
     </form>
   </mat-step>
-  <mat-step [stepControl]="secondFormGroup">
-    <form [formGroup]="secondFormGroup">
+  <mat-step [stepControl]="addressFormGroup">
+    <form [formGroup]="addressFormGroup">
       <ng-template matStepLabel>Fill out your address</ng-template>
       <mat-form-field>
         <input matInput placeholder="Address" formControlName="address_line1" required>
@@ -41,16 +41,19 @@
     </form>
   </mat-step>
   <mat-step>
-    <form [formGroup]="thirdFormGroup">
+    <form [formGroup]="paymentFormGroup">
       <ng-template matStepLabel>Verify&nbsp;&amp;&nbsp;Pay</ng-template>
       <app-verify-and-pay [customer]="customer"></app-verify-and-pay>
+      <mat-divider></mat-divider>
       <mat-radio-group class="example-radio-group" formControlName="payment_method">
         <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod">
           {{paymentMethod}}
         </mat-radio-button>
       </mat-radio-group>
+      <mat-divider></mat-divider>
+      <mat-checkbox class="gtc-checkbox" formControlName="gtc" required>{{gtcDisclaimer.i_have_read_and_agree}} <a href="{{gtcDisclaimer.g_t_c_uri}}" target="_blank">{{gtcDisclaimer.g_t_c}}</a>.<br />{{gtcDisclaimer.i_have_verified_and_want_to_pay}}{{paymentFormGroup.get('payment_method').value ? 'via ' + paymentFormGroup.get('payment_method').value : ''}}.</mat-checkbox>
       <div>
-        <button mat-flat-button color="accent" [disabled]="thirdFormGroup.invalid" (click)="test()">Pay Now</button>
+        <button mat-flat-button color="accent" [disabled]="paymentFormGroup.invalid || !paymentFormGroup.get('gtc').value" (click)="test()">Pay Now</button>
       </div>
     </form>
   </mat-step>
