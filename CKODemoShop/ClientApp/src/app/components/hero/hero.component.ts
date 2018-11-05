@@ -1,12 +1,12 @@
 import { Component, Input } from '@angular/core';
-import { Hero } from '../../classes/hero';
+import { IHero } from '../../interfaces/hero.interface';
 
 @Component({
   selector: 'hero',
   templateUrl: './hero.component.html'
 })
 export class HeroComponent {
-  @Input() hero: Hero;
+  @Input() hero: IHero;
 
   constructor() {}
 }
