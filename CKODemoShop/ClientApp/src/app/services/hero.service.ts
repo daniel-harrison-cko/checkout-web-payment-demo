@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { IHero } from '../interfaces/hero.interface';
+import { Observable } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
@@ -8,11 +9,11 @@ import { IHero } from '../interfaces/hero.interface';
 export class HeroService {
   constructor(private http: HttpClient) { }
 
-  getHero(name: string) {
+  getHero(name: string): Observable<HttpResponse<IHero>> {
     return this.http.get<IHero>(`/api/sampledata/gethero/${name}`, {observe: 'response'});
   }
 
-  getAllHeroes() {
+  getAllHeroes(): Observable<HttpResponse<IHero[]>> {
     return this.http.get<IHero[]>(`/api/sampledata/getallheroes`, { observe: 'response' });
   }
 }
