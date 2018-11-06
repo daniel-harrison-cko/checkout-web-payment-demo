@@ -7,6 +7,7 @@ import { PaymentService } from '../../services/payment.service';
 import { IIssuer } from '../../interfaces/issuer.interface';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
+import { IIdealSource } from '../../interfaces/ideal-source.interface';
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
@@ -22,7 +23,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   },
   {
     name: 'PayPal',
-    lppId: 'lpp_x'
+    lppId: 'lpp_19'
   }
 ]
 
@@ -44,10 +45,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
     g_t_c_uri: 'https://www.checkout.com/legal/terms-and-policies',
     i_have_verified_and_want_to_pay: 'My Billing Details are correct and I want to continue with the payment'
   }
+  agreesWithGtc: boolean;
+  makePayment: Function;
   customer: ICustomer;
   issuers: IIssuer[];
 
-  constructor(private _formBuilder: FormBuilder,private _paymentService: PaymentService) { }
+  constructor(private _formBuilder: FormBuilder, private _paymentService: PaymentService) { }
 
   ngOnInit() {
     this.customerFormGroup = this._formBuilder.group({
@@ -69,7 +72,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(
-      this.paymentFormGroup.get('payment_method').valueChanges.subscribe(payment_method => this.selectedPaymentMethod = payment_method)
+      this.paymentFormGroup.get('payment_method').valueChanges.subscribe(payment_method => this.selectedPaymentMethod = payment_method),
+      this.paymentFormGroup.get('gtc').valueChanges.subscribe(agreesWithGtc => this.agreesWithGtc = agreesWithGtc)
     );
   }
 
@@ -98,10 +102,21 @@ export class PaymentComponent implements OnInit, OnDestroy {
       case 'lpp_9': {
         this.getIssuers(paymentMethod);
         this.addPaymentConfigurator();
+        this.makePayment = () => {
+          this._paymentService.requestPayment({
+            source: <IIdealSource>{
+              type: 'ideal',
+              issuer_id: 'INGBNL2A'
+            },
+            amount: 100,
+            currency: 'GBP'
+          }).subscribe(response => console.log(response))
+        };
         break;
       }
       default: {
         console.warn('No payment method specific action was defined!');
+        this.makePayment = () => { throw new Error(`${paymentMethod.name} payment is not implemented yet!`) };
         break;
       }
     }

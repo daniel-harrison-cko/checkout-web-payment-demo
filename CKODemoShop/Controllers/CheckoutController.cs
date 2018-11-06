@@ -11,7 +11,7 @@ namespace CKODemoShop.Controllers
         [HttpGet("[action]/{lppId}")]
         [ProducesResponseType(200, Type = typeof(IIssuer[]))]
         [ProducesResponseType(400)]
-        public IActionResult GetIssuers(string lppId)
+        public IActionResult Issuers(string lppId)
         {
             try
             {
@@ -24,6 +24,21 @@ namespace CKODemoShop.Controllers
                 });
             }
             catch(Exception e)
+            {
+                return BadRequest();
+            }
+        }
+
+        [HttpPost("[action]")]
+        [ProducesResponseType(200, Type = typeof(object))]
+        [ProducesResponseType(400)]
+        public IActionResult Payments([FromBody] object PaymentRequestModel)
+        {
+            try
+            {
+                return Ok();
+            }
+            catch (Exception e)
             {
                 return BadRequest();
             }
