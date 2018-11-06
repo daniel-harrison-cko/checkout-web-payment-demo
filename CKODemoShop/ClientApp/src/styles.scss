@@ -194,6 +194,12 @@ payment-component {
     display: flex;
     flex-direction: column;
   }
+
+  .payment-setup {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 }
 
 app-verify-and-pay {

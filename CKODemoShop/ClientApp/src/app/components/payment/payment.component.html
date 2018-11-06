@@ -45,15 +45,28 @@
       <ng-template matStepLabel>Verify&nbsp;&amp;&nbsp;Pay</ng-template>
       <app-verify-and-pay [customer]="customer"></app-verify-and-pay>
       <mat-divider></mat-divider>
-      <mat-radio-group class="example-radio-group" formControlName="payment_method">
-        <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod">
-          {{paymentMethod}}
-        </mat-radio-button>
-      </mat-radio-group>
+      <div class="payment-setup">
+        <mat-radio-group class="example-radio-group" formControlName="payment_method">
+          <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod" (click)="invokePaymentMethod(paymentMethod)">
+            {{paymentMethod.name}}
+          </mat-radio-button>
+        </mat-radio-group>
+        <div formArrayName="payment_configurators">
+          <mat-form-field *ngFor="let payment_configurator of payment_configurators.controls; let i=index">
+            <mat-select placeholder="Select your Bank" [formControlName]="i" required>
+              <mat-option>--</mat-option>
+              <mat-option *ngFor="let issuer of issuers" [value]="issuer.value">
+                {{issuer.key}}
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="payment_configurator.hasError('required')">Please select your bank for payment with {{selectedPaymentMethod?.name}}.</mat-error>
+          </mat-form-field>
+        </div>        
+      </div>      
       <mat-divider></mat-divider>
-      <mat-checkbox class="gtc-checkbox" formControlName="gtc" required>{{gtcDisclaimer.i_have_read_and_agree}} <a href="{{gtcDisclaimer.g_t_c_uri}}" target="_blank">{{gtcDisclaimer.g_t_c}}</a>.<br />{{gtcDisclaimer.i_have_verified_and_want_to_pay}}{{paymentFormGroup.get('payment_method').value ? 'via ' + paymentFormGroup.get('payment_method').value : ''}}.</mat-checkbox>
+      <mat-checkbox class="gtc-checkbox" formControlName="gtc" required>{{gtcDisclaimer.i_have_read_and_agree}} <a href="{{gtcDisclaimer.g_t_c_uri}}" target="_blank">{{gtcDisclaimer.g_t_c}}</a>.<br />{{gtcDisclaimer.i_have_verified_and_want_to_pay}}{{selectedPaymentMethod?.name ? ' via ' + selectedPaymentMethod?.name : ''}}.</mat-checkbox>
       <div>
-        <button mat-flat-button color="accent" [disabled]="paymentFormGroup.invalid || !paymentFormGroup.get('gtc').value" (click)="test()">Pay Now</button>
+        <button mat-flat-button color="accent" [disabled]="paymentFormGroup.invalid || !paymentFormGroup.get('gtc').value">Pay Now</button>
       </div>
     </form>
   </mat-step>
