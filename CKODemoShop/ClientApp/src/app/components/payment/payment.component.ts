@@ -8,6 +8,7 @@ import { IIssuer } from '../../interfaces/issuer.interface';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
 import { IIdealSource } from '../../interfaces/ideal-source.interface';
+import { IGiropaySource } from '../../interfaces/giropay-source.interface';
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
@@ -19,7 +20,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   },
   {
     name: 'giropay',
-    lppId: 'lpp_x'
+    lppId: 'lpp_giropay'
   },
   {
     name: 'PayPal',
@@ -109,8 +110,24 @@ export class PaymentComponent implements OnInit, OnDestroy {
               issuer_id: 'INGBNL2A'
             },
             amount: 100,
-            currency: 'GBP'
-          }).subscribe(response => console.log(response))
+            currency: 'EUR'
+          }).subscribe(response => console.log('iDeal Response:', response))
+        };
+        break;
+      }
+      case 'lpp_giropay': {
+        this.getIssuers(paymentMethod);
+        this.addPaymentConfigurator();
+        this.makePayment = () => {
+          this._paymentService.requestPayment({
+            source: <IGiropaySource>{
+              type: 'giropay',
+              purpose: 'CKO Demo Shop Test',
+              bic: 'TESTDETT421'
+            },
+            amount: 100,
+            currency: 'EUR'
+          }).subscribe(response => console.log('giropay Response:', response))
         };
         break;
       }
@@ -135,6 +152,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   getIssuers(paymentMethod: IPaymentMethod) {
+    if (paymentMethod.lppId == 'lpp_giropay') {
+      paymentMethod.lppId = 'lpp_9';
+    }
     this._paymentService.getIssuers(paymentMethod).subscribe(response => this.issuers = response.body);
   }
 }
