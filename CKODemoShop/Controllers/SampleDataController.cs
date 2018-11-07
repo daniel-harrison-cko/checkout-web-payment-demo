@@ -121,6 +121,7 @@ namespace CKODemoShop.Controllers
             }
             catch(Exception e)
             {
+                Console.Error.WriteLine(e.Message);
                 return BadRequest();
             }
         }
