@@ -1,6 +1,6 @@
 import { ISource } from "./source.interface";
 
-export interface IPaymentRequestModel {
+export interface IPaymentRequest {
   source: ISource;
   amount?: number;
   currency: string;
