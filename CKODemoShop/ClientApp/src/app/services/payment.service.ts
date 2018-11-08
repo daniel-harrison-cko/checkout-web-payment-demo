@@ -5,6 +5,8 @@ import { IBank } from '../interfaces/bank.interface';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
 import { IPaymentRequest } from '../interfaces/payment-request.interface';
 import { IBanks } from '../interfaces/banks.interface';
+import { IPending } from '../interfaces/pending.interface';
+import { IPaymentResponse } from '../interfaces/payment-response.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -20,7 +22,12 @@ export class PaymentService {
     return this.http.get<IBanks>(`/api/checkout/${paymentMethod.lppId}/banks`, { observe: 'response' });
   }
 
-  requestPayment(paymentRequest: IPaymentRequest): Observable<any> {
+  requestPayment(paymentRequest: IPaymentRequest): Observable<HttpResponse<any>> {
     return this.http.post<any>(`/api/checkout/payments`, paymentRequest, { observe: 'response' });
+  }
+
+  redirect(response: HttpResponse<IPaymentResponse>): void {
+    let pending: IPending = response.body.pending;
+    window.location.href = pending._links.redirect.href;
   }
 }
