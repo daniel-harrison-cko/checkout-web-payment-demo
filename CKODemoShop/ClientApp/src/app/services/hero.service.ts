@@ -10,10 +10,10 @@ export class HeroService {
   constructor(private http: HttpClient) { }
 
   getHero(name: string): Observable<HttpResponse<IHero>> {
-    return this.http.get<IHero>(`/api/sampledata/gethero/${name}`, {observe: 'response'});
+    return this.http.get<IHero>(`/api/sampledata/hero/${name}`, {observe: 'response'});
   }
 
   getAllHeroes(): Observable<HttpResponse<IHero[]>> {
-    return this.http.get<IHero[]>(`/api/sampledata/getallheroes`, { observe: 'response' });
+    return this.http.get<IHero[]>(`/api/sampledata/heroes`, { observe: 'response' });
   }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Checkout;
 using Checkout.Payments;
 using System.Threading.Tasks;
+using CKODemoShop.Checkout;
 
 namespace CKODemoShop.Controllers
 {
@@ -18,7 +19,7 @@ namespace CKODemoShop.Controllers
 
         [HttpGet("{lppId}/[action]")]
         [ProducesResponseType(200, Type = typeof(IList<IIBank>))]
-        [ProducesResponseType(400)]
+        [ProducesResponseType(404)]
         public async Task<IActionResult> Banks(string lppId)
         {
             object response = null;
@@ -51,12 +52,16 @@ namespace CKODemoShop.Controllers
                     };
                     response = banks;
                 }
+                else
+                {
+                    throw new KeyNotFoundException();
+                }
                 return Ok(response);
             }
             catch(Exception e)
             {
                 Console.Error.WriteLine(e.Message);
-                return BadRequest();
+                return NotFound();
             }
         }
 
@@ -75,18 +80,6 @@ namespace CKODemoShop.Controllers
                 Console.Error.WriteLine(e.Message);
                 return BadRequest();
             }
-        }
-
-        public class Bank : IIBank
-        {
-            public string Key { get; set; }
-            public string Value { get; set; }
-        }
-
-        public interface IIBank
-        {
-            string Key { get; set; }
-            string Value { get; set; }
         }
     }
 }

@@ -1,5 +1,7 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
+using CKODemoShop.SampleData;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CKODemoShop.Controllers
@@ -7,7 +9,7 @@ namespace CKODemoShop.Controllers
     [Route("api/[controller]")]
     public class SampleDataController : Controller
     {
-        private static Hero[] Heroes = new[]
+        public readonly IHero[] HEROES = new[]
         {
             new Hero()
             {
@@ -97,51 +99,38 @@ namespace CKODemoShop.Controllers
 
         [HttpGet("[action]/{name}")]
         [ProducesResponseType(200, Type = typeof(IHero))]
+        [ProducesResponseType(400)]
         [ProducesResponseType(404)]
-        public IActionResult GetHero(string name)
+        public async Task<IActionResult> Hero(string name)
         {
-            if(!Heroes.Any(hero => SpacesToDashes(hero.Name).ToLower() == name))
+            if(name.ToLower().Trim() == "trump")
+            {
+                return BadRequest($"{name} is reserved as villain!");
+            }
+            if(!HEROES.Any(hero => SpacesToDashes(hero.Name).ToLower() == name))
             {
                 return NotFound();
             }
             else
             {
-                return Ok(Heroes.Where(hero => SpacesToDashes(hero.Name).ToLower() == name).Single());
+                return Ok(HEROES.Where(hero => SpacesToDashes(hero.Name).ToLower() == name).Single());
             }
         }
 
         [HttpGet("[action]")]
         [ProducesResponseType(200, Type = typeof(IHero[]))]
         [ProducesResponseType(400)]
-        public IActionResult GetAllHeroes()
+        public async Task<IActionResult> Heroes()
         {
             try
             {
-                return Ok(Heroes);
+                return Ok(HEROES);
             }
             catch(Exception e)
             {
                 Console.Error.WriteLine(e.Message);
                 return BadRequest();
             }
-        }
-
-        public class Hero : IHero
-        {
-            public string Name { get; set; }
-            public string Universe { get; set; }
-            public int Rank { get; set; }
-            public string ImgSrc { get; set; }
-            public string Description { get; set; }
-        }
-
-        public interface IHero
-        {
-            string Name { get; set; }
-            string Universe { get; set; }
-            int Rank { get; set; }
-            string ImgSrc { get; set; }
-            string Description { get; set; }
         }
     }
 }
