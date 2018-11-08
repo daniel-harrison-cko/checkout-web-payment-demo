@@ -16,20 +16,42 @@ namespace CKODemoShop.Controllers
             useSandbox: true
             );
 
-        [HttpGet("[action]/{lppId}")]
-        [ProducesResponseType(200, Type = typeof(List<IIssuer>))]
+        [HttpGet("{lppId}/[action]")]
+        [ProducesResponseType(200, Type = typeof(IList<IIBank>))]
         [ProducesResponseType(400)]
-        public IActionResult Issuers(string lppId)
+        public async Task<IActionResult> Banks(string lppId)
         {
+            object response = null;
+            IList<IIBank> legacyBanks;
+            IDictionary<string, string> banks;
             try
             {
-                return Ok(new List<IIssuer> {
-                    new Issuer()
+                if (lppId == "lpp_9")
+                {
+                    legacyBanks = new List<IIBank>
                     {
-                        Key = "Issuer Simulation V3 - ING",
-                        Value = "INGBNL2A"
-                    }
-                });
+                        new Bank()
+                        {
+                            Key = "Simulation INGDiba",
+                            Value = "INGBNL2A"
+                        },
+                        new Bank()
+                        {
+                            Key = "Simulation Rabo Bank",
+                            Value = "RABONL2U"
+                        }
+                    };
+                    response = legacyBanks;
+                }
+                else if (lppId == "lpp_giropay")
+                {
+                    banks = new Dictionary<string, string> {
+                        {"BEVODEBBXXX", "Berliner Volksbank"},
+                        {"BYLADEM1001", "Deutsche Kreditbank Berlin"},
+                    };
+                    response = banks;
+                }
+                return Ok(response);
             }
             catch(Exception e)
             {
@@ -55,13 +77,13 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        public class Issuer : IIssuer
+        public class Bank : IIBank
         {
             public string Key { get; set; }
             public string Value { get; set; }
         }
 
-        public interface IIssuer
+        public interface IIBank
         {
             string Key { get; set; }
             string Value { get; set; }

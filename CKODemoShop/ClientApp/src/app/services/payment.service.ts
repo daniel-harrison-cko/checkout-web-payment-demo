@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { IIssuer } from '../interfaces/issuer.interface';
+import { IBank } from '../interfaces/bank.interface';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
 import { IPaymentRequest } from '../interfaces/payment-request.interface';
+import { IBanks } from '../interfaces/banks.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -11,8 +12,12 @@ import { IPaymentRequest } from '../interfaces/payment-request.interface';
 export class PaymentService {
   constructor(private http: HttpClient) { }
 
-  getIssuers(paymentMethod: IPaymentMethod): Observable<HttpResponse<IIssuer[]>> {
-    return this.http.get<IIssuer[]>(`/api/checkout/issuers/${paymentMethod.lppId}`, { observe: 'response' });
+  getLegacyBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBank[]>> {
+    return this.http.get<IBank[]>(`/api/checkout/${paymentMethod.lppId}/banks`, { observe: 'response' });
+  }
+
+  getBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBanks>> {
+    return this.http.get<IBanks>(`/api/checkout/${paymentMethod.lppId}/banks`, { observe: 'response' });
   }
 
   requestPayment(paymentRequest: IPaymentRequest): Observable<any> {

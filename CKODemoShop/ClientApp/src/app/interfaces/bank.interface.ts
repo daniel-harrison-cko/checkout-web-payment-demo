@@ -1,4 +1,4 @@
-export interface IIssuer {
+export interface IBank {
   key: string;
   value: string;
 }

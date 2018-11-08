@@ -55,8 +55,8 @@
           <mat-form-field *ngFor="let payment_configurator of payment_configurators.controls; let i=index">
             <mat-select placeholder="Select your Bank" [formControlName]="i" required>
               <mat-option>--</mat-option>
-              <mat-option *ngFor="let issuer of issuers" [value]="issuer.value">
-                {{issuer.key}}
+              <mat-option *ngFor="let bank of banks" [value]="bank.value">
+                {{bank.key}}
               </mat-option>
             </mat-select>
             <mat-error *ngIf="payment_configurator.hasError('required')">Please select your bank for payment with {{selectedPaymentMethod?.name}}.</mat-error>

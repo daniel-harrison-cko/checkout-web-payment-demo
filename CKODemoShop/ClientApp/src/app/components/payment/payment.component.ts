@@ -4,7 +4,7 @@ import { IAddress } from '../../interfaces/address.interface';
 import { ICustomer } from '../../interfaces/customer.interface';
 import { IGtcDisclaimer } from '../../interfaces/gtc-disclaimer.interface';
 import { PaymentService } from '../../services/payment.service';
-import { IIssuer } from '../../interfaces/issuer.interface';
+import { IBank } from '../../interfaces/bank.interface';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
 import { IIdealSource } from '../../interfaces/ideal-source.interface';
@@ -49,7 +49,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   agreesWithGtc: boolean;
   makePayment: Function;
   customer: ICustomer;
-  issuers: IIssuer[];
+  banks: IBank[];
 
   constructor(private _formBuilder: FormBuilder, private _paymentService: PaymentService) { }
 
@@ -90,7 +90,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.payment_configurators.push(this._formBuilder.control('', Validators.required));
   }
 
-  private clearPaymentConfigurator = () => {
+  private resetPaymentConfigurations = () => {
+    this.banks = null;
     let payment_configurators = this.payment_configurators;
     while (payment_configurators.length !== 0) {
       payment_configurators.removeAt(0);
@@ -98,10 +99,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   invokePaymentMethod(paymentMethod: IPaymentMethod) {
-    this.clearPaymentConfigurator();
+    this.resetPaymentConfigurations();
     switch (paymentMethod.lppId) {
       case 'lpp_9': {
-        this.getIssuers(paymentMethod);
+        this.getBanksLegacy(paymentMethod);
         this.addPaymentConfigurator();
         this.makePayment = () => {
           this._paymentService.requestPayment({
@@ -116,7 +117,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
         break;
       }
       case 'lpp_giropay': {
-        this.getIssuers(paymentMethod);
+        this.getBanks(paymentMethod);
         this.addPaymentConfigurator();
         this.makePayment = () => {
           this._paymentService.requestPayment({
@@ -151,10 +152,20 @@ export class PaymentComponent implements OnInit, OnDestroy {
     };
   }
 
-  getIssuers(paymentMethod: IPaymentMethod) {
-    if (paymentMethod.lppId == 'lpp_giropay') {
-      paymentMethod.lppId = 'lpp_9';
-    }
-    this._paymentService.getIssuers(paymentMethod).subscribe(response => this.issuers = response.body);
+  getBanksLegacy(paymentMethod: IPaymentMethod) {
+    this._paymentService.getLegacyBanks(paymentMethod).subscribe(response => this.banks = response.body);
+  }
+
+  getBanks(paymentMethod: IPaymentMethod) {
+    this._paymentService.getBanks(paymentMethod).subscribe(response => {
+      let banks: IBank[] = [];
+      Object.keys(response.body).forEach(function (key) {
+        banks.push({
+          key: response.body[key],
+          value: key
+        })
+      });
+      this.banks = banks;
+    });
   }
 }
