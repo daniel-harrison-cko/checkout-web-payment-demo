@@ -65,8 +65,8 @@
       </div>      
       <mat-divider></mat-divider>
       <mat-checkbox class="gtc-checkbox" formControlName="gtc" required>{{gtcDisclaimer.i_have_read_and_agree}} <a href="{{gtcDisclaimer.g_t_c_uri}}" target="_blank">{{gtcDisclaimer.g_t_c}}</a>.<br />{{gtcDisclaimer.i_have_verified_and_want_to_pay}}{{selectedPaymentMethod?.name ? ' via ' + selectedPaymentMethod?.name : ''}}.</mat-checkbox>
-      <div>
-        <button mat-flat-button color="accent" [disabled]="paymentFormGroup.invalid || !agreesWithGtc" (click)="makePayment()">Pay Now</button>
+      <div class="payNowButton-container">
+        <button mat-flat-button color="accent" [disabled]="paymentFormGroup.invalid || !agreesWithGtc || processing" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
       </div>
     </form>
   </mat-step>

@@ -66,14 +66,14 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpPost("[action]")]
-        [ProducesResponseType(200, Type = typeof(PaymentResponse))]
+        [ProducesResponseType(202, Type = typeof(PaymentResponse))]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Payments([FromBody] PaymentRequest<AlternativePaymentSource> paymentRequestModel)
         {
             try
             {
                 PaymentResponse paymentResponse = await api.Payments.RequestAsync(paymentRequestModel);
-                return Ok(paymentResponse);
+                return Accepted(paymentResponse);
             }
             catch (Exception e)
             {

@@ -9,6 +9,10 @@ import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
 import { IIdealSource } from '../../interfaces/ideal-source.interface';
 import { IGiropaySource } from '../../interfaces/giropay-source.interface';
+import { HttpResponse } from '@angular/common/http';
+import { IPayment } from '../../interfaces/payment.interface';
+import { IPending } from '../../interfaces/pending.interface';
+import { IPaymentResponse } from '../../interfaces/payment-response.interface';
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
@@ -47,6 +51,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
     i_have_verified_and_want_to_pay: 'My Billing Details are correct and I want to continue with the payment'
   }
   agreesWithGtc: boolean;
+  processing: boolean;
   makePayment: Function;
   customer: ICustomer;
   banks: IBank[];
@@ -92,6 +97,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   private resetPaymentConfigurations = () => {
     this.banks = null;
+    this.processing = null;
     let payment_configurators = this.payment_configurators;
     while (payment_configurators.length !== 0) {
       payment_configurators.removeAt(0);
@@ -105,6 +111,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.getBanksLegacy(paymentMethod);
         this.addPaymentConfigurator();
         this.makePayment = () => {
+          this.processing = true;
           this._paymentService.requestPayment({
             source: <IIdealSource>{
               type: 'ideal',
@@ -112,7 +119,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
             },
             amount: 100,
             currency: 'EUR'
-          }).subscribe(response => console.log('iDeal Response:', response))
+          }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
       }
@@ -120,6 +127,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
         this.getBanks(paymentMethod);
         this.addPaymentConfigurator();
         this.makePayment = () => {
+          this.processing = true;
           this._paymentService.requestPayment({
             source: <IGiropaySource>{
               type: 'giropay',
@@ -128,7 +136,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
             },
             amount: 100,
             currency: 'EUR'
-          }).subscribe(response => console.log('giropay Response:', response))
+          }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
       }
@@ -150,6 +158,24 @@ export class PaymentComponent implements OnInit, OnDestroy {
       billingAddress: <IAddress>this.addressFormGroup.value,
       shippingAddress: <IAddress>this.addressFormGroup.value
     };
+  }
+
+  handlePaymentResponse(response: HttpResponse<any>) {
+    switch (response.status) {
+      case 200: {
+        console.log(`Response status: ${response.status}`);
+        break;
+      }
+      case 202: {
+        this._paymentService.redirect(response);
+        break;
+      }
+      default: {
+        this.paymentFormGroup.reset();
+        this.resetPaymentConfigurations();
+        throw new Error(`Handling of response status ${response.status} is not implemented!`);
+      }
+    }
   }
 
   getBanksLegacy(paymentMethod: IPaymentMethod) {
