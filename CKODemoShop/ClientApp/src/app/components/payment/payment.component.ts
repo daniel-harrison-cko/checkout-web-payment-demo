@@ -10,9 +10,6 @@ import { Subscription } from 'rxjs';
 import { IIdealSource } from '../../interfaces/ideal-source.interface';
 import { IGiropaySource } from '../../interfaces/giropay-source.interface';
 import { HttpResponse } from '@angular/common/http';
-import { IPayment } from '../../interfaces/payment.interface';
-import { IPending } from '../../interfaces/pending.interface';
-import { IPaymentResponse } from '../../interfaces/payment-response.interface';
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
@@ -185,9 +182,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
   getBanks(paymentMethod: IPaymentMethod) {
     this._paymentService.getBanks(paymentMethod).subscribe(response => {
       let banks: IBank[] = [];
-      Object.keys(response.body).forEach(function (key) {
+      Object.keys(response.body.banks).forEach(function (key) {
         banks.push({
-          key: response.body[key],
+          key: `(${key}) ${response.body.banks[key]}`,
           value: key
         })
       });

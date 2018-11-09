@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 using CKODemoShop.Checkout;
 using Microsoft.AspNetCore.Http;
+using Checkout.Common;
+using System;
 
 namespace CKODemoShop.Tests
 {
@@ -19,16 +21,17 @@ namespace CKODemoShop.Tests
         void before_all()
         {
             controller = new CheckoutController();
+            Console.WriteLine("CheckoutController instantiated");
         }
 
         string lppId;
         List<IIBank> legacyBanks;
-        IDictionary<string, string> banks;
+        BanksResponse banks;
         void when_get_banks()
         {
             context["given ~/lpp_19/banks"] = () =>
             {
-                beforeAsync = async () =>
+                beforeAllAsync = async () =>
                 {
                     lppId = "lpp_9";
                     result = await controller.Banks(lppId);
@@ -53,11 +56,11 @@ namespace CKODemoShop.Tests
 
             context["given ~/lpp_giropay/banks"] = () =>
             {
-                beforeAsync = async () =>
+                beforeAllAsync = async () =>
                 {
                     lppId = "lpp_giropay";
                     result = await controller.Banks(lppId);
-                    banks = (result as ObjectResult).Value as IDictionary<string, string>;
+                    banks = (result as ObjectResult).Value as BanksResponse;
                 };
 
                 it["should return 200 - OK"] = () =>
@@ -65,20 +68,30 @@ namespace CKODemoShop.Tests
                     (result as OkObjectResult).StatusCode.ShouldBe(StatusCodes.Status200OK);
                 };
 
-                it["should return a non-empty list of banks"] = () =>
+                it["should return True for property 'HasBanks'"] = () =>
                 {
-                    banks.ShouldNotBeEmpty();
+                    banks.HasBanks.ShouldBeTrue();
                 };
 
-                it["should contain single bank with KeyValuePair 'BYLADEM1001': 'Deutsche Kreditbank Berlin'"] = () =>
+                it["should return a type of Dictionary<string, string> for property 'Banks'"] = () =>
                 {
-                    banks.Single(bank => (bank.Key == "BYLADEM1001" && bank.Value == "Deutsche Kreditbank Berlin"));
+                    banks.Banks.ShouldBeOfType<Dictionary<string, string>>();
+                };
+
+                it["should return a non-empty Dictionary for property 'Banks'"] = () =>
+                {
+                    banks.Banks.Count.ShouldBeGreaterThan(0);
+                };
+
+                it["should contain KeyValuePair 'TESTDETT421': 'giropay Testinstitut'"] = () =>
+                {
+                    banks.Banks.ShouldContainKeyAndValue("TESTDETT421", "giropay Testinstitut");
                 };
             };
 
             context["given ~/lpp_ducks/banks"] = () =>
             {
-                beforeAsync = async () =>
+                beforeAllAsync = async () =>
                 {
                     lppId = "lpp_ducks";
                     result = await controller.Banks(lppId);

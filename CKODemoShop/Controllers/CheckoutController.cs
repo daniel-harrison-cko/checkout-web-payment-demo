@@ -2,9 +2,12 @@ using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using Checkout;
+using Checkout.Common;
 using Checkout.Payments;
 using System.Threading.Tasks;
 using CKODemoShop.Checkout;
+using System.Net.Http;
+using Newtonsoft.Json;
 
 namespace CKODemoShop.Controllers
 {
@@ -16,6 +19,7 @@ namespace CKODemoShop.Controllers
             publicKey: Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"),
             useSandbox: true
             );
+        static HttpClient client = new HttpClient();
 
         [HttpGet("{lppId}/[action]")]
         [ProducesResponseType(200, Type = typeof(IList<IIBank>))]
@@ -46,11 +50,12 @@ namespace CKODemoShop.Controllers
                 }
                 else if (lppId == "lpp_giropay")
                 {
-                    banks = new Dictionary<string, string> {
-                        {"BEVODEBBXXX", "Berliner Volksbank"},
-                        {"BYLADEM1001", "Deutsche Kreditbank Berlin"},
-                    };
-                    response = banks;
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                    HttpResponseMessage result = await client.GetAsync("https://nginxtest.ckotech.co/giropay-external/banks");
+                    string content = await result.Content.ReadAsStringAsync();
+                    BanksResponse banksProcessed = JsonConvert.DeserializeObject<BanksResponse>(content);
+                    response = banksProcessed;
                 }
                 else
                 {

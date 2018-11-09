@@ -103,10 +103,6 @@ namespace CKODemoShop.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Hero(string name)
         {
-            if(name.ToLower().Trim() == "trump")
-            {
-                return BadRequest($"{name} is reserved as villain!");
-            }
             if(!HEROES.Any(hero => SpacesToDashes(hero.Name).ToLower() == name))
             {
                 return NotFound();

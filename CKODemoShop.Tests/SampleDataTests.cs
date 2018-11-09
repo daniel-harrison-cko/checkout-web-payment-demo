@@ -19,6 +19,7 @@ namespace CKODemoShop.Tests
         void before_all()
         {
             controller = new SampleDataController();
+            Console.WriteLine("SampleDataController instantiated");
         }
 
         string heroName;
@@ -27,7 +28,7 @@ namespace CKODemoShop.Tests
         {
             context["given ~/hero/batman"] = () =>
             {
-                beforeAsync = async () =>
+                beforeAllAsync = async () =>
                 {
                     heroName = "batman";
                     result = await controller.Hero(heroName);
@@ -52,7 +53,7 @@ namespace CKODemoShop.Tests
 
             context["given ~/hero/invisible-man"] = () =>
             {
-                beforeAsync = async () =>
+                beforeAllAsync = async () =>
                 {
                     heroName = "invisible-man";
                     result = await controller.Hero(heroName);
@@ -63,21 +64,6 @@ namespace CKODemoShop.Tests
                     (result as NotFoundResult).StatusCode.ShouldBe(StatusCodes.Status404NotFound);
                 };
             };
-
-            context["given ~/hero/trump"] = () =>
-            {
-                beforeAsync = async () =>
-                {
-                    heroName = "trump";
-                    result = await controller.Hero(heroName);
-                };
-
-                it["should return 400 - Bad Request"] = () =>
-                {
-                    (result as BadRequestObjectResult).StatusCode.ShouldBe(StatusCodes.Status400BadRequest);
-                    Console.WriteLine((result as BadRequestObjectResult).Value.ToString());
-                };
-            };
         }
 
         IHero[] heroes;
@@ -85,7 +71,7 @@ namespace CKODemoShop.Tests
         {
             context["given ~/heroes"] = () =>
             {
-                beforeAsync = async () =>
+                beforeAllAsync = async () =>
                 {
                     result = await controller.Heroes();
                     heroes = (result as ObjectResult).Value as IHero[];
