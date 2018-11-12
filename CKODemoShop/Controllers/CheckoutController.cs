@@ -71,14 +71,22 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpPost("[action]")]
-        [ProducesResponseType(202, Type = typeof(PaymentResponse))]
+        [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
+        [ProducesResponseType(202, Type = typeof(PaymentPending))]
         [ProducesResponseType(400)]
         public async Task<IActionResult> Payments([FromBody] PaymentRequest<AlternativePaymentSource> paymentRequestModel)
         {
             try
             {
                 PaymentResponse paymentResponse = await api.Payments.RequestAsync(paymentRequestModel);
-                return Accepted(paymentResponse);
+                if(paymentResponse.IsPending)
+                {
+                    return Accepted(paymentResponse.Pending.GetSelfLink().Href, paymentResponse);
+                }
+                else
+                {
+                    return Created(paymentResponse.Payment.GetSelfLink().Href, paymentResponse);
+                }
             }
             catch (Exception e)
             {

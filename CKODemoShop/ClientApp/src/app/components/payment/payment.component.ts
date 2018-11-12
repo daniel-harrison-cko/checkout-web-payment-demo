@@ -54,6 +54,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   customer: ICustomer;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
+  selectedBank: IBank;
 
   constructor(private _formBuilder: FormBuilder, private _paymentService: PaymentService) { }
 
@@ -89,6 +90,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   private onBankSelectionChanged() {
     let bankInput: FormControl = <FormControl>this.payment_configurators.at(0);
     let currentBank: IBank = bankInput.value;
+    this.selectedBank = currentBank;
     bankInput.setValue(`${currentBank.value} ${currentBank.key}`);
   }
 
@@ -108,6 +110,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   private resetPaymentConfigurations = () => {
     this.banks = null;
     this.filteredBanks = null;
+    this.selectedBank = null;
     this.processing = null;
     let payment_configurators = this.payment_configurators;
     while (payment_configurators.length !== 0) {
@@ -126,7 +129,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           this._paymentService.requestPayment({
             source: <IIdealSource>{
               type: 'ideal',
-              issuer_id: 'INGBNL2A'
+              issuer_id: this.selectedBank.value
             },
             amount: 100,
             currency: 'EUR'
@@ -143,7 +146,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
             source: <IGiropaySource>{
               type: 'giropay',
               purpose: 'CKO Demo Shop Test',
-              bic: 'TESTDETT421'
+              bic: this.selectedBank.value
             },
             amount: 100,
             currency: 'EUR'
@@ -173,7 +176,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   handlePaymentResponse(response: HttpResponse<any>) {
     switch (response.status) {
-      case 200: {
+      case 201: {
         console.log(`Response status: ${response.status}`);
         break;
       }
