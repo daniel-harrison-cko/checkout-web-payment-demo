@@ -1,4 +1,5 @@
 import { ILinks } from "./links.interface";
+import { ICustomer } from "./customer.interface";
 
 export interface IPayment {
   id: string;
@@ -9,10 +10,11 @@ export interface IPayment {
   status: number;
   auth_code?: string;
   response_code: string;
+  response_summary?: string;
   '3ds'?: object;
   risk?: object;
   source: object;
-  customer: object;
+  customer: ICustomer;
   processed_on: string;
   reference?: string;
   eci?: string;

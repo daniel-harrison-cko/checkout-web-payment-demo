@@ -122,6 +122,20 @@ heroes {
   }
 }
 
+app-user {
+  .mat-card-content {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .order-table {
+    flex: 1 1 auto;
+    tr {
+      font-family: monospace;
+    }
+  }
+}
+
 hero-detail {
   height: 100%;
   display: flex;

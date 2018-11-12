@@ -17,10 +17,12 @@ import { PaymentComponent } from './components/payment/payment.component';
 import { CustomerSummaryComponent } from './components/customer-summary/customer-summary.component';
 import { VerifyAndPayComponent } from './components/verify-and-pay/verify-and-pay.component';
 import { OrderSummaryComponent } from './components/order-summary/order-summary.component';
+import { UserComponent } from './components/user/user.component';
 
 @NgModule({
   declarations: [
     AppComponent,
+    UserComponent,
     HeroesComponent,
     HeroComponent,
     HeroDetailComponent,
