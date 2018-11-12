@@ -51,18 +51,19 @@
             {{paymentMethod.name}}
           </mat-radio-button>
         </mat-radio-group>
-        <div formArrayName="payment_configurators">
+        <div formArrayName="payment_configurators" class="payment-configurators">
           <mat-form-field *ngFor="let payment_configurator of payment_configurators.controls; let i=index">
-            <mat-select placeholder="Select your Bank" [formControlName]="i" required>
+            <input type="text" placeholder="Select your bank" aria-label="Bank" matInput [formControlName]="i" [matAutocomplete]="auto" required>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
               <mat-option>--</mat-option>
-              <mat-option *ngFor="let bank of banks" [value]="bank.value">
-                {{bank.key}}
+              <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+                <span class="monospace">{{bank.value}}</span> {{bank.key}}
               </mat-option>
-            </mat-select>
+            </mat-autocomplete>
             <mat-error *ngIf="payment_configurator.hasError('required')">Please select your bank for payment with {{selectedPaymentMethod?.name}}.</mat-error>
           </mat-form-field>
         </div>        
-      </div>      
+      </div>
       <mat-divider></mat-divider>
       <mat-checkbox class="gtc-checkbox" formControlName="gtc" required>{{gtcDisclaimer.i_have_read_and_agree}} <a href="{{gtcDisclaimer.g_t_c_uri}}" target="_blank">{{gtcDisclaimer.g_t_c}}</a>.<br />{{gtcDisclaimer.i_have_verified_and_want_to_pay}}{{selectedPaymentMethod?.name ? ' via ' + selectedPaymentMethod?.name : ''}}.</mat-checkbox>
       <div class="payNowButton-container">

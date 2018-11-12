@@ -1,12 +1,13 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { IAddress } from '../../interfaces/address.interface';
 import { ICustomer } from '../../interfaces/customer.interface';
 import { IGtcDisclaimer } from '../../interfaces/gtc-disclaimer.interface';
 import { PaymentService } from '../../services/payment.service';
 import { IBank } from '../../interfaces/bank.interface';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
-import { Subscription } from 'rxjs';
+import { Subscription, Observable } from 'rxjs';
+import { map, startWith } from 'rxjs/operators';
 import { IIdealSource } from '../../interfaces/ideal-source.interface';
 import { IGiropaySource } from '../../interfaces/giropay-source.interface';
 import { HttpResponse } from '@angular/common/http';
@@ -52,6 +53,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   makePayment: Function;
   customer: ICustomer;
   banks: IBank[];
+  filteredBanks: Observable<IBank[]>;
 
   constructor(private _formBuilder: FormBuilder, private _paymentService: PaymentService) { }
 
@@ -76,7 +78,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
     this.subscriptions.push(
       this.paymentFormGroup.get('payment_method').valueChanges.subscribe(payment_method => this.selectedPaymentMethod = payment_method),
-      this.paymentFormGroup.get('gtc').valueChanges.subscribe(agreesWithGtc => this.agreesWithGtc = agreesWithGtc)
+      this.paymentFormGroup.get('gtc').valueChanges.subscribe(agreesWithGtc => this.agreesWithGtc = agreesWithGtc),
     );
   }
 
@@ -84,16 +86,28 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
+  private onBankSelectionChanged() {
+    let bankInput: FormControl = <FormControl>this.payment_configurators.at(0);
+    let currentBank: IBank = bankInput.value;
+    bankInput.setValue(`${currentBank.value} ${currentBank.key}`);
+  }
+
+  private _bankFilter(value: string): IBank[] {
+    const filterValue = value.toString().toLowerCase();
+    return this.banks.filter(bank => { return (bank.value.toLowerCase().includes(filterValue) || bank.key.toLowerCase().includes(filterValue)) });
+  }
+
   get payment_configurators(): FormArray {
     return <FormArray>this.paymentFormGroup.get('payment_configurators');
   }
 
   private addPaymentConfigurator() {
-    this.payment_configurators.push(this._formBuilder.control('', Validators.required));
+    this.payment_configurators.push(this._formBuilder.control('', Validators.required));    
   }
 
   private resetPaymentConfigurations = () => {
     this.banks = null;
+    this.filteredBanks = null;
     this.processing = null;
     let payment_configurators = this.payment_configurators;
     while (payment_configurators.length !== 0) {
@@ -176,7 +190,13 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   getBanksLegacy(paymentMethod: IPaymentMethod) {
-    this._paymentService.getLegacyBanks(paymentMethod).subscribe(response => this.banks = response.body);
+    this._paymentService.getLegacyBanks(paymentMethod).subscribe(response => {
+      this.banks = response.body
+      this.filteredBanks = (<FormControl>this.payment_configurators.at(0)).valueChanges.pipe(
+        startWith(''),
+        map(value => this._bankFilter(value))
+      );
+    });
   }
 
   getBanks(paymentMethod: IPaymentMethod) {
@@ -184,11 +204,15 @@ export class PaymentComponent implements OnInit, OnDestroy {
       let banks: IBank[] = [];
       Object.keys(response.body.banks).forEach(function (key) {
         banks.push({
-          key: `(${key}) ${response.body.banks[key]}`,
+          key: response.body.banks[key],
           value: key
         })
       });
       this.banks = banks;
-    });
+      this.filteredBanks = (<FormControl>this.payment_configurators.at(0)).valueChanges.pipe(
+        startWith(''),
+        map(value => this._bankFilter(value))
+      );
+    });    
   }
 }

@@ -9,6 +9,10 @@ $color-background: #f8f8f8f8;
 $margin: 16px;
 $padding: $margin;
 
+.monospace {
+  font-family: monospace;
+}
+
 .example-radio-group {
   display: inline-flex;
   flex-direction: column;
@@ -199,6 +203,17 @@ payment-component {
     display: flex;
     justify-content: space-between;
     align-items: center;
+
+    .payment-configurators {
+      display: inline-flex;
+      flex: 1 1 auto;
+      padding-top: $padding;
+      padding-bottom: $padding;
+
+      mat-form-field {
+        width: 100%;
+      }
+    }
   }
 
   .payNowButton-container {
