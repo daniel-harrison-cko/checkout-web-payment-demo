@@ -13,6 +13,10 @@ $padding: $margin;
   font-family: monospace;
 }
 
+.cko-container {
+  flex: 1 1 auto;
+}
+
 .example-radio-group {
   display: inline-flex;
   flex-direction: column;
@@ -49,6 +53,10 @@ body {
 }
 
 .toolbar-spacer {
+  flex: 1 1 auto;
+}
+
+.payment-setup-spacer {
   flex: 1 1 auto;
 }
 
@@ -136,6 +144,18 @@ app-user {
   }
 }
 
+.mat-drawer-content {
+  display: flex !important;
+  justify-content: center;
+
+  .mat-card{
+    flex: 1 1 auto;
+    max-width: 50%;
+    margin-top: 2 * $margin;
+    margin-bottom: 2 * $margin;
+  }
+}
+
 hero-detail {
   height: 100%;
   display: flex;
@@ -170,12 +190,11 @@ hero-detail {
         }
 
         flex: 1 1 auto;
-        padding: $padding;
 
         .mat-card {
           display: flex;
           flex-direction: column;
-          margin-bottom: 2 * $margin;
+          max-width: unset;
 
           .mat-card-header {
             flex-grow: 0;
@@ -198,7 +217,8 @@ hero-detail {
 
           .mat-card-image {
             height: 300px;
-            background-size: cover;
+            background-size: contain;
+            background-position: center;
             background-repeat: no-repeat;
           }
         }

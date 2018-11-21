@@ -4,6 +4,7 @@ import { BillingAndShippingComponent } from './components/billing-and-shipping/b
 import { HeroesComponent } from './components/heroes/heroes.component';
 import { HeroDetailComponent } from './components/hero-detail/hero-detail.component';
 import { UserComponent } from './components/user/user.component';
+import { OrderDetailComponent } from './components/order-detail/order-detail.component';
 
 const routes: Routes = [
   {
@@ -15,8 +16,12 @@ const routes: Routes = [
     component: HeroDetailComponent
   },
   {
-    path: 'user/:id',
+    path: 'user',
     component: UserComponent
+  },
+  {
+    path: 'user/order/:orderId',
+    component: OrderDetailComponent
   },
   {
     path: 'order/billing-and-shipping',

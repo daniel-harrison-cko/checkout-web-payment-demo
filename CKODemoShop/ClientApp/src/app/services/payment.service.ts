@@ -15,15 +15,26 @@ export class PaymentService {
   constructor(private http: HttpClient) { }
 
   getLegacyBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBank[]>> {
-    return this.http.get<IBank[]>(`/api/checkout/${paymentMethod.lppId}/banks`, { observe: 'response' });
+    return this.http.get<IBank[]>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
   }
 
   getBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBanks>> {
-    return this.http.get<IBanks>(`/api/checkout/${paymentMethod.lppId}/banks`, { observe: 'response' });
+    return this.http.get<IBanks>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
   }
 
   requestPayment(paymentRequest: IPaymentRequest): Observable<HttpResponse<any>> {
-    return this.http.post<any>(`/api/checkout/payments`, paymentRequest, { observe: 'response' });
+    switch (paymentRequest.source.type) {
+      case "token": {
+        return this.http.post<any>(`/api/checkout/tokenpayments`, paymentRequest, { observe: 'response' });
+      }
+      default: {
+        return this.http.post<any>(`/api/checkout/alternativepayments`, paymentRequest, { observe: 'response' });
+      }
+    }
+  }
+
+  requestToken(tokenRequest: any): Observable<HttpResponse<any>> {
+    return this.http.post<any>(`/api/checkout/tokens`, tokenRequest, { observe: 'response' });
   }
 
   redirect(response: HttpResponse<IPaymentResponse>): void {

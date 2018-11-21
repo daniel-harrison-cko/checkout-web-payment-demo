@@ -3,13 +3,13 @@ import { ICustomer } from "./customer.interface";
 
 export interface IPayment {
   id: string;
-  action_id: string;
+  action_id?: string;
   amount: number;
   currency: string;
-  approved: boolean;
+  approved?: boolean;
   status: number;
   auth_code?: string;
-  response_code: string;
+  response_code?: string;
   response_summary?: string;
   '3ds'?: object;
   risk?: object;

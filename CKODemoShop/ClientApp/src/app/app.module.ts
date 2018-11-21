@@ -18,11 +18,13 @@ import { CustomerSummaryComponent } from './components/customer-summary/customer
 import { VerifyAndPayComponent } from './components/verify-and-pay/verify-and-pay.component';
 import { OrderSummaryComponent } from './components/order-summary/order-summary.component';
 import { UserComponent } from './components/user/user.component';
+import { OrderDetailComponent } from './components/order-detail/order-detail.component';
 
 @NgModule({
   declarations: [
     AppComponent,
     UserComponent,
+    OrderDetailComponent,
     HeroesComponent,
     HeroComponent,
     HeroDetailComponent,

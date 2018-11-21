@@ -7,11 +7,14 @@ using Checkout.Payments;
 using System.Threading.Tasks;
 using CKODemoShop.Checkout;
 using System.Net.Http;
+using Checkout.Tokens;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CKODemoShop.Controllers
 {
     [Route("api/[controller]")]
+    [ApiController]
     public class CheckoutController : Controller
     {
         static CheckoutApi api = CheckoutApi.Create(
@@ -54,8 +57,8 @@ namespace CKODemoShop.Controllers
                     client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
                     HttpResponseMessage result = await client.GetAsync("https://nginxtest.ckotech.co/giropay-external/banks");
                     string content = await result.Content.ReadAsStringAsync();
-                    BanksResponse banksProcessed = JsonConvert.DeserializeObject<BanksResponse>(content);
-                    response = banksProcessed;
+                    //BanksResponse banksProcessed = JsonConvert.DeserializeObject<BanksResponse>(content);
+                    //response = banksProcessed;
                 }
                 else
                 {
@@ -71,27 +74,84 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpPost("[action]")]
-        [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
-        [ProducesResponseType(202, Type = typeof(PaymentPending))]
-        [ProducesResponseType(400)]
-        public async Task<IActionResult> Payments([FromBody] PaymentRequest<AlternativePaymentSource> paymentRequestModel)
+        [ProducesResponseType(201, Type = typeof(TokenResponse))]
+        [ProducesResponseType(422, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> Tokens(CardTokenRequest tokenRequest)
         {
             try
             {
-                PaymentResponse paymentResponse = await api.Payments.RequestAsync(paymentRequestModel);
-                if(paymentResponse.IsPending)
-                {
-                    return Accepted(paymentResponse.Pending.GetSelfLink().Href, paymentResponse);
-                }
-                else
-                {
-                    return Created(paymentResponse.Payment.GetSelfLink().Href, paymentResponse);
-                }
+                var tokenResponse = await api.Tokens.RequestAsync(tokenRequest);
+                return CreatedAtAction(nameof(Tokens), tokenResponse);
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+                return UnprocessableEntity(e);
+            }
+        }
+
+        [HttpGet("[action]/{paymentId}", Name = "GetPayment")]
+        [ProducesResponseType(200, Type = typeof(PaymentProcessed))]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Payments(string paymentId)
+        {
+            try
+            {
+                GetPaymentResponse paymentResponse = await api.Payments.GetAsync(paymentId);
+                return Ok(paymentResponse);
             }
             catch (Exception e)
             {
                 Console.Error.WriteLine(e.Message);
                 return BadRequest();
+            }
+        }
+
+        [HttpPost("[action]")]
+        [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
+        [ProducesResponseType(202, Type = typeof(PaymentPending))]
+        [ProducesResponseType(422, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> TokenPayments(PaymentRequest<TokenSource> paymentRequestModel)
+        {
+            try
+            {
+                PaymentResponse paymentResponse = await api.Payments.RequestAsync(paymentRequestModel);
+                if (paymentResponse.IsPending)
+                {
+                    return AcceptedAtRoute("GetPayment", new { paymentId = paymentResponse.Pending.Id }, paymentResponse.Pending);
+                }
+                else
+                {
+                    return CreatedAtRoute("GetPayment", new { paymentId = paymentResponse.Payment.Id }, paymentResponse.Payment);
+                }
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity(e);
+            }
+        }
+
+        [HttpPost("[action]")]
+        [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
+        [ProducesResponseType(202, Type = typeof(PaymentPending))]
+        [ProducesResponseType(422, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> AlternativePayments(PaymentRequest<AlternativePaymentSource> paymentRequestModel)
+        {
+            try
+            {
+                PaymentResponse paymentResponse = await api.Payments.RequestAsync(paymentRequestModel);
+                if (paymentResponse.IsPending)
+                {
+                    return AcceptedAtRoute("GetPayment", new { paymentId = paymentResponse.Pending.Id }, paymentResponse.Pending);
+                }
+                else
+                {
+                    return CreatedAtRoute("GetPayment", new { paymentId = paymentResponse.Payment.Id }, paymentResponse.Payment);
+                }
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity(e);
             }
         }
     }

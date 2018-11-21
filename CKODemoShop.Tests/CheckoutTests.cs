@@ -9,6 +9,8 @@ using CKODemoShop.Checkout;
 using Microsoft.AspNetCore.Http;
 using Checkout.Common;
 using System;
+using Checkout.Payments;
+using Checkout.Tokens;
 
 namespace CKODemoShop.Tests
 {
@@ -24,7 +26,7 @@ namespace CKODemoShop.Tests
             Console.WriteLine("CheckoutController instantiated");
         }
 
-        string lppId;
+        /*string lppId;
         List<IIBank> legacyBanks;
         BanksResponse banks;
         void when_get_banks()
@@ -100,6 +102,348 @@ namespace CKODemoShop.Tests
                 it["should return 404 - Not Found"] = () =>
                 {
                     (result as NotFoundResult).StatusCode.ShouldBe(StatusCodes.Status404NotFound);
+                };
+            };
+        }*/
+
+        CardTokenRequest tokenRequest;
+        TokenResponse token;
+        void when_post_tokens()
+        {
+            context["given a card token request"] = () =>
+            {
+                context["that is valid"] = () =>
+                {
+                    beforeAllAsync = async () =>
+                    {
+                        tokenRequest = new CardTokenRequest(number: "4242424242424242", expiryMonth: 12, expiryYear: 2022);
+                        result = await controller.Tokens(tokenRequest);
+                        token = (result as ObjectResult).Value as TokenResponse;
+                    };
+
+                    it["should return 201 - Created"] = () =>
+                    {
+                        (result as CreatedAtActionResult).StatusCode.ShouldBe(StatusCodes.Status201Created);
+                    };
+
+                    context["with token that"] = () =>
+                    {
+                        it["should not be null"] = () =>
+                        {
+                            token.ShouldNotBeNull();
+                        };
+
+                        it["should expire in 15m"] = () =>
+                        {
+                            var expiration = (token as CardTokenResponse).ExpiresOn;
+                            var now = DateTime.UtcNow;
+                            (expiration - now).Minutes.ShouldBeLessThanOrEqualTo(15);
+                        };
+
+                        it["should match type of request"] = () =>
+                        {
+                            token.Type.ShouldBe(tokenRequest.Type);
+                        };
+
+                        it["should match expiry month of request"] = () =>
+                        {
+                            (token as CardTokenResponse).ExpiryMonth.ShouldBe((tokenRequest as CardTokenRequest).ExpiryMonth);
+                        };
+
+                        it["should match expiry year of request"] = () =>
+                        {
+                            (token as CardTokenResponse).ExpiryYear.ShouldBe((tokenRequest as CardTokenRequest).ExpiryYear);
+                        };
+
+                        it["should match last4 digits of request number"] = () =>
+                        {
+                            (tokenRequest as CardTokenRequest).Number.ShouldEndWith((token as CardTokenResponse).Last4);
+                        };
+
+                        it["should have expires_on field"] = () =>
+                        {
+                            (token as CardTokenResponse).ExpiresOn.ShouldNotBeNull();
+                        };
+                    };
+                };
+            };
+        }
+
+        IRequestSource requestSource;
+        string currency;
+        int amount;
+        PaymentRequest<IRequestSource> paymentRequest;
+        Resource payment;
+        Exception exception;
+        void when_post_payments()
+        {
+            context["given card token source"] = () =>
+            {
+                context["that is valid"] = () =>
+                {
+                    beforeAllAsync = async () =>
+                    {
+                        requestSource = new TokenSource(token.Token) { };
+                        currency = Currency.EUR;
+                        amount = 100;
+                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
+                        result = await controller.Payments(paymentRequest);
+                        payment = (result as ObjectResult).Value as Resource;
+                    };
+
+                    it["should return 201 - Created"] = () =>
+                    {
+                        (result as CreatedAtRouteResult).StatusCode.ShouldBe(StatusCodes.Status201Created);
+                    };
+
+                    context["with payment that"] = () =>
+                    {
+                        it["should not be null"] = () =>
+                        {
+                            payment.ShouldNotBeNull();
+                        };
+
+                        it["should be of type Payment Processed"] = () =>
+                        {
+                            payment.ShouldBeOfType<PaymentProcessed>();
+                        };
+
+                        it["should have status that is not Pending "] = () =>
+                        {
+                            (payment as PaymentProcessed).Status.ShouldNotBe(PaymentStatus.Pending);
+                        };
+                    };
+                };
+            };
+
+            context["given giropay payment source"] = () =>
+            {
+                context["that is valid"] = () =>
+                {
+                    beforeAllAsync = async () =>
+                    {
+                        requestSource = new AlternativePaymentSource("giropay") { { "bic", "TESTDETT421" }, { "purpose", "CKO Demo Shop unit test" } };
+                        currency = Currency.EUR;
+                        amount = 100;
+                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
+                        result = await controller.Payments(paymentRequest);
+                        payment = (result as ObjectResult).Value as Resource;
+                    };
+
+                    it["should return 202 - Accepted"] = () =>
+                    {
+                        (result as AcceptedAtRouteResult).StatusCode.ShouldBe(StatusCodes.Status202Accepted);
+                    };
+
+                    context["with payment that"] = () =>
+                    {
+                        it["should not be null"] = () =>
+                        {
+                            payment.ShouldNotBeNull();
+                        };
+
+                        it["should be of type PaymentPending"] = () =>
+                        {
+                            payment.ShouldBeOfType<PaymentPending>();
+                        };
+
+                        it["should require redirect"] = () =>
+                        {
+                            (payment as PaymentPending).RequiresRedirect().ShouldBeTrue();
+                        };
+
+                        it["should have status that is Pending"] = () =>
+                        {
+                            (payment as PaymentPending).Status.ShouldBe(PaymentStatus.Pending);
+                        };
+
+                        it["should have a redirect link"] = () =>
+                        {
+                            (payment as PaymentPending).GetRedirectLink().ShouldNotBeNull();
+                        };
+                    };
+                };
+
+                context["that is incomplete"] = () =>
+                {
+                    beforeAllAsync = async () =>
+                    {
+                        requestSource = new AlternativePaymentSource("giropay") { { "purpose", "bic_required test" } };
+                        currency = Currency.EUR;
+                        amount = 100;
+                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
+                        result = await controller.Payments(paymentRequest);
+                        exception = (result as ObjectResult).Value as Exception;
+                    };
+
+                    it["should return 422 - Invalid data was sent"] = () =>
+                    {
+                        (result as UnprocessableEntityObjectResult).StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
+                    };
+
+                    context["with exception that"] = () =>
+                    {
+                        it["should be thrown due to error: bic_required"] = () =>
+                        {
+                            exception.Message.ShouldContain("bic_required");
+                        };
+                    };
+                };
+
+                context["that is invalid"] = () =>
+                {
+                    beforeAllAsync = async () =>
+                    {
+                        requestSource = new AlternativePaymentSource("giropay") { { "bic", "TESTDETT421" }, { "purpose", "CKO Demo Shop unit test" } };
+                        currency = Currency.USD;
+                        amount = 100;
+                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
+                        result = await controller.Payments(paymentRequest);
+                        exception = (result as ObjectResult).Value as Exception;
+                    };
+
+                    it["should return 422 - Invalid data was sent"] = () =>
+                    {
+                        (result as UnprocessableEntityObjectResult).StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
+                    };
+
+                    context["with exception that"] = () =>
+                    {
+                        it["should be thrown due to error: payment_method_not_supported"] = () =>
+                        {
+                            exception.Message.ShouldContain("payment_method_not_supported");
+                        };
+                    };
+                };
+            };
+
+            context["given ideal payment source"] = () =>
+            {
+                context["that is valid"] = () =>
+                {
+                    beforeAllAsync = async () =>
+                    {
+                        requestSource = new AlternativePaymentSource("ideal") { { "issuer_id", "INGBNL2A" } };
+                        currency = Currency.EUR;
+                        amount = 100;
+                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
+                        result = await controller.Payments(paymentRequest);
+                        payment = (result as ObjectResult).Value as Resource;
+                    };
+
+                    it["should return 202 - Accepted"] = () =>
+                    {
+                        (result as AcceptedAtRouteResult).StatusCode.ShouldBe(StatusCodes.Status202Accepted);
+                    };
+
+                    context["with payment that"] = () =>
+                    {
+                        it["should not be null"] = () =>
+                        {
+                            payment.ShouldNotBeNull();
+                        };
+
+                        it["should be of type PaymentPending"] = () =>
+                        {
+                            payment.ShouldBeOfType<PaymentPending>();
+                        };
+
+                        it["should require redirect"] = () =>
+                        {
+                            (payment as PaymentPending).RequiresRedirect().ShouldBeTrue();
+                        };
+
+                        it["should have status that is Pending"] = () =>
+                        {
+                            (payment as PaymentPending).Status.ShouldBe(PaymentStatus.Pending);
+                        };
+
+                        it["should have a redirect link"] = () =>
+                        {
+                            (payment as PaymentPending).GetRedirectLink().ShouldNotBeNull();
+                        };
+                    };
+                };
+
+                context["that is incomplete"] = () =>
+                {
+                    beforeAllAsync = async () =>
+                    {
+                        requestSource = new AlternativePaymentSource("ideal") { };
+                        currency = Currency.EUR;
+                        amount = 100;
+                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
+                        result = await controller.Payments(paymentRequest);
+                        exception = (result as ObjectResult).Value as Exception;
+                    };
+
+                    it["should return 422 - Invalid data was sent"] = () =>
+                    {
+                        (result as UnprocessableEntityObjectResult).StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
+                    };
+
+                    context["with exception that"] = () =>
+                    {
+                        it["should be thrown due to error: request_invalid"] = () =>
+                        {
+                            exception.Message.ShouldContain("request_invalid");
+                        };
+                    };
+                };
+
+                context["that is invalid"] = () =>
+                {
+                    beforeAllAsync = async () =>
+                    {
+                        requestSource = new AlternativePaymentSource("ideal") { { "issuer_id", "INGBNL2A" } };
+                        currency = Currency.USD;
+                        amount = 100;
+                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
+                        result = await controller.Payments(paymentRequest);
+                        exception = (result as ObjectResult).Value as Exception;
+                    };
+
+                    it["should return 422 - Invalid data was sent"] = () =>
+                    {
+                        (result as UnprocessableEntityObjectResult).StatusCode.ShouldBe(StatusCodes.Status422UnprocessableEntity);
+                    };
+
+                    context["with exception that"] = () =>
+                    {
+                        it["should be thrown due to error: payment_method_not_supported"] = () =>
+                        {
+                            exception.Message.ShouldContain("payment_method_not_supported");
+                        };
+                    };
+                };
+            };
+        }
+
+        GetPaymentResponse getPayment;
+        void when_get_payments()
+        {
+            context["given a valid request"] = () =>
+            {
+                beforeAllAsync = async () =>
+                {
+                    requestSource = new AlternativePaymentSource("ideal") { { "issuer_id", "INGBNL2A" } };
+                    currency = Currency.EUR;
+                    amount = 100;
+                    paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
+                    result = await controller.Payments(paymentRequest); // POST payments
+                    payment = (result as ObjectResult).Value as Resource;
+                    result = await controller.Payments((payment as PaymentPending).Id); // GET payments
+                    getPayment = (result as ObjectResult).Value as GetPaymentResponse;
+                };
+
+                it["should return 200 - OK"] = () =>
+                {
+                    (result as OkObjectResult).StatusCode.ShouldBe(StatusCodes.Status200OK);
+                };
+
+                it["should return the correct payment"] = () =>
+                {
+                    (getPayment as GetPaymentResponse).Id.ShouldBe((payment as PaymentPending).Id);
                 };
             };
         }

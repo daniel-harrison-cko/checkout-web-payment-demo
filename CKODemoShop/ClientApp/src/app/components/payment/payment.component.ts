@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { IAddress } from '../../interfaces/address.interface';
 import { ICustomer } from '../../interfaces/customer.interface';
@@ -11,22 +11,30 @@ import { map, startWith } from 'rxjs/operators';
 import { IIdealSource } from '../../interfaces/ideal-source.interface';
 import { IGiropaySource } from '../../interfaces/giropay-source.interface';
 import { HttpResponse } from '@angular/common/http';
+import { IUser } from '../../interfaces/user.interface';
+import { ScriptService } from '../../services/script.service';
+import { ITokenSource } from 'src/app/interfaces/token-source.interface';
+import { Router } from '@angular/router';
+import { IPayment } from 'src/app/interfaces/payment.interface';
+
+declare var Frames: any;
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
-    name: 'Credit Card'
+    name: 'Credit Card',
+    type: 'card'
   },
   {
     name: 'iDeal',
-    lppId: 'lpp_9'
+    type: 'lpp_9'
   },
   {
     name: 'giropay',
-    lppId: 'lpp_giropay'
+    type: 'lpp_giropay'
   },
   {
     name: 'PayPal',
-    lppId: 'lpp_19'
+    type: 'lpp_19'
   }
 ]
 
@@ -50,13 +58,14 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
   agreesWithGtc: boolean;
   processing: boolean;
+  cardPayment: boolean;
   makePayment: Function;
-  customer: ICustomer;
+  customer: IUser;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
   selectedBank: IBank;
 
-  constructor(private _formBuilder: FormBuilder, private _paymentService: PaymentService) { }
+  constructor(private _formBuilder: FormBuilder, private _paymentService: PaymentService, private _scriptService: ScriptService, private _router: Router, private _ngZone: NgZone) { }
 
   ngOnInit() {
     this.customerFormGroup = this._formBuilder.group({
@@ -120,36 +129,67 @@ export class PaymentComponent implements OnInit, OnDestroy {
 
   invokePaymentMethod(paymentMethod: IPaymentMethod) {
     this.resetPaymentConfigurations();
-    switch (paymentMethod.lppId) {
+    switch (paymentMethod.type) {
+      case 'card': {
+        this.cardPayment = true;
+        this._scriptService.load('cko-frames').then(data => {
+          let cardTokenisedCallback = (event) => {
+            var cardToken = event.data.cardToken;
+            this._paymentService.requestToken({
+              type: 'card',
+              number: '4242424242424242',
+              expiryMonth: 12,
+              expiryYear: 2022
+            }).subscribe(response => this.handleCardTokenResponse(response));
+          };
+          Frames.init({
+            publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
+            containerSelector: '.cko-container',
+            cardTokenised: function (event) {
+              cardTokenisedCallback(event);
+            },
+            cardTokenisationFailed: function (event) {
+              // catch the error
+            }
+          });
+        }).catch(error => console.log(error));
+        this.makePayment = () => {
+          this.processing = true;
+          Frames.submitCard();
+        }
+        break;
+      }
       case 'lpp_9': {
+        this.cardPayment = null;
         this.getBanksLegacy(paymentMethod);
         this.addPaymentConfigurator();
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
+            currency: 'EUR',
+            amount: 100,
             source: <IIdealSource>{
               type: 'ideal',
               issuer_id: this.selectedBank.value
-            },
-            amount: 100,
-            currency: 'EUR'
+            }
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
       }
       case 'lpp_giropay': {
+        this.cardPayment = null;
         this.getBanks(paymentMethod);
         this.addPaymentConfigurator();
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
+            currency: 'EUR',
+            amount: 100,
             source: <IGiropaySource>{
               type: 'giropay',
               purpose: 'CKO Demo Shop Test',
               bic: this.selectedBank.value
-            },
-            amount: 100,
-            currency: 'EUR'
+            }
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
@@ -174,21 +214,46 @@ export class PaymentComponent implements OnInit, OnDestroy {
     };
   }
 
-  handlePaymentResponse(response: HttpResponse<any>) {
+  handleCardTokenResponse(response: HttpResponse<any>) {
     switch (response.status) {
       case 201: {
-        console.log(`Response status: ${response.status}`);
-        break;
-      }
-      case 202: {
-        this._paymentService.redirect(response);
+        this._paymentService.requestPayment({
+          currency: 'EUR',
+          amount: 100,
+          source: <ITokenSource>{
+            type: 'token',
+            token: response.body['token']
+          }          
+        }).subscribe(response => this.handlePaymentResponse(response));
         break;
       }
       default: {
         this.paymentFormGroup.reset();
         this.resetPaymentConfigurations();
         throw new Error(`Handling of response status ${response.status} is not implemented!`);
+      };
+    }
+  }
+
+  handlePaymentResponse(response: HttpResponse<any>) {
+    try {
+      switch (response.status) {
+        case 201: {
+          this._ngZone.run(() => this._router.navigate([`/user/order/${(<IPayment>response.body).id}`]));
+          break;
+        }
+        case 202: {
+          this._paymentService.redirect(response);
+          break;
+        }
+        default: {
+          this.paymentFormGroup.reset();
+          this.resetPaymentConfigurations();
+          throw new Error(`Handling of response status ${response.status} is not implemented!`);
+        }
       }
+    } catch (e) {
+      console.error(e);
     }
   }
 

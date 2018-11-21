@@ -51,17 +51,23 @@
             {{paymentMethod.name}}
           </mat-radio-button>
         </mat-radio-group>
+        <div class="payment-setup-spacer"></div>
         <div formArrayName="payment_configurators" class="payment-configurators">
-          <mat-form-field *ngFor="let payment_configurator of payment_configurators.controls; let i=index">
-            <input type="text" placeholder="Select your bank" aria-label="Bank" matInput [formControlName]="i" [matAutocomplete]="auto" required>
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
-              <mat-option>--</mat-option>
-              <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
-                <span class="monospace">{{bank.value}}</span> {{bank.key}}
-              </mat-option>
-            </mat-autocomplete>
-            <mat-error *ngIf="payment_configurator.hasError('required')">Please select your bank for payment with {{selectedPaymentMethod?.name}}.</mat-error>
-          </mat-form-field>
+          <ng-container *ngIf="cardPayment">
+            <div class="cko-container"></div>
+          </ng-container>
+          <ng-container *ngIf="banks">
+            <mat-form-field *ngFor="let payment_configurator of payment_configurators.controls; let i=index">
+              <input type="text" placeholder="Select your bank" aria-label="Bank" matInput [formControlName]="i" [matAutocomplete]="auto" required>
+              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
+                <mat-option>--</mat-option>
+                <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+                  <span class="monospace">{{bank.value}}</span> {{bank.key}}
+                </mat-option>
+              </mat-autocomplete>
+              <mat-error *ngIf="payment_configurator.hasError('required')">Please select your bank for payment with {{selectedPaymentMethod?.name}}.</mat-error>
+            </mat-form-field>
+          </ng-container>          
         </div>        
       </div>
       <mat-divider></mat-divider>
