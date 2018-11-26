@@ -1,14 +1,10 @@
 import { Component, OnInit, ViewChild, OnDestroy } from '@angular/core';
 import { MatSort, MatTableDataSource } from '@angular/material';
-import { IProduct } from '../../interfaces/product.interface';
 import { AppService } from '../../services/app.service';
 import { Subscription } from 'rxjs';
 import { ICurrency } from '../../interfaces/currency.interface';
-
-const ELEMENT_DATA: IProduct[] = [
-  { name: 'Points for Batman', amount: 100, unit: 1 },
-  { name: 'Batarang', amount: 2, unit: 9995 }
-];
+import { OrderService } from 'src/app/services/order.service';
+import { IProduct } from 'src/app/interfaces/product.interface';
 
 @Component({
   selector: 'app-order-summary',
@@ -17,17 +13,18 @@ const ELEMENT_DATA: IProduct[] = [
 export class OrderSummaryComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   displayedColumns: string[] = ['name', 'amount', 'unit', 'total'];
-  dataSource = new MatTableDataSource(ELEMENT_DATA);
+  dataSource: MatTableDataSource<IProduct> = this.getDataSource();
   currency: ICurrency;
 
   @ViewChild(MatSort) sort: MatSort;
 
-  constructor(private appService: AppService) { }
+  constructor(private _appService: AppService, private _orderService: OrderService) { }
 
   ngOnInit() {
     this.dataSource.sort = this.sort;
     this.subscriptions.push(
-      this.appService.currency$.subscribe(currency => this.currency = currency)
+      this._appService.currency$.subscribe(currency => this.currency = currency),
+      this._orderService.orderData$.subscribe(_ => this.dataSource = this.getDataSource())
     );
   }
 
@@ -35,7 +32,11 @@ export class OrderSummaryComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
-  getTotalCost() {
-    return ELEMENT_DATA.map(t => (t.amount * t.unit)).reduce((acc, value) => acc + value, 0);
+  getDataSource(): MatTableDataSource<IProduct> {
+    return new MatTableDataSource(this._orderService.getOrderData());
+  }
+
+  getTotalCost(): number {
+    return this._orderService.getTotal(); 
   }
 }

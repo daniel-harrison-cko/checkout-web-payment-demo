@@ -24,6 +24,10 @@ const routes: Routes = [
     component: OrderDetailComponent
   },
   {
+    path: 'order/:status',
+    component: OrderDetailComponent
+  },
+  {
     path: 'order/billing-and-shipping',
     component: BillingAndShippingComponent
   },

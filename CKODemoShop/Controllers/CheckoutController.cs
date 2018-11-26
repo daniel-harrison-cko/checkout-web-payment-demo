@@ -102,8 +102,28 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                Console.Error.WriteLine(e.Message);
                 return BadRequest();
+            }
+        }
+
+        [HttpPost("[action]", Name = "GetPayments")]
+        [ProducesResponseType(200, Type = typeof(List<GetPaymentResponse>))]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> Payments(List<string> paymentIds)
+        {
+            var payments = new List<GetPaymentResponse>();
+            try
+            {
+                foreach(string paymentId in paymentIds)
+                {
+                    var payment = await api.Payments.GetAsync(paymentId);
+                    payments.Add(payment);
+                }
+                return Ok(payments);
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e);
             }
         }
 

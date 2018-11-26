@@ -169,16 +169,16 @@ namespace CKODemoShop.Tests
             };
         }
 
-        IRequestSource requestSource;
         string currency;
         int amount;
-        PaymentRequest<IRequestSource> paymentRequest;
         Resource payment;
         Exception exception;
         void when_post_payments()
         {
             context["given card token source"] = () =>
             {
+                TokenSource requestSource;
+                PaymentRequest<TokenSource> paymentRequest;
                 context["that is valid"] = () =>
                 {
                     beforeAllAsync = async () =>
@@ -186,8 +186,8 @@ namespace CKODemoShop.Tests
                         requestSource = new TokenSource(token.Token) { };
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
-                        result = await controller.Payments(paymentRequest);
+                        paymentRequest = new PaymentRequest<TokenSource>(requestSource, currency, amount);
+                        result = await controller.TokenPayments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
 
@@ -218,6 +218,8 @@ namespace CKODemoShop.Tests
 
             context["given giropay payment source"] = () =>
             {
+                AlternativePaymentSource requestSource;
+                PaymentRequest<AlternativePaymentSource> paymentRequest;
                 context["that is valid"] = () =>
                 {
                     beforeAllAsync = async () =>
@@ -225,8 +227,8 @@ namespace CKODemoShop.Tests
                         requestSource = new AlternativePaymentSource("giropay") { { "bic", "TESTDETT421" }, { "purpose", "CKO Demo Shop unit test" } };
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
-                        result = await controller.Payments(paymentRequest);
+                        paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
+                        result = await controller.AlternativePayments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
 
@@ -271,8 +273,8 @@ namespace CKODemoShop.Tests
                         requestSource = new AlternativePaymentSource("giropay") { { "purpose", "bic_required test" } };
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
-                        result = await controller.Payments(paymentRequest);
+                        paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
+                        result = await controller.AlternativePayments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
 
@@ -297,8 +299,8 @@ namespace CKODemoShop.Tests
                         requestSource = new AlternativePaymentSource("giropay") { { "bic", "TESTDETT421" }, { "purpose", "CKO Demo Shop unit test" } };
                         currency = Currency.USD;
                         amount = 100;
-                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
-                        result = await controller.Payments(paymentRequest);
+                        paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
+                        result = await controller.AlternativePayments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
 
@@ -319,6 +321,8 @@ namespace CKODemoShop.Tests
 
             context["given ideal payment source"] = () =>
             {
+                AlternativePaymentSource requestSource;
+                PaymentRequest<AlternativePaymentSource> paymentRequest;
                 context["that is valid"] = () =>
                 {
                     beforeAllAsync = async () =>
@@ -326,8 +330,8 @@ namespace CKODemoShop.Tests
                         requestSource = new AlternativePaymentSource("ideal") { { "issuer_id", "INGBNL2A" } };
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
-                        result = await controller.Payments(paymentRequest);
+                        paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
+                        result = await controller.AlternativePayments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
 
@@ -372,8 +376,8 @@ namespace CKODemoShop.Tests
                         requestSource = new AlternativePaymentSource("ideal") { };
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
-                        result = await controller.Payments(paymentRequest);
+                        paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
+                        result = await controller.AlternativePayments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
 
@@ -398,8 +402,8 @@ namespace CKODemoShop.Tests
                         requestSource = new AlternativePaymentSource("ideal") { { "issuer_id", "INGBNL2A" } };
                         currency = Currency.USD;
                         amount = 100;
-                        paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
-                        result = await controller.Payments(paymentRequest);
+                        paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
+                        result = await controller.AlternativePayments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
 
@@ -424,13 +428,15 @@ namespace CKODemoShop.Tests
         {
             context["given a valid request"] = () =>
             {
+                AlternativePaymentSource requestSource;
+                PaymentRequest<AlternativePaymentSource> paymentRequest;
                 beforeAllAsync = async () =>
                 {
                     requestSource = new AlternativePaymentSource("ideal") { { "issuer_id", "INGBNL2A" } };
                     currency = Currency.EUR;
                     amount = 100;
-                    paymentRequest = new PaymentRequest<IRequestSource>(requestSource, currency, amount);
-                    result = await controller.Payments(paymentRequest); // POST payments
+                    paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
+                    result = await controller.AlternativePayments(paymentRequest); // POST payments
                     payment = (result as ObjectResult).Value as Resource;
                     result = await controller.Payments((payment as PaymentPending).Id); // GET payments
                     getPayment = (result as ObjectResult).Value as GetPaymentResponse;
@@ -444,6 +450,33 @@ namespace CKODemoShop.Tests
                 it["should return the correct payment"] = () =>
                 {
                     (getPayment as GetPaymentResponse).Id.ShouldBe((payment as PaymentPending).Id);
+                };
+            };
+        }
+
+        List<GetPaymentResponse> payments;
+        void when_get_payments_list()
+        {
+            context["given two payment IDs"] = () =>
+            {
+                beforeAllAsync = async () =>
+                {
+                    List<string> paymentIds = new List<string>() {
+                        "pay_b33regntng2ernkjhaou2hqbui",
+                        "pay_czxos5rqcdae3pq4vua6u6nqpe",
+                        "pay_h4pxukonuz6urnsvoeaovmgrfa"
+                    };
+                    result = await controller.Payments(paymentIds);
+                    payments = (result as ObjectResult).Value as List<GetPaymentResponse>;
+                };
+
+                it["should return 200 - OK"] = () =>
+                {
+                    (result as OkObjectResult).StatusCode.ShouldBe(StatusCodes.Status200OK);
+                    foreach(GetPaymentResponse payment in payments)
+                    {
+                        Console.WriteLine($"{payment.Source.Type}: {payment.Id} - {payment.RequestedOn}");
+                    }
                 };
             };
         }

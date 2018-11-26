@@ -3,18 +3,36 @@
     <router-outlet name="sidenav"></router-outlet>
   </mat-sidenav>
   <mat-sidenav-content>
-    <mat-card>
-      <mat-card-header>
-        <div mat-card-avatar></div>
-        <mat-card-title>{{orderId}}</mat-card-title>
-        <mat-card-subtitle>{{orderStatus(order?.status) || 'Awaiting Status ...'}}</mat-card-subtitle>
-      </mat-card-header>
-      <mat-card-content>
-        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed luctus id nibh vitae ullamcorper. Phasellus ut tristique massa. In commodo et velit eu elementum. Vivamus id bibendum ipsum. Suspendisse eu tincidunt velit.</p>
-      </mat-card-content>
-      <mat-card-actions>
-        <a mat-button [routerLink]="['/user']">MY ORDERS</a>
-      </mat-card-actions>
-    </mat-card>
+    <div class="order-detail">
+      <mat-card class="order-card">
+        <mat-spinner *ngIf="loading" [diameter]="20" strokeWidth="3"></mat-spinner>
+        <ng-container *ngIf="order">
+          <mat-card-header>
+            <img mat-card-avatar class="payment-method-avatar" src="/assets/payment_method/{{paymentMethodIcon(order) || 'undefined'}}.jpg">
+            <mat-card-title>{{order.id}}</mat-card-title>
+            <mat-card-subtitle>{{orderStatus(order.status) || 'Awaiting Status ...'}}</mat-card-subtitle>
+          </mat-card-header>
+          <mat-card-content>
+            <p>Requested on {{order.requestedOn | date:'y-MMM-dd@HH:mm:SSS (z)'}}</p>
+            <p>Amount {{order.amount / 100 | currency:order.currency:'symbol'}}</p>
+          </mat-card-content>
+          <mat-card-actions>
+            <mat-divider></mat-divider>
+            <mat-list>
+              <h3 mat-subheader>Hypermedia</h3>
+              <mat-list-item *ngFor="let link of order?._links | keyvalue">
+                <button mat-button mat-line color="primary" (click)="getHypermedia(link.value.href)">{{link.key}}</button>
+              </mat-list-item>
+            </mat-list>
+          </mat-card-actions>
+        </ng-container>
+        <ng-container *ngIf="orderNotFound">
+          <mat-card-header>
+            <mat-card-title>{{'Order not found' | uppercase}}</mat-card-title>
+          </mat-card-header>
+        </ng-container>
+      </mat-card>
+      <a mat-raised-button [routerLink]="['/user']"><mat-icon>receipt</mat-icon>&nbsp;MY ORDERS</a>
+    </div>    
   </mat-sidenav-content>
 </mat-sidenav-container>

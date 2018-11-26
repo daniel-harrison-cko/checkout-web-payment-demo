@@ -16,6 +16,7 @@ import { ScriptService } from '../../services/script.service';
 import { ITokenSource } from 'src/app/interfaces/token-source.interface';
 import { Router } from '@angular/router';
 import { IPayment } from 'src/app/interfaces/payment.interface';
+import { OrderService } from 'src/app/services/order.service';
 
 declare var Frames: any;
 
@@ -64,8 +65,16 @@ export class PaymentComponent implements OnInit, OnDestroy {
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
   selectedBank: IBank;
+  baseUri: string = window.location.origin;
 
-  constructor(private _formBuilder: FormBuilder, private _paymentService: PaymentService, private _scriptService: ScriptService, private _router: Router, private _ngZone: NgZone) { }
+  constructor(
+    private _formBuilder: FormBuilder,
+    private _paymentService: PaymentService,
+    private _scriptService: ScriptService,
+    private _router: Router,
+    private _ngZone: NgZone,
+    private _orderService: OrderService
+  ) { }
 
   ngOnInit() {
     this.customerFormGroup = this._formBuilder.group({
@@ -137,7 +146,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
             var cardToken = event.data.cardToken;
             this._paymentService.requestToken({
               type: 'card',
-              number: '4242424242424242',
+              number: '5436031030606378',
               expiryMonth: 12,
               expiryYear: 2022
             }).subscribe(response => this.handleCardTokenResponse(response));
@@ -167,11 +176,13 @@ export class PaymentComponent implements OnInit, OnDestroy {
           this.processing = true;
           this._paymentService.requestPayment({
             currency: 'EUR',
-            amount: 100,
+            amount: this._orderService.getTotal(),
             source: <IIdealSource>{
               type: 'ideal',
-              issuer_id: this.selectedBank.value
-            }
+              issuer_id: this.selectedBank.value,
+            },
+            successUrl: `${this.baseUri}/order/succeeded`,
+            failureUrl: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
@@ -184,7 +195,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           this.processing = true;
           this._paymentService.requestPayment({
             currency: 'EUR',
-            amount: 100,
+            amount: this._orderService.getTotal(),
             source: <IGiropaySource>{
               type: 'giropay',
               purpose: 'CKO Demo Shop Test',
@@ -219,7 +230,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       case 201: {
         this._paymentService.requestPayment({
           currency: 'EUR',
-          amount: 100,
+          amount: this._orderService.getTotal(),
           source: <ITokenSource>{
             type: 'token',
             token: response.body['token']

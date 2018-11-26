@@ -1,5 +1,6 @@
 import { ILinks } from "./links.interface";
 import { ICustomer } from "./customer.interface";
+import { ISource } from "./source.interface";
 
 export interface IPayment {
   id: string;
@@ -13,7 +14,7 @@ export interface IPayment {
   response_summary?: string;
   '3ds'?: object;
   risk?: object;
-  source: object;
+  source: ISource;
   customer: ICustomer;
   processed_on: string;
   reference?: string;

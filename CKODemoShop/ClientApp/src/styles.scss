@@ -4,7 +4,7 @@ $desktop-small: "(min-width: 1024px) and (max-width: 1279px)";
 $desktop-medium: "(min-width: 1280px) and (max-width: 1599px)";
 $desktop-large: "(min-width: 1600px)";
 
-$color-background: #f8f8f8f8;
+$color-background: unquote('#f8f8f8f8');
 
 $margin: 16px;
 $padding: $margin;
@@ -130,6 +130,44 @@ heroes {
   }
 }
 
+app-order-detail {
+  .order-detail {
+    @media #{$tablet} {
+      max-width: 100%;
+    }
+
+    @media #{$desktop-small} {
+      max-width: 80%;
+    }
+
+    @media #{$desktop-medium} {
+      max-width: 60%;
+    }
+
+    @media #{$desktop-large} {
+      max-width: 30%;
+    }
+
+    flex: 1 1 auto;
+
+    .mat-card {
+      flex-direction: column;
+      max-width: unset;
+
+      .mat-card-header {
+        margin-bottom: $margin;
+      }
+
+      .payment-method-avatar {
+        object-fit: scale-down;
+        border-radius: unset;
+        width: 61px;
+        height: 61px
+      }
+    }
+  }
+}
+
 app-user {
   .mat-card-content {
     display: flex;
@@ -147,6 +185,7 @@ app-user {
 .mat-drawer-content {
   display: flex !important;
   justify-content: center;
+  padding-bottom: $padding;
 
   .mat-card{
     flex: 1 1 auto;

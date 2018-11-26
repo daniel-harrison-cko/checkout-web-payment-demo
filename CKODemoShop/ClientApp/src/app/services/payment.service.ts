@@ -7,6 +7,7 @@ import { IPaymentRequest } from '../interfaces/payment-request.interface';
 import { IBanks } from '../interfaces/banks.interface';
 import { IPending } from '../interfaces/pending.interface';
 import { IPaymentResponse } from '../interfaces/payment-response.interface';
+import { IPayment } from '../interfaces/payment.interface';
 
 @Injectable({
   providedIn: 'root'
@@ -37,8 +38,8 @@ export class PaymentService {
     return this.http.post<any>(`/api/checkout/tokens`, tokenRequest, { observe: 'response' });
   }
 
-  redirect(response: HttpResponse<IPaymentResponse>): void {
-    let pending: IPending = response.body.pending;
-    window.location.href = pending._links.redirect.href;
+  redirect(response: HttpResponse<IPayment>): void {
+    let payment: IPayment = response.body;
+    window.location.href = payment._links.redirect.href;
   }
 }

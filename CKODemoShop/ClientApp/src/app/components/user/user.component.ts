@@ -1,15 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
 import { ICustomer } from '../../interfaces/customer.interface';
 import { IPayment } from '../../interfaces/payment.interface';
 import { MatTableDataSource, MatSort } from '@angular/material';
 import { UserService } from '../../services/user.service';
-
-const USER: ICustomer = {
-  id: '123',
-  name: 'Philippe Leonhardt',
-  email: 'philippe.leonhardt@checkout.com'
-}
+import { OrderService } from 'src/app/services/order.service';
 
 const ORDERS: IPayment[] = [
   {
@@ -88,14 +82,19 @@ const ORDERS: IPayment[] = [
     }
   }
 ]
+const ORDERLIST: string[] = [
+  'pay_b33regntng2ernkjhaou2hqbui',
+  'pay_czxos5rqcdae3pq4vua6u6nqpe'
+];
 
 @Component({
   selector: 'app-user',
   templateUrl: './user.component.html'
 })
 export class UserComponent {
-  user: ICustomer = USER;
-  displayedColumns: string[] = ['processed', 'id', 'amount', 'approved'];
+  user: ICustomer;
+  orders: any;
+  displayedColumns: string[] = ['processed', 'id', 'amount', 'status'];
   dataSource = new MatTableDataSource(ORDERS);
 
   @ViewChild(MatSort) sort: MatSort;
@@ -104,11 +103,18 @@ export class UserComponent {
     this.dataSource.sort = this.sort;
   }
 
-  constructor(userService: UserService, activatedRoute: ActivatedRoute) {
-    console.log(activatedRoute.snapshot.params['id']);
+  constructor(private _userService: UserService, private _orderService: OrderService) {
+    this.user = _userService.getUser();
+    _orderService.getOrders(ORDERLIST).subscribe(response => {
+      this.orders = response.body;
+    });
   }
 
   openPayment(id: string) {
     alert(id);
+  }
+
+  private orderStatus(id: number): string {
+    return this._orderService.statusIdToName(id);
   }
 }
