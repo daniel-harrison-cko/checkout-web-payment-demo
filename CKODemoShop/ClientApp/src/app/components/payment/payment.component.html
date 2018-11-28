@@ -53,11 +53,27 @@
         </mat-radio-group>
         <div class="payment-setup-spacer"></div>
         <div formArrayName="payment_configurators" class="payment-configurators">
-          <ng-container *ngIf="cardPayment">
+          <ng-container *ngIf="framesPayment">
             <div class="cko-container"></div>
           </ng-container>
+          <ng-container *ngIf="cardPayment">
+            <div [formGroup]="cardFormGroup" class="card-container">
+              <mat-form-field form-field="credit-card">
+                <input matInput placeholder="Credit Card" formControlName="number" autocomplete="cc-number" required />
+                <mat-error *ngIf="cardFormGroup.get('number').hasError('required')">Please enter your Credit Card number.</mat-error>
+              </mat-form-field>
+              <mat-form-field form-field="expiry">
+                <input matInput placeholder="MM | YYYY" formControlName="expiration" autocomplete="cc-exp" required />
+                <mat-error *ngIf="cardFormGroup.get('expiration').hasError('required')">Please enter your Credit Card's expiration date.</mat-error>
+              </mat-form-field>
+              <mat-form-field form-field="cvv">
+                <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
+                <mat-error *ngIf="cardFormGroup.get('cvv').hasError('minlength') || cardFormGroup.get('cvv').hasError('maxlength')">Your CVV must have 3-4 digits.</mat-error>
+              </mat-form-field>
+            </div>            
+          </ng-container>
           <ng-container *ngIf="banks">
-            <mat-form-field *ngFor="let payment_configurator of payment_configurators.controls; let i=index">
+            <mat-form-field *ngFor="let payment_configurator of payment_configurators.controls; let i=index" class="wide">
               <input type="text" placeholder="Select your bank" aria-label="Bank" matInput [formControlName]="i" [matAutocomplete]="auto" required>
               <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
                 <mat-option>--</mat-option>

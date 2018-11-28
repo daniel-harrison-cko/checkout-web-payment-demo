@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, NgZone } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormArray, FormControl } from '@angular/forms';
 import { IAddress } from '../../interfaces/address.interface';
-import { ICustomer } from '../../interfaces/customer.interface';
 import { IGtcDisclaimer } from '../../interfaces/gtc-disclaimer.interface';
 import { PaymentService } from '../../services/payment.service';
 import { IBank } from '../../interfaces/bank.interface';
@@ -17,12 +16,17 @@ import { ITokenSource } from 'src/app/interfaces/token-source.interface';
 import { Router } from '@angular/router';
 import { IPayment } from 'src/app/interfaces/payment.interface';
 import { OrderService } from 'src/app/services/order.service';
+import { IPending } from 'src/app/interfaces/pending.interface';
 
 declare var Frames: any;
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
-    name: 'Credit Card',
+    name: 'Credit Card (Frames)',
+    type: 'cko-frames'
+  },
+  {
+    name: 'Credit Card (PCI DSS)',
     type: 'card'
   },
   {
@@ -31,11 +35,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   },
   {
     name: 'giropay',
-    type: 'lpp_giropay'
-  },
-  {
-    name: 'PayPal',
-    type: 'lpp_19'
+    type: 'giropay'
   }
 ]
 
@@ -49,6 +49,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   customerFormGroup: FormGroup;
   addressFormGroup: FormGroup;
   paymentFormGroup: FormGroup;
+  cardFormGroup: FormGroup;
   selectedPaymentMethod: IPaymentMethod;
   paymentMethods: IPaymentMethod[] = PAYMENT_METHODS;
   gtcDisclaimer: IGtcDisclaimer = {
@@ -59,6 +60,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
   agreesWithGtc: boolean;
   processing: boolean;
+  framesPayment: boolean;
   cardPayment: boolean;
   makePayment: Function;
   customer: IUser;
@@ -88,6 +90,11 @@ export class PaymentComponent implements OnInit, OnDestroy {
       state: ['', Validators.required],
       zip: ['', Validators.required],
       country: ['', Validators.required]
+    });
+    this.cardFormGroup = this._formBuilder.group({
+      number: ['', Validators.required],
+      expiration: ['', Validators.required],
+      cvv: ['', [Validators.minLength(3), Validators.maxLength(4)]]
     });
     this.paymentFormGroup = this._formBuilder.group({
       payment_method: ['', Validators.required],
@@ -121,8 +128,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
     return <FormArray>this.paymentFormGroup.get('payment_configurators');
   }
 
-  private addPaymentConfigurator() {
-    this.payment_configurators.push(this._formBuilder.control('', Validators.required));    
+  private addPaymentConfigurator(configurator: any) {
+    this.payment_configurators.push(configurator);
   }
 
   private resetPaymentConfigurations = () => {
@@ -140,10 +147,29 @@ export class PaymentComponent implements OnInit, OnDestroy {
     this.resetPaymentConfigurations();
     switch (paymentMethod.type) {
       case 'card': {
+        this.framesPayment = null;
         this.cardPayment = true;
+        this.addPaymentConfigurator(this.cardFormGroup);
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.requestPayment({
+            currency: 'EUR',
+            amount: this._orderService.getTotal(),
+            source: {
+              type: 'card',
+              number: this.cardFormGroup.get('number').value,
+              expiryMonth: this._paymentService.getMonth(this.cardFormGroup.get('expiration').value),
+              expiryYear: this._paymentService.getYear(this.cardFormGroup.get('expiration').value)
+            }
+          }).subscribe(response => this.handlePaymentResponse(response));
+        }
+        break;
+      }
+      case 'cko-frames': {
+        this.framesPayment = true;
+        this.cardPayment = null;
         this._scriptService.load('cko-frames').then(data => {
           let cardTokenisedCallback = (event) => {
-            var cardToken = event.data.cardToken;
             this._paymentService.requestToken({
               type: 'card',
               number: '5436031030606378',
@@ -169,9 +195,10 @@ export class PaymentComponent implements OnInit, OnDestroy {
         break;
       }
       case 'lpp_9': {
+        this.framesPayment = null;
         this.cardPayment = null;
         this.getBanksLegacy(paymentMethod);
-        this.addPaymentConfigurator();
+        this.addPaymentConfigurator(this._formBuilder.control('', Validators.required));
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
@@ -187,10 +214,11 @@ export class PaymentComponent implements OnInit, OnDestroy {
         };
         break;
       }
-      case 'lpp_giropay': {
+      case 'giropay': {
+        this.framesPayment = null;
         this.cardPayment = null;
         this.getBanks(paymentMethod);
-        this.addPaymentConfigurator();
+        this.addPaymentConfigurator(this._formBuilder.control('', Validators.required));
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
@@ -200,7 +228,9 @@ export class PaymentComponent implements OnInit, OnDestroy {
               type: 'giropay',
               purpose: 'CKO Demo Shop Test',
               bic: this.selectedBank.value
-            }
+            },
+            successUrl: `${this.baseUri}/order/succeeded`,
+            failureUrl: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
@@ -250,10 +280,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
     try {
       switch (response.status) {
         case 201: {
+          this.addPaymentToLocalStorage((<IPayment>response.body).id);
           this._ngZone.run(() => this._router.navigate([`/user/order/${(<IPayment>response.body).id}`]));
           break;
         }
         case 202: {
+          this.addPaymentToLocalStorage((<IPending>response.body).id);
           this._paymentService.redirect(response);
           break;
         }
@@ -293,5 +325,15 @@ export class PaymentComponent implements OnInit, OnDestroy {
         map(value => this._bankFilter(value))
       );
     });    
+  }
+
+  addPaymentToLocalStorage(id: string) {
+    let payments: string[] = JSON.parse(localStorage.getItem('payments'));
+    if (!payments) {
+      localStorage.setItem('payments', JSON.stringify([id]));
+    } else {
+      payments.push(id);
+      localStorage.setItem('payments', JSON.stringify(payments));
+    }
   }
 }

@@ -57,7 +57,7 @@ body {
 }
 
 .payment-setup-spacer {
-  flex: 1 1 auto;
+  flex: 1 1 10%;
 }
 
 .toolbar-item {
@@ -145,7 +145,7 @@ app-order-detail {
     }
 
     @media #{$desktop-large} {
-      max-width: 30%;
+      max-width: 40%;
     }
 
     flex: 1 1 auto;
@@ -164,6 +164,11 @@ app-order-detail {
         width: 61px;
         height: 61px
       }
+
+      .payment-json {
+        font-size: 0.8em;
+        overflow-x: scroll;
+      }
     }
   }
 }
@@ -179,6 +184,11 @@ app-user {
     tr {
       font-family: monospace;
     }
+  }
+
+  .payment-method-icon {
+    vertical-align: middle;
+    height: 40px;
   }
 }
 
@@ -282,9 +292,24 @@ payment-component {
       flex: 1 1 auto;
       padding-top: $padding;
       padding-bottom: $padding;
+      flex-direction: row;
+      flex-wrap: wrap;
+      justify-content: space-between;
+
+      mat-form-field.wide {
+        width: 100%;
+      }
+
+      .card-container {
+        display: inherit;
+        flex-flow: inherit;
+        justify-content: inherit;
+      }
 
       mat-form-field {
-        width: 100%;
+        &[form-field="credit-card"] {
+          flex: 1 0 100%;
+        }
       }
     }
   }

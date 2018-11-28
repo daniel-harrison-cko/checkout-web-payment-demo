@@ -20,4 +20,5 @@ export interface ISource {
   productType?: string;
   avsCheck?: string;
   cvvCheck?: string;
+  number?: string;
 }

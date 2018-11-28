@@ -17,6 +17,7 @@ export interface IPayment {
   source: ISource;
   customer: ICustomer;
   processed_on: string;
+  requestedOn?: string;
   reference?: string;
   eci?: string;
   scheme_id?: string;

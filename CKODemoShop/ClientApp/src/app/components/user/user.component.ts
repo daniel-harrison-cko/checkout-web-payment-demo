@@ -1,91 +1,9 @@
 import { Component, ViewChild } from '@angular/core';
 import { ICustomer } from '../../interfaces/customer.interface';
 import { IPayment } from '../../interfaces/payment.interface';
-import { MatTableDataSource, MatSort } from '@angular/material';
+import { MatTableDataSource, MatSort, MatSortable } from '@angular/material';
 import { UserService } from '../../services/user.service';
 import { OrderService } from 'src/app/services/order.service';
-
-const ORDERS: IPayment[] = [
-  {
-    id: 'pay_b33regntng2ernkjhaou2hqbui',
-    action_id: 'act_b33regntng2ernkjhaou2hqbui',
-    amount: 100,
-    currency: 'EUR',
-    approved: false,
-    status: 3,
-    response_code: '20046',
-    response_summary: 'Bank Decline',
-    source: null,
-    customer: {
-      id: 'cus_k4qs252s7smubfcxyqalldmaoy',
-      name: null,
-      email: null
-    },
-    processed_on: '2018-11-12T11:06:19Z',
-    _links: {
-      self: {
-        href: 'https://api.sandbox.checkout.com/payments/pay_b33regntng2ernkjhaou2hqbui'
-      },
-      actions: {
-        href: 'https://api.sandbox.checkout.com/payments/pay_b33regntng2ernkjhaou2hqbui/actions'
-      }
-    }
-  },
-  {
-    id: 'pay_czxos5rqcdae3pq4vua6u6nqpe',
-    processed_on: '2018-11-20T16:06:48Z',
-    source: {
-      id: "src_f4ajregioj3e7lxqvd3s6st4yq",
-      type: "card",
-      billingAddress: null,
-      phone: null,
-      expiryMonth: 12,
-      expiryYear: 2022,
-      name: null,
-      scheme: "Visa",
-      last4: "4242",
-      fingerprint: "D04A616512BC2055B2D4E73B5ABCB85ED8543B35A0BCBD89226D0A8312EE8CB8",
-      bin: "424242",
-      cardType: 0,
-      cardCategory: 0,
-      issuer: "JPMORGAN CHASE BANK NA",
-      issuerCountry: "US",
-      productId: "A",
-      productType: "Visa Traditional",
-      avsCheck: "S",
-      cvvCheck: ""
-    },
-    amount: 100,
-    currency: "EUR",
-    reference: null,
-    status: 2,
-    '3ds': null,
-    risk: {
-      flagged: false
-    },
-    customer: {
-      id: "cus_4ej5qxtuejzetfu6wcbpsxlxri",
-      email: null,
-      name: null
-    },
-    eci: null,
-    _links: {
-      self: {
-        href: "https://api.sandbox.checkout.com/payments/pay_czxos5rqcdae3pq4vua6u6nqpe"
-      },
-      actions: {
-        href: "https://api.sandbox.checkout.com/payments/pay_czxos5rqcdae3pq4vua6u6nqpe/actions"
-      },
-      refund: {
-        href: "https://api.sandbox.checkout.com/payments/pay_czxos5rqcdae3pq4vua6u6nqpe/refunds"
-      }
-    }
-  }
-]
-const ORDERLIST: string[] = [
-  'pay_b33regntng2ernkjhaou2hqbui',
-  'pay_czxos5rqcdae3pq4vua6u6nqpe'
-];
 
 @Component({
   selector: 'app-user',
@@ -93,20 +11,32 @@ const ORDERLIST: string[] = [
 })
 export class UserComponent {
   user: ICustomer;
-  orders: any;
-  displayedColumns: string[] = ['processed', 'id', 'amount', 'status'];
-  dataSource = new MatTableDataSource(ORDERS);
+  orders: IPayment[];
+  displayedColumns: string[] = ['requestedOn', 'id', 'amount', 'status', 'source'];
+  dataSource = new MatTableDataSource(this.orders);
 
   @ViewChild(MatSort) sort: MatSort;
 
-  ngOnInit() {
-    this.dataSource.sort = this.sort;
-  }
-
   constructor(private _userService: UserService, private _orderService: OrderService) {
     this.user = _userService.getUser();
-    _orderService.getOrders(ORDERLIST).subscribe(response => {
-      this.orders = response.body;
+    let recordedOrders: string[] = JSON.parse(localStorage.getItem('payments'));
+    recordedOrders.forEach(paymentId => {
+      _orderService.getOrder(paymentId).subscribe(response => {
+        if (!this.orders) {
+          this.orders = [response.body]
+        } else {
+          this.orders.push(response.body);
+        }
+        this.orders.sort((a, b) => {
+          let timestampA = new Date(a.requestedOn);
+          let timestampB = new Date(b.requestedOn);
+          if (timestampA < timestampB) return -1;
+          if (timestampA > timestampB) return 1;
+          return 0;
+        });
+        this.dataSource = new MatTableDataSource(this.orders);
+        this.dataSource.sort = this.sort;
+      })
     });
   }
 
@@ -116,5 +46,9 @@ export class UserComponent {
 
   private orderStatus(id: number): string {
     return this._orderService.statusIdToName(id);
+  }
+
+  private paymentMethodIcon(payment: IPayment): string {
+    return this._orderService.paymentMethodIcon(payment);
   }
 }
