@@ -26,7 +26,7 @@ namespace CKODemoShop.Tests
             Console.WriteLine("CheckoutController instantiated");
         }
 
-        /*string lppId;
+        string lppId;
         List<IIBank> legacyBanks;
         BanksResponse banks;
         void when_get_banks()
@@ -56,11 +56,11 @@ namespace CKODemoShop.Tests
                 };
             };
 
-            context["given ~/lpp_giropay/banks"] = () =>
+            context["given ~/giropay/banks"] = () =>
             {
                 beforeAllAsync = async () =>
                 {
-                    lppId = "lpp_giropay";
+                    lppId = "giropay";
                     result = await controller.Banks(lppId);
                     banks = (result as ObjectResult).Value as BanksResponse;
                 };
@@ -91,20 +91,20 @@ namespace CKODemoShop.Tests
                 };
             };
 
-            context["given ~/lpp_ducks/banks"] = () =>
+            context["given ~/ducks/banks"] = () =>
             {
                 beforeAllAsync = async () =>
                 {
-                    lppId = "lpp_ducks";
+                    lppId = "ducks";
                     result = await controller.Banks(lppId);
                 };
 
                 it["should return 404 - Not Found"] = () =>
                 {
-                    (result as NotFoundResult).StatusCode.ShouldBe(StatusCodes.Status404NotFound);
+                    (result as NotFoundObjectResult).StatusCode.ShouldBe(StatusCodes.Status404NotFound);
                 };
             };
-        }*/
+        }
 
         CardTokenRequest tokenRequest;
         TokenResponse token;
@@ -187,7 +187,7 @@ namespace CKODemoShop.Tests
                         currency = Currency.EUR;
                         amount = 100;
                         paymentRequest = new PaymentRequest<TokenSource>(requestSource, currency, amount);
-                        result = await controller.TokenPayments(paymentRequest);
+                        result = await controller.Payments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
 
@@ -228,7 +228,7 @@ namespace CKODemoShop.Tests
                         currency = Currency.EUR;
                         amount = 100;
                         paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
-                        result = await controller.AlternativePayments(paymentRequest);
+                        result = await controller.Payments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
 
@@ -274,7 +274,7 @@ namespace CKODemoShop.Tests
                         currency = Currency.EUR;
                         amount = 100;
                         paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
-                        result = await controller.AlternativePayments(paymentRequest);
+                        result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
 
@@ -300,7 +300,7 @@ namespace CKODemoShop.Tests
                         currency = Currency.USD;
                         amount = 100;
                         paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
-                        result = await controller.AlternativePayments(paymentRequest);
+                        result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
 
@@ -331,7 +331,7 @@ namespace CKODemoShop.Tests
                         currency = Currency.EUR;
                         amount = 100;
                         paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
-                        result = await controller.AlternativePayments(paymentRequest);
+                        result = await controller.Payments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
 
@@ -377,7 +377,7 @@ namespace CKODemoShop.Tests
                         currency = Currency.EUR;
                         amount = 100;
                         paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
-                        result = await controller.AlternativePayments(paymentRequest);
+                        result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
 
@@ -403,7 +403,7 @@ namespace CKODemoShop.Tests
                         currency = Currency.USD;
                         amount = 100;
                         paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
-                        result = await controller.AlternativePayments(paymentRequest);
+                        result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
 
@@ -436,7 +436,7 @@ namespace CKODemoShop.Tests
                     currency = Currency.EUR;
                     amount = 100;
                     paymentRequest = new PaymentRequest<AlternativePaymentSource>(requestSource, currency, amount);
-                    result = await controller.AlternativePayments(paymentRequest); // POST payments
+                    result = await controller.Payments(paymentRequest); // POST payments
                     payment = (result as ObjectResult).Value as Resource;
                     result = await controller.Payments((payment as PaymentPending).Id); // GET payments
                     getPayment = (result as ObjectResult).Value as GetPaymentResponse;
@@ -454,29 +454,32 @@ namespace CKODemoShop.Tests
             };
         }
 
-        List<GetPaymentResponse> payments;
-        void when_get_payments_list()
+        void when_get_hypermedia_actions()
         {
-            context["given two payment IDs"] = () =>
+            context["given a valid paymentId"] = () =>
             {
+                CardSource requestSource;
+                PaymentRequest<CardSource> paymentRequest;
                 beforeAllAsync = async () =>
                 {
-                    List<string> paymentIds = new List<string>() {
-                        "pay_b33regntng2ernkjhaou2hqbui",
-                        "pay_czxos5rqcdae3pq4vua6u6nqpe",
-                        "pay_h4pxukonuz6urnsvoeaovmgrfa"
-                    };
-                    result = await controller.Payments(paymentIds);
-                    payments = (result as ObjectResult).Value as List<GetPaymentResponse>;
+                    requestSource = new CardSource("4242424242424242", 12, 2022);
+                    currency = Currency.EUR;
+                    amount = 100;
+                    paymentRequest = new PaymentRequest<CardSource>(requestSource, currency, amount);
+                    result = await controller.Payments(paymentRequest); // POST payments
+                    payment = (result as ObjectResult).Value as Resource;
+                    result = await controller.Actions((payment as PaymentProcessed).Id);
                 };
 
                 it["should return 200 - OK"] = () =>
                 {
                     (result as OkObjectResult).StatusCode.ShouldBe(StatusCodes.Status200OK);
-                    foreach(GetPaymentResponse payment in payments)
-                    {
-                        Console.WriteLine($"{payment.Source.Type}: {payment.Id} - {payment.RequestedOn}");
-                    }
+                };
+
+                it["should return actions"] = () =>
+                {
+                    var actions = (result as OkObjectResult).Value;
+                    actions.ShouldNotBeNull();
                 };
             };
         }

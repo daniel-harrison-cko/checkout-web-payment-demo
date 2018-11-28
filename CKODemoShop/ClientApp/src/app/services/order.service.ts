@@ -19,11 +19,6 @@ const STATUS: string[] = [
   "Chargeback"
 ];
 
-const ELEMENT_DATA: IProduct[] = [
-  { name: 'Points for Batman', amount: 100, unit: 1 },
-  { name: 'Batarang', amount: 2, unit: 9995 }
-];
-
 @Injectable({
   providedIn: 'root'
 })
@@ -44,8 +39,8 @@ export class OrderService {
     return this._http.get<IPayment>(`/api/checkout/payments/${id}`, { observe: 'response' });
   }
 
-  getOrders(orders: string[]): Observable<HttpResponse<any>> {
-    return this._http.post<any>(`/api/checkout/payments`, orders, {observe: 'response'});
+  getPaymentActions(id: string): Observable<HttpResponse<any>> {
+    return this._http.get<any>(`api/checkout/payments/${id}/actions`, {observe: 'response' })
   }
 
   statusIdToName(id: number): string {

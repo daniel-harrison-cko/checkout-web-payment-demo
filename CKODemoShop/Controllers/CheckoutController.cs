@@ -9,10 +9,16 @@ using CKODemoShop.Checkout;
 using System.Net.Http;
 using Checkout.Tokens;
 using Newtonsoft.Json;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace CKODemoShop.Controllers
 {
+    public class BanksResponse : Resource
+    {
+        public Dictionary<string,string> Banks { get; set; }
+
+        public bool HasBanks { get { return Banks.Count > 0; } }
+    }
+
     [Route("api/[controller]")]
     [ApiController]
     public class CheckoutController : Controller
@@ -51,14 +57,14 @@ namespace CKODemoShop.Controllers
                     };
                     response = legacyBanks;
                 }
-                else if (lppId == "lpp_giropay")
+                else if (lppId == "giropay")
                 {
                     client.DefaultRequestHeaders.Clear();
                     client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
-                    HttpResponseMessage result = await client.GetAsync("https://nginxtest.ckotech.co/giropay-external/banks");
+                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/banks");
                     string content = await result.Content.ReadAsStringAsync();
-                    //BanksResponse banksProcessed = JsonConvert.DeserializeObject<BanksResponse>(content);
-                    //response = banksProcessed;
+                    BanksResponse banksProcessed = JsonConvert.DeserializeObject<BanksResponse>(content);
+                    response = banksProcessed;
                 }
                 else
                 {
@@ -68,8 +74,7 @@ namespace CKODemoShop.Controllers
             }
             catch(Exception e)
             {
-                Console.Error.WriteLine(e.Message);
-                return NotFound();
+                return NotFound(e);
             }
         }
 
@@ -85,7 +90,6 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
                 return UnprocessableEntity(e);
             }
         }
@@ -106,32 +110,38 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        [HttpPost("[action]", Name = "GetPayments")]
-        [ProducesResponseType(200, Type = typeof(List<GetPaymentResponse>))]
+        [HttpGet("payments/{paymentId}/[action]", Name = "GetPaymentActions")]
+        [ProducesResponseType(200, Type = typeof(PaymentProcessed))]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Payments(List<string> paymentIds)
+        public async Task<IActionResult> Actions(string paymentId)
         {
-            var payments = new List<GetPaymentResponse>();
             try
             {
-                foreach(string paymentId in paymentIds)
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                HttpResponseMessage result = await client.GetAsync($"https://api.sandbox.checkout.com/payments/{paymentId}/actions");
+                if(result.IsSuccessStatusCode)
                 {
-                    var payment = await api.Payments.GetAsync(paymentId);
-                    payments.Add(payment);
+                    string content = await result.Content.ReadAsStringAsync();
+                    List<object> actions = JsonConvert.DeserializeObject<List<object>>(content);
+                    return Ok(actions);
                 }
-                return Ok(payments);
+                else
+                {
+                    return NotFound();
+                }
             }
             catch (Exception e)
             {
-                return BadRequest(e);
+                return BadRequest();
             }
         }
 
-        [HttpPost("[action]")]
+        [HttpPost("[action]/source/token")]
         [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
         [ProducesResponseType(202, Type = typeof(PaymentPending))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
-        public async Task<IActionResult> TokenPayments(PaymentRequest<TokenSource> paymentRequestModel)
+        public async Task<IActionResult> Payments(PaymentRequest<TokenSource> paymentRequestModel)
         {
             try
             {
@@ -151,11 +161,11 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        [HttpPost("[action]")]
+        [HttpPost("[action]/source/card")]
         [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
         [ProducesResponseType(202, Type = typeof(PaymentPending))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
-        public async Task<IActionResult> AlternativePayments(PaymentRequest<AlternativePaymentSource> paymentRequestModel)
+        public async Task<IActionResult> Payments(PaymentRequest<CardSource> paymentRequestModel)
         {
             try
             {
@@ -174,5 +184,30 @@ namespace CKODemoShop.Controllers
                 return UnprocessableEntity(e);
             }
         }
+
+        [HttpPost("[action]/source/alternative-payment-method")]
+        [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
+        [ProducesResponseType(202, Type = typeof(PaymentPending))]
+        [ProducesResponseType(422, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> Payments(PaymentRequest<AlternativePaymentSource> paymentRequestModel)
+        {
+            try
+            {
+                PaymentResponse paymentResponse = await api.Payments.RequestAsync(paymentRequestModel);
+                if (paymentResponse.IsPending)
+                {
+                    return AcceptedAtRoute("GetPayment", new { paymentId = paymentResponse.Pending.Id }, paymentResponse.Pending);
+                }
+                else
+                {
+                    return CreatedAtRoute("GetPayment", new { paymentId = paymentResponse.Payment.Id }, paymentResponse.Payment);
+                }
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity(e);
+            }
+        }
+
     }
 }

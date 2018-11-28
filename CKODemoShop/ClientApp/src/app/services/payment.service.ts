@@ -5,8 +5,6 @@ import { IBank } from '../interfaces/bank.interface';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
 import { IPaymentRequest } from '../interfaces/payment-request.interface';
 import { IBanks } from '../interfaces/banks.interface';
-import { IPending } from '../interfaces/pending.interface';
-import { IPaymentResponse } from '../interfaces/payment-response.interface';
 import { IPayment } from '../interfaces/payment.interface';
 
 @Injectable({
@@ -25,11 +23,14 @@ export class PaymentService {
 
   requestPayment(paymentRequest: IPaymentRequest): Observable<HttpResponse<any>> {
     switch (paymentRequest.source.type) {
-      case "token": {
-        return this.http.post<any>(`/api/checkout/tokenpayments`, paymentRequest, { observe: 'response' });
+      case 'token': {
+        return this.http.post<any>(`/api/checkout/payments/source/token`, paymentRequest, { observe: 'response' });
+      }
+      case 'card': {
+        return this.http.post<any>(`/api/checkout/payments/source/card`, paymentRequest, { observe: 'response' });
       }
       default: {
-        return this.http.post<any>(`/api/checkout/alternativepayments`, paymentRequest, { observe: 'response' });
+        return this.http.post<any>(`/api/checkout/payments/source/alternative-payment-method`, paymentRequest, { observe: 'response' });
       }
     }
   }
@@ -41,5 +42,13 @@ export class PaymentService {
   redirect(response: HttpResponse<IPayment>): void {
     let payment: IPayment = response.body;
     window.location.href = payment._links.redirect.href;
+  }
+
+  getMonth(expiryDate: string): number {
+    return Number.parseInt(expiryDate.slice(0, 2));
+  }
+
+  getYear(expiryDate: string): number {
+    return Number.parseInt(expiryDate.slice(2, 6));
   }
 }
