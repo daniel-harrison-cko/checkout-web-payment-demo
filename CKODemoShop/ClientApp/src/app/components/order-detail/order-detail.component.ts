@@ -33,8 +33,4 @@ export class OrderDetailComponent {
   private paymentMethodIcon(payment: IPayment): string {
     return this._orderService.paymentMethodIcon(payment);
   }
-
-  private getHypermedia(href: string) {
-    alert(href);
-  }
 }

@@ -6,8 +6,8 @@ import { Subscription } from 'rxjs';
 
 const CURRENCIES: ICurrency[] = [
   { iso4217: 'GBP', base: 100 },
-  { iso4217: 'USD', base: 100 },
-  { iso4217: 'EUR', base: 100 }
+  { iso4217: 'EUR', base: 100 },
+  { iso4217: 'USD', base: 100 }
 ];
 
 @Component({
@@ -25,7 +25,7 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(private _appService: AppService, private _formBuilder: FormBuilder) { }
 
   ngOnInit() {
-    this.selectedCurrency = this.currencies[0];
+    this.selectedCurrency = this.currencies[1];
     this.currencyForm = this._formBuilder.group({
       currency: [this.selectedCurrency, Validators.required]
     });

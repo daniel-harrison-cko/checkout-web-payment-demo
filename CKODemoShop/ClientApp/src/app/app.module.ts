@@ -19,6 +19,7 @@ import { VerifyAndPayComponent } from './components/verify-and-pay/verify-and-pa
 import { OrderSummaryComponent } from './components/order-summary/order-summary.component';
 import { UserComponent } from './components/user/user.component';
 import { OrderDetailComponent } from './components/order-detail/order-detail.component';
+import { HypermediaComponent } from './components/hypermedia/hypermedia.component';
 
 @NgModule({
   declarations: [
@@ -34,6 +35,7 @@ import { OrderDetailComponent } from './components/order-detail/order-detail.com
     VerifyAndPayComponent,
     CustomerSummaryComponent,
     OrderSummaryComponent,
+    HypermediaComponent,
     SpacesToDashesPipe
   ],
   imports: [
