@@ -17,7 +17,7 @@ const CURRENCIES: ICurrency[] = [
 })
 export class AppComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
-  title: string = 'Hall of Heroes';
+  title: string = 'CKO Demo';
   currencies: ICurrency[] = CURRENCIES;
   selectedCurrency: ICurrency;
   currencyForm: FormGroup;

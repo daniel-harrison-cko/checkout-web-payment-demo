@@ -75,61 +75,6 @@ body {
   background: none;
 }
 
-heroes {
-  padding: $padding;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: space-evenly;
-
-  h1 {
-    width: 100%;
-    text-align: center;
-  }
-
-  hero {
-    @media #{$tablet} {
-      max-width: 35%;
-    }
-
-    @media #{$desktop-small} {
-      max-width: 30%;
-    }
-
-    @media #{$desktop-medium} {
-      max-width: 25%;
-    }
-
-    @media #{$desktop-large} {
-      max-width: 20%;
-    }
-
-    display: inline-flex;
-    margin: $margin;
-    flex: 1 1 auto;
-
-    .mat-card {
-      display: flex;
-      flex-direction: column;
-
-      .mat-card-header {
-        flex-grow: 0;
-      }
-
-      .mat-card-content {
-        flex-grow: 1;
-        text-align: justify;
-      }
-
-      .mat-card-image {
-        height: 300px;
-        background-size: cover;
-        background-repeat: no-repeat;
-      }
-    }
-  }
-}
-
 app-order-detail {
   .order-detail {
     @media #{$tablet} {
@@ -202,77 +147,6 @@ app-user {
     max-width: 50%;
     margin-top: 2 * $margin;
     margin-bottom: 2 * $margin;
-  }
-}
-
-hero-detail {
-  height: 100%;
-  display: flex;
-
-  mat-sidenav-container {
-    flex: 1 1 auto;
-
-    mat-sidenav.mat-drawer.mat-sidenav {
-      min-width: 30%;
-    }
-
-    mat-sidenav-content.mat-drawer-content {
-      display: flex;
-      flex: 1 1 auto;
-      justify-content: center;
-
-      .hero-detail {
-        @media #{$tablet} {
-          max-width: 35%;
-        }
-
-        @media #{$desktop-small} {
-          max-width: 30%;
-        }
-
-        @media #{$desktop-medium} {
-          max-width: 25%;
-        }
-
-        @media #{$desktop-large} {
-          max-width: 20%;
-        }
-
-        flex: 1 1 auto;
-
-        .mat-card {
-          display: flex;
-          flex-direction: column;
-          max-width: unset;
-
-          .mat-card-header {
-            flex-grow: 0;
-          }
-
-          .mat-card-content {
-            flex-grow: 1;
-            text-align: justify;
-
-            form {
-              display: flex;
-              align-items: baseline;
-              justify-content: space-between;
-
-              .points {
-                text-align: right;
-              }
-            }
-          }
-
-          .mat-card-image {
-            height: 300px;
-            background-size: contain;
-            background-position: center;
-            background-repeat: no-repeat;
-          }
-        }
-      }
-    }
   }
 }
 

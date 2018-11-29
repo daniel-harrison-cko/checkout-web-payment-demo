@@ -40,7 +40,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
 ]
 
 @Component({
-  selector: 'payment-component',
+  selector: 'app-payment-component',
   templateUrl: './payment.component.html'
 })
 export class PaymentComponent implements OnInit, OnDestroy {
