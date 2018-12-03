@@ -20,24 +20,26 @@ export class UserComponent {
   constructor(private _userService: UserService, private _orderService: OrderService) {
     this.user = _userService.getUser();
     let recordedOrders: string[] = JSON.parse(localStorage.getItem('payments'));
-    recordedOrders.forEach(paymentId => {
-      _orderService.getOrder(paymentId).subscribe(response => {
-        if (!this.orders) {
-          this.orders = [response.body]
-        } else {
-          this.orders.push(response.body);
-        }
-        this.orders.sort((a, b) => {
-          let timestampA = new Date(a.requestedOn);
-          let timestampB = new Date(b.requestedOn);
-          if (timestampA < timestampB) return -1;
-          if (timestampA > timestampB) return 1;
-          return 0;
-        });
-        this.dataSource = new MatTableDataSource(this.orders);
-        this.dataSource.sort = this.sort;
-      })
-    });
+    if (recordedOrders !== null) {
+      recordedOrders.forEach(paymentId => {
+        _orderService.getOrder(paymentId).subscribe(response => {
+          if (!this.orders) {
+            this.orders = [response.body]
+          } else {
+            this.orders.push(response.body);
+          }
+          this.orders.sort((a, b) => {
+            let timestampA = new Date(a.requestedOn);
+            let timestampB = new Date(b.requestedOn);
+            if (timestampA < timestampB) return -1;
+            if (timestampA > timestampB) return 1;
+            return 0;
+          });
+          this.dataSource = new MatTableDataSource(this.orders);
+          this.dataSource.sort = this.sort;
+        })
+      });
+    }    
   }
 
   openPayment(id: string) {
