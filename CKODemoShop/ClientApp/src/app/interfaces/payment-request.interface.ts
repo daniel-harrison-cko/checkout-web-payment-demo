@@ -6,7 +6,7 @@ export interface IPaymentRequest {
   successUrl?: string;
   Risk?: object;
   previousPaymentId?: string;
-  threeDs?: object;
+  '3ds'?: object;
   shipping?: object;
   billingDescriptor?: object;
   customer?: object;
