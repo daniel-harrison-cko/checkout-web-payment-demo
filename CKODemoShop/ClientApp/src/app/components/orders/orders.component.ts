@@ -6,10 +6,10 @@ import { UserService } from '../../services/user.service';
 import { OrderService } from 'src/app/services/order.service';
 
 @Component({
-  selector: 'app-user',
-  templateUrl: './user.component.html'
+  selector: 'app-orders',
+  templateUrl: './orders.component.html'
 })
-export class UserComponent {
+export class OrdersComponent {
   user: ICustomer;
   orders: IPayment[];
   displayedColumns: string[] = ['requestedOn', 'id', 'amount', 'status', 'source'];

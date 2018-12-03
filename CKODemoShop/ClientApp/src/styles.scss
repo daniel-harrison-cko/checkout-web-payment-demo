@@ -84,49 +84,77 @@ body {
 }
 
 app-order-detail {
-  .order-detail {
+  display: flex;
+  flex: 1 1 auto;
+  padding: $padding;
+  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
+
+  div.row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: $margin;
+  }
+
+  .mat-card {
     @media #{$tablet} {
       max-width: 100%;
     }
 
     @media #{$desktop-small} {
-      max-width: 80%;
+      max-width: 1024px;
     }
 
     @media #{$desktop-medium} {
-      max-width: 60%;
+      max-width: 1024px;
     }
 
     @media #{$desktop-large} {
-      max-width: 40%;
+      max-width: 1024px;
     }
 
     flex: 1 1 auto;
 
-    .mat-card {
-      flex-direction: column;
-      max-width: unset;
+    .mat-card-header {
+      margin-bottom: $margin;
+    }
 
-      .mat-card-header {
-        margin-bottom: $margin;
-      }
+    .payment-method-avatar {
+      object-fit: scale-down;
+      border-radius: unset;
+      width: 61px;
+      height: 61px
+    }
 
-      .payment-method-avatar {
-        object-fit: scale-down;
-        border-radius: unset;
-        width: 61px;
-        height: 61px
-      }
-
-      .payment-json {
-        font-size: 0.8em;
-        overflow-x: scroll;
-      }
+    .payment-json {
+      font-size: 0.8em;
+      overflow-x: scroll;
     }
   }
 }
 
-app-user {
+app-hypermedia {
+
+  .hypermedia-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+
+    .hypermedia-list-expansion-panel {
+      width: 100%;
+      margin-left: $margin;
+      margin-right: $margin;
+    }
+
+    .hypermedia-list-item {
+      flex: 1 1 auto;
+      width: unset;
+    }
+  }
+}
+
+app-orders {
   .mat-card-content {
     display: flex;
     flex-direction: column;
@@ -144,8 +172,6 @@ app-user {
     height: 40px;
   }
 }
-
-
 
 .mat-drawer-content {
   display: flex !important;

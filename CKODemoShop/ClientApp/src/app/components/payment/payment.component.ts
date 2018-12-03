@@ -318,7 +318,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
       switch (response.status) {
         case 201: {
           this.addPaymentToLocalStorage((<IPayment>response.body).id);
-          this._ngZone.run(() => this._router.navigate([`/user/order/${(<IPayment>response.body).id}`]));
+          this._ngZone.run(() => this._router.navigate([`/user/orders/${(<IPayment>response.body).id}`]));
           break;
         }
         case 202: {

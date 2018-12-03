@@ -9,14 +9,14 @@ import { AddressFormComponent } from './components/address-form/address-form.com
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PaymentComponent } from './components/payment/payment.component';
-import { UserComponent } from './components/user/user.component';
 import { OrderDetailComponent } from './components/order-detail/order-detail.component';
 import { HypermediaComponent } from './components/hypermedia/hypermedia.component';
+import { OrdersComponent } from './components/orders/orders.component';
 
 @NgModule({
   declarations: [
     AppComponent,
-    UserComponent,
+    OrdersComponent,
     OrderDetailComponent,
     PaymentComponent,
     AddressFormComponent,
