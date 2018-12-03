@@ -17,6 +17,7 @@ import { Router } from '@angular/router';
 import { IPayment } from 'src/app/interfaces/payment.interface';
 import { OrderService } from 'src/app/services/order.service';
 import { IPending } from 'src/app/interfaces/pending.interface';
+import { MatRadioChange } from '@angular/material';
 
 declare var Frames: any;
 
@@ -46,6 +47,9 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
 export class PaymentComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   isLinear = true;
+  productFormGroup: FormGroup;
+  paymentMethodFormGroup: FormGroup;
+  paymentConfigurationFormGroup: FormGroup;
   customerFormGroup: FormGroup;
   addressFormGroup: FormGroup;
   paymentFormGroup: FormGroup;
@@ -64,6 +68,8 @@ export class PaymentComponent implements OnInit, OnDestroy {
   cardPayment: boolean;
   makePayment: Function;
   customer: IUser;
+  autoCapture: boolean = true;
+  threeDs: boolean = false;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
   selectedBank: IBank;
@@ -79,32 +85,43 @@ export class PaymentComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
+    this.productFormGroup = this._formBuilder.group({
+      amount: ['1', [Validators.required, Validators.min(0)]]
+    });
+    this.paymentMethodFormGroup = this._formBuilder.group({
+      payment_method: ['', Validators.required],
+      payment_configurators: this._formBuilder.array([])
+    });
+    this.paymentConfigurationFormGroup = this._formBuilder.group({
+      autoCapture: [true, Validators.required],
+      threeDs: [false, Validators.required]
+    });
     this.customerFormGroup = this._formBuilder.group({
-      name: ['', Validators.required],
-      email: ['', [Validators.required, Validators.email]]
+      name: ['Bruce Wayne', Validators.required],
+      email: ['bruce@wayne-enterprises.com', [Validators.required, Validators.email]]
     });
     this.addressFormGroup = this._formBuilder.group({
-      address_line1: ['', Validators.required],
+      address_line1: ['Wayne Plaza 1', Validators.required],
       address_line2: [''],
-      city: ['', Validators.required],
-      state: ['', Validators.required],
-      zip: ['', Validators.required],
-      country: ['', Validators.required]
+      city: ['Gotham City', Validators.required],
+      state: ['NJ', Validators.required],
+      zip: ['12345', Validators.required],
+      country: ['USA', Validators.required]
     });
     this.cardFormGroup = this._formBuilder.group({
-      number: ['', Validators.required],
-      expiration: ['', Validators.required],
-      cvv: ['', [Validators.minLength(3), Validators.maxLength(4)]]
+      number: ['4242424242424242', Validators.required],
+      expiration: ['122022', Validators.required],
+      cvv: ['100', [Validators.minLength(3), Validators.maxLength(4)]]
     });
     this.paymentFormGroup = this._formBuilder.group({
-      payment_method: ['', Validators.required],
-      payment_configurators: this._formBuilder.array([]),
       gtc: [false, Validators.required]
     });
 
     this.subscriptions.push(
-      this.paymentFormGroup.get('payment_method').valueChanges.subscribe(payment_method => this.selectedPaymentMethod = payment_method),
+      this.paymentMethodFormGroup.get('payment_method').valueChanges.subscribe(payment_method => this.selectedPaymentMethod = payment_method),
       this.paymentFormGroup.get('gtc').valueChanges.subscribe(agreesWithGtc => this.agreesWithGtc = agreesWithGtc),
+      this.paymentConfigurationFormGroup.get('autoCapture').valueChanges.subscribe(autoCapture => this.autoCapture = autoCapture),
+      this.paymentConfigurationFormGroup.get('threeDs').valueChanges.subscribe(threeDs => this.threeDs = threeDs)
     );
   }
 
@@ -125,7 +142,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   get payment_configurators(): FormArray {
-    return <FormArray>this.paymentFormGroup.get('payment_configurators');
+    return <FormArray>this.paymentMethodFormGroup.get('payment_configurators');
   }
 
   private addPaymentConfigurator(configurator: any) {
@@ -143,7 +160,11 @@ export class PaymentComponent implements OnInit, OnDestroy {
     }
   }
 
-  invokePaymentMethod(paymentMethod: IPaymentMethod) {
+  paymentMethodSelected(event: MatRadioChange) {
+    this.invokePaymentMethod(event.value);
+  }
+
+  private invokePaymentMethod(paymentMethod: IPaymentMethod) {
     this.resetPaymentConfigurations();
     switch (paymentMethod.type) {
       case 'card': {
@@ -154,13 +175,19 @@ export class PaymentComponent implements OnInit, OnDestroy {
           this.processing = true;
           this._paymentService.requestPayment({
             currency: 'EUR',
-            amount: this._orderService.getTotal(),
+            amount: this.getAmount(),
             source: {
               type: 'card',
               number: this.cardFormGroup.get('number').value,
               expiryMonth: this._paymentService.getMonth(this.cardFormGroup.get('expiration').value),
               expiryYear: this._paymentService.getYear(this.cardFormGroup.get('expiration').value)
-            }
+            },
+            capture: this.autoCapture,
+            '3ds': {
+              enabled: this.threeDs
+            },
+            successUrl: `${this.baseUri}/order/succeeded`,
+            failureUrl: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response));
         }
         break;
@@ -203,7 +230,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           this.processing = true;
           this._paymentService.requestPayment({
             currency: 'EUR',
-            amount: this._orderService.getTotal(),
+            amount: this.getAmount(),
             source: <IIdealSource>{
               type: 'ideal',
               issuer_id: this.selectedBank.value,
@@ -223,7 +250,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           this.processing = true;
           this._paymentService.requestPayment({
             currency: 'EUR',
-            amount: this._orderService.getTotal(),
+            amount: this.getAmount(),
             source: <IGiropaySource>{
               type: 'giropay',
               purpose: 'CKO Demo Shop Test',
@@ -255,21 +282,31 @@ export class PaymentComponent implements OnInit, OnDestroy {
     };
   }
 
+  getAmount(): number {
+    return this.productFormGroup.get('amount').value;
+  };
+
   handleCardTokenResponse(response: HttpResponse<any>) {
     switch (response.status) {
       case 201: {
         this._paymentService.requestPayment({
           currency: 'EUR',
-          amount: this._orderService.getTotal(),
+          amount: this.getAmount(),
           source: <ITokenSource>{
             type: 'token',
             token: response.body['token']
-          }          
+          },
+          capture: this.autoCapture,
+          '3ds': {
+            enabled: this.threeDs
+          },
+          successUrl: `${this.baseUri}/order/succeeded`,
+          failureUrl: `${this.baseUri}/order/failed`
         }).subscribe(response => this.handlePaymentResponse(response));
         break;
       }
       default: {
-        this.paymentFormGroup.reset();
+        this.paymentMethodFormGroup.reset();
         this.resetPaymentConfigurations();
         throw new Error(`Handling of response status ${response.status} is not implemented!`);
       };
@@ -290,7 +327,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
           break;
         }
         default: {
-          this.paymentFormGroup.reset();
+          this.paymentMethodFormGroup.reset();
           this.resetPaymentConfigurations();
           throw new Error(`Handling of response status ${response.status} is not implemented!`);
         }

@@ -33,7 +33,6 @@ $padding: $margin;
 }
 
 .gtc-checkbox {
-  max-width: 500px;
   text-align: justify;
   padding-top: $padding;
   padding-bottom: $padding;
@@ -45,6 +44,13 @@ $padding: $margin;
 
 body {
   background-color: $color-background;
+  overflow-y: scroll;
+}
+
+.mat-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .toolbar-title {
@@ -56,13 +62,15 @@ body {
   flex: 1 1 auto;
 }
 
-.payment-setup-spacer {
-  flex: 1 1 10%;
-}
-
 .toolbar-item {
   margin-left: $margin;
   margin-right: $margin;
+
+  &.currency-form {
+    .mat-form-field-infix {
+      width: 64px;
+    }
+  }
 }
 
 .mat-card-avatar {
@@ -137,6 +145,8 @@ app-user {
   }
 }
 
+
+
 .mat-drawer-content {
   display: flex !important;
   justify-content: center;
@@ -150,33 +160,103 @@ app-user {
   }
 }
 
-payment-component {
+app-payment-component {
+  display: flex;
+  flex: 1 1 auto;
+  padding: $padding;
+  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
+
+  div.row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: $margin;
+  }
+
+  .mat-card {
+    @media #{$tablet} {
+      max-width: 100%;
+    }
+
+    @media #{$desktop-small} {
+      max-width: 1024px;
+    }
+
+    @media #{$desktop-medium} {
+      max-width: 1024px;
+    }
+
+    @media #{$desktop-large} {
+      max-width: 1024px;
+    }
+
+    flex: 1 1 auto;
+  }
+
   form {
     display: flex;
     flex-direction: column;
   }
 
+  .product-form {
+    flex-direction: row;
+
+    .mat-form-field {
+      width: 128px;
+
+      input {
+        text-align: right;
+      }
+    }
+  }
+
+  .payment-configuration-form {
+    padding-top: $padding;
+    padding-bottom: $padding;
+  }
+
+  .customer-form, .address-form {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-top: $padding;
+    padding-bottom: $padding;
+
+    .mat-form-field {
+      flex: 1 0 auto;
+    }
+  }
+
   .payment-setup {
     display: flex;
+    flex-direction: column;
     justify-content: space-between;
-    align-items: center;
 
     .payment-configurators {
       display: inline-flex;
       flex: 1 1 auto;
-      padding-top: $padding;
       padding-bottom: $padding;
-      flex-direction: row;
+      flex-direction: column;
       flex-wrap: wrap;
-      justify-content: space-between;
+      justify-content: inherit;
 
       mat-form-field.wide {
         width: 100%;
       }
 
       .card-container {
+        flex: 1 1 auto;
+        max-width: 50%;
         display: inherit;
-        flex-flow: inherit;
+        flex-wrap: inherit;
+        justify-content: inherit;
+      }
+
+      .card-configuration-container {
+        flex: 1 1 auto;
+        max-width: 50%;
+        display: inherit;
+        flex-direction: inherit;
         justify-content: inherit;
       }
 
@@ -196,56 +276,6 @@ payment-component {
       height: 3em;
       display: flex;
       justify-content: center;
-    }
-  }
-}
-
-app-verify-and-pay {
-  p {
-    margin: 0px;
-  }
-}
-
-app-customer-summary {
-  display: block;
-  padding-top: $padding;
-  padding-bottom: $padding;
-
-  .address_line1, .address_line2 {
-    white-space: nowrap;
-  }
-}
-
-app-order-summary {
-  display: block;
-  padding-top: $padding;
-  padding-bottom: $padding;
-
-  .order-summary {
-    width: 100%;
-
-    tr.mat-footer-row {
-      font-weight: bold;
-    }
-
-    .mat-table-sticky {
-      border-top: 1px solid #e0e0e0;
-    }
-  }
-}
-
-billing-and-shipping {
-  padding: $padding;
-  display: flex;
-  flex-direction: row;
-
-  mat-card {
-    flex: 1 1 auto;
-    margin: $margin;
-
-    form {
-      display: flex;
-      flex-direction: column;
     }
   }
 }
