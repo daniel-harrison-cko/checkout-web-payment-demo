@@ -13,6 +13,7 @@ import { OrderDetailComponent } from './components/order-detail/order-detail.com
 import { HypermediaComponent } from './components/hypermedia/hypermedia.component';
 import { OrdersComponent } from './components/orders/orders.component';
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
+import { ProductFormComponent } from './components/product-form/product-form.component';
 
 @NgModule({
   declarations: [
@@ -22,7 +23,8 @@ import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.compo
     PaymentComponent,
     AddressFormComponent,
     HypermediaComponent,
-    BreadcrumbsComponent
+    BreadcrumbsComponent,
+    ProductFormComponent
   ],
   imports: [
     HttpClientModule,

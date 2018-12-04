@@ -251,6 +251,12 @@ app-orders {
       margin-bottom: $margin;
     }
 
+    app-product-form {
+      display: flex;
+      flex: 1 1 auto;
+      justify-content: center;
+    }
+
     .mat-card {
       @media #{$tablet} {
         max-width: 100%;

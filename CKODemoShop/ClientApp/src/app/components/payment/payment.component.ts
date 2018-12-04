@@ -47,7 +47,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
 export class PaymentComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   isLinear = true;
-  productFormGroup: FormGroup;
+  paymentForm: FormGroup;
   paymentMethodFormGroup: FormGroup;
   paymentConfigurationFormGroup: FormGroup;
   customerFormGroup: FormGroup;
@@ -84,10 +84,12 @@ export class PaymentComponent implements OnInit, OnDestroy {
     private _orderService: OrderService
   ) { }
 
+  formInitialized(name: string, form: FormGroup) {
+    this.paymentForm.setControl(name, form);
+  }
+
   ngOnInit() {
-    this.productFormGroup = this._formBuilder.group({
-      amount: ['1', [Validators.required, Validators.min(0)]]
-    });
+    this.paymentForm = this._formBuilder.group({});
     this.paymentMethodFormGroup = this._formBuilder.group({
       payment_method: ['', Validators.required],
       payment_configurators: this._formBuilder.array([])
@@ -283,7 +285,7 @@ export class PaymentComponent implements OnInit, OnDestroy {
   }
 
   getAmount(): number {
-    return this.productFormGroup.get('amount').value;
+    return this.paymentForm.get('product.amount').value;
   };
 
   handleCardTokenResponse(response: HttpResponse<any>) {

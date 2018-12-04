@@ -1,14 +1,5 @@
 <div class="row">
-  <mat-card>
-    <form [formGroup]="productFormGroup" class="product-form">
-      <mat-form-field>
-        <input matInput type="number" min="0" placeholder="Amount" formControlName="amount" required>
-        <span matSuffix>{{'EUR'}}</span>
-        <mat-error *ngIf="productFormGroup.get('amount').hasError('required')">Please enter an amount for testing a payment.</mat-error>
-        <mat-error *ngIf="productFormGroup.get('amount').hasError('min')">You cannot send an amount < 0. If you would like to try a refund or a payout, please check the respective documentation.</mat-error>
-      </mat-form-field>
-    </form>
-  </mat-card>
+  <app-product-form (formReady)="formInitialized('product', $event)"></app-product-form>
 </div>
 <div class="row">
   <mat-card>
@@ -114,3 +105,6 @@
     </div>
   </mat-card>
 </div>
+<pre>
+{{paymentForm.value | json}}
+</pre>
