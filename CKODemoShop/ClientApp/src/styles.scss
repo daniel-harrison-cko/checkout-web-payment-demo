@@ -54,8 +54,14 @@ body {
 }
 
 .toolbar-title {
-  color: white !important;
-  text-decoration: none !important;
+  a {
+    color: white !important;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
 }
 
 .toolbar-spacer {
@@ -81,6 +87,11 @@ body {
 
 .mat-drawer-container {
   background: none;
+}
+
+app-breadcrumbs {
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 app-order-detail {

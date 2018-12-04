@@ -12,6 +12,7 @@ import { PaymentComponent } from './components/payment/payment.component';
 import { OrderDetailComponent } from './components/order-detail/order-detail.component';
 import { HypermediaComponent } from './components/hypermedia/hypermedia.component';
 import { OrdersComponent } from './components/orders/orders.component';
+import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 
 @NgModule({
   declarations: [
@@ -20,7 +21,8 @@ import { OrdersComponent } from './components/orders/orders.component';
     OrderDetailComponent,
     PaymentComponent,
     AddressFormComponent,
-    HypermediaComponent
+    HypermediaComponent,
+    BreadcrumbsComponent
   ],
   imports: [
     HttpClientModule,

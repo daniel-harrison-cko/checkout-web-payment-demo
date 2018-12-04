@@ -1,0 +1,7 @@
+<span class="toolbar-title" tabindex="-1">
+  <a [routerLink]="['']">{{appTitle}}</a>
+  <ng-container *ngFor="let breadcrumb of breadcrumbTrail | keyvalue">
+    <span> / <a [routerLink]="[breadcrumb.value.route]">{{breadcrumb.value.name}}</a></span>
+  </ng-container>
+  <span *ngIf="lastBreadcrumb"> / {{lastBreadcrumb}}</span>
+</span>
