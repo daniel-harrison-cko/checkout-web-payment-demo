@@ -1,55 +1,14 @@
 <div class="row">
-  <app-product-form (formReady)="formInitialized('product', $event)"></app-product-form>
+  <mat-card>
+    <app-product-form (formReady)="formInitialized('productForm', $event)"></app-product-form>
+  </mat-card>  
 </div>
 <div class="row">
   <mat-card>
     <mat-vertical-stepper [linear]="isLinear" #stepper>
-      <mat-step [stepControl]="paymentMethodFormGroup">
-        <form [formGroup]="paymentMethodFormGroup">
-          <ng-template matStepLabel>Select a Payment Method</ng-template>
-          <div class="payment-setup">
-            <mat-radio-group class="example-radio-group" formControlName="payment_method" (change)="paymentMethodSelected($event)" required>
-              <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod">
-                {{paymentMethod.name}}
-              </mat-radio-button>
-            </mat-radio-group>
-            <div formArrayName="payment_configurators" class="payment-configurators">
-              <ng-container *ngIf="framesPayment">
-                <div class="cko-container"></div>
-              </ng-container>
-              <ng-container *ngIf="cardPayment">
-                <div [formGroup]="cardFormGroup" class="card-container">
-                  <mat-form-field form-field="credit-card">
-                    <input matInput placeholder="Card Number" formControlName="number" autocomplete="cc-number" required />
-                    <mat-error *ngIf="cardFormGroup.get('number').hasError('required')">Please enter a Credit Card number.</mat-error>
-                  </mat-form-field>
-                  <mat-form-field form-field="expiry">
-                    <input matInput placeholder="MM | YYYY" formControlName="expiration" autocomplete="cc-exp" required />
-                    <mat-error *ngIf="cardFormGroup.get('expiration').hasError('required')">Please enter the Credit Card's expiration date.</mat-error>
-                  </mat-form-field>
-                  <mat-form-field form-field="cvv">
-                    <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
-                    <mat-error *ngIf="cardFormGroup.get('cvv').hasError('minlength') || cardFormGroup.get('cvv').hasError('maxlength')">Your CVV must have 3-4 digits.</mat-error>
-                  </mat-form-field>
-                </div>
-              </ng-container>
-              <ng-container *ngIf="banks">
-                <mat-form-field *ngFor="let payment_configurator of payment_configurators.controls; let i=index" class="wide">
-                  <input type="text" placeholder="Select a bank" aria-label="Bank" matInput [formControlName]="i" [matAutocomplete]="auto" required>
-                  <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
-                    <mat-option>--</mat-option>
-                    <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
-                      <span class="monospace">{{bank.value}}</span> {{bank.key}}
-                    </mat-option>
-                  </mat-autocomplete>
-                  <mat-hint>Easily find a bank by starting to type its name or BIC.</mat-hint>
-                  <mat-error *ngIf="payment_configurator.hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment.</mat-error>
-                </mat-form-field>
-              </ng-container>
-            </div>
-          </div>
-          <mat-error *ngIf="paymentMethodFormGroup.get('payment_method').hasError('required')"><p>Please select a Payment Method.</p></mat-error>
-        </form>
+      <mat-step [stepControl]="paymentMethodForm">
+        <ng-template matStepLabel>Select a Payment Method</ng-template>
+        <app-payment-method-form  (formReady)="formInitialized('paymentMethodForm', $event)"></app-payment-method-form>
         <div>
           <button mat-stroked-button matStepperNext>Next</button>
         </div>
@@ -101,7 +60,7 @@
     </mat-vertical-stepper>
     <br />
     <div class="payNowButton-container">
-      <button mat-flat-button color="accent" [disabled]="paymentMethodFormGroup.invalid || paymentFormGroup.invalid || customerFormGroup.invalid || addressFormGroup.invalid || processing" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
+      <button mat-flat-button color="accent" [disabled]="paymentForm.invalid || paymentFormGroup.invalid || customerFormGroup.invalid || addressFormGroup.invalid || processing" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
     </div>
   </mat-card>
 </div>

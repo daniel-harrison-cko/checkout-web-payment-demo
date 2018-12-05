@@ -1,10 +1,8 @@
-<mat-card>
-  <form [formGroup]="productForm" class="product-form">
-    <mat-form-field>
-      <input matInput type="number" min="0" placeholder="Amount" formControlName="amount" required>
-      <span matSuffix>{{'EUR'}}</span>
-      <mat-error *ngIf="productForm.get('amount').hasError('required')">Please enter an amount for testing a payment.</mat-error>
-      <mat-error *ngIf="productForm.get('amount').hasError('min')">You cannot send an amount < 0. If you would like to try a refund or a payout, please check the respective documentation.</mat-error>
-    </mat-form-field>
-  </form>
-</mat-card>
+<form [formGroup]="productForm" class="product-form">
+  <mat-form-field>
+    <input matInput type="number" min="0" placeholder="Amount" formControlName="amount" required>
+    <span matSuffix>{{'EUR'}}</span>
+    <mat-error *ngIf="productForm.get('amount').hasError('required')">Please enter an amount for testing a payment.</mat-error>
+    <mat-error *ngIf="productForm.get('amount').hasError('min')">You cannot send an amount < 0. If you would like to try a refund or a payout, please check the respective documentation.</mat-error>
+  </mat-form-field>
+</form>
