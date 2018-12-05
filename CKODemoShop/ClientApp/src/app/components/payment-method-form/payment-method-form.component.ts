@@ -16,12 +16,16 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     type: 'card'
   },
   {
+    name: 'giropay',
+    type: 'giropay'
+  },
+  {
     name: 'iDeal',
     type: 'lpp_9'
   },
   {
-    name: 'giropay',
-    type: 'giropay'
+    name: 'SEPA Direct Debit',
+    type: 'sepa'
   }
 ]
 
@@ -32,12 +36,13 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
 export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   @Output() formReady = new EventEmitter<FormGroup>();
+  @Output() bankSelected = new EventEmitter<IBank>();
   paymentMethods: IPaymentMethod[] = PAYMENT_METHODS;
   paymentMethodForm: FormGroup;
   creditCardForm: FormGroup;
+  mandateForm: FormGroup;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
-  selectedBank: IBank;
 
   constructor(private _formBuilder: FormBuilder,
   private _paymentService: PaymentService) { }
@@ -50,6 +55,14 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       number: ['4242424242424242', Validators.required],
       expiration: ['122022', Validators.required],
       cvv: ['100', [Validators.minLength(3), Validators.maxLength(4)]]
+    });
+    this.mandateForm = this._formBuilder.group({
+      account_holder: ['Bruce Wayne', Validators.required],
+      account_iban: ['CH02 0483 5000 6268 8200 1', Validators.required],
+      bic: ['CRESCHZZ80A'],
+      verify_bic: [{ value: 'CRESCHZZ80A', disabled: true}],
+      billing_descriptor: ['Thanks for shopping on the CKO Demo Shop', Validators.required],
+      mandate_type: ['single', Validators.required]
     });
 
     this.subscriptions.push(
@@ -75,9 +88,17 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     return this.paymentMethodForm.get('card');
   }
 
+  get mandate(): AbstractControl {
+    return this.paymentMethodForm.get('mandate');
+  }
+
   private _bankFilter(value: string): IBank[] {
-    const filterValue = value.toString().toLowerCase();
-    return this.banks.filter(bank => { return (bank.value.toLowerCase().includes(filterValue) || bank.key.toLowerCase().includes(filterValue)) });
+    if (!value) {
+      return this.banks;
+    } else {
+      const filterValue = value.toString().toLowerCase();
+      return this.banks.filter(bank => { return `${bank.value.toLowerCase()} ${bank.key.toLowerCase()}`.includes(filterValue) });
+    }    
   }
 
   getBanksLegacy(paymentMethod: IPaymentMethod) {
@@ -110,24 +131,28 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   private resetPaymentMethodForm = () => {
     this.banks = null;
     this.filteredBanks = null;
-    this.selectedBank = null;
     if (this.bank) { this.paymentMethodForm.removeControl('bank') };
     if (this.card) { this.paymentMethodForm.removeControl('card') };
+    if (this.mandate) { this.paymentMethodForm.removeControl('mandate') };
   }
 
   private onBankSelectionChanged() {
     let bankInput: FormControl = <FormControl>this.bank;
-    let currentBank: IBank = bankInput.value;
-    this.selectedBank = currentBank;
-    //bankInput.setValue(`${currentBank.value} ${currentBank.key}`);
+    if (bankInput.value) {
+      let currentBank: IBank = bankInput.value;
+      this.bankSelected.emit(currentBank);
+      bankInput.setValue(`${currentBank.value} ${currentBank.key}`);
+    }    
   }
 
   invokePaymentMethod(paymentMethod: IPaymentMethod) {
     this.resetPaymentMethodForm();
-    switch (paymentMethod.type) {
-      case 'lpp_9': {
-        this.paymentMethodForm.setControl('bank', new FormControl(null, Validators.required));
-        this.getBanksLegacy(paymentMethod);
+    switch (paymentMethod.type) { 
+      case 'cko-frames': {
+        break;
+      }
+      case 'card': {
+        this.paymentMethodForm.setControl('card', this.creditCardForm);
         break;
       }
       case 'giropay': {
@@ -135,11 +160,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.getBanks(paymentMethod);
         break;
       }
-      case 'cko-frames': {
+      case 'lpp_9': {
+        this.paymentMethodForm.setControl('bank', new FormControl(null, Validators.required));
+        this.getBanksLegacy(paymentMethod);
         break;
       }
-      case 'card': {
-        this.paymentMethodForm.setControl('card', this.creditCardForm);
+      case 'sepa': {
+        this.paymentMethodForm.setControl('mandate', this.mandateForm);
         break;
       }
       default: {

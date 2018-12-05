@@ -237,127 +237,133 @@ app-orders {
     }
   }
 
-  app-payment-component {
+app-payment-component {
+  display: flex;
+  flex: 1 1 auto;
+  padding: $padding;
+  justify-content: center;
+  flex-direction: column;
+  overflow: hidden;
+
+  div.row {
+    display: flex;
+    justify-content: center;
+    margin-bottom: $margin;
+  }
+
+  app-product-form {
     display: flex;
     flex: 1 1 auto;
-    padding: $padding;
-    justify-content: center;
+  }
+
+  .mat-card {
+    @media #{$tablet} {
+      max-width: 100%;
+    }
+
+    @media #{$desktop-small} {
+      max-width: 1024px;
+    }
+
+    @media #{$desktop-medium} {
+      max-width: 1024px;
+    }
+
+    @media #{$desktop-large} {
+      max-width: 1024px;
+    }
+
+    flex: 1 1 auto;
+  }
+
+  form {
+    display: flex;
     flex-direction: column;
-    overflow: hidden;
+  }
 
-    div.row {
-      display: flex;
-      justify-content: center;
-      margin-bottom: $margin;
-    }
+  .product-form {
+    flex-direction: row;
 
-    app-product-form {
-      display: flex;
-      flex: 1 1 auto;
-    }
+    .mat-form-field {
+      width: 128px;
 
-    .mat-card {
-      @media #{$tablet} {
-        max-width: 100%;
-      }
-
-      @media #{$desktop-small} {
-        max-width: 1024px;
-      }
-
-      @media #{$desktop-medium} {
-        max-width: 1024px;
-      }
-
-      @media #{$desktop-large} {
-        max-width: 1024px;
-      }
-
-      flex: 1 1 auto;
-    }
-
-    form {
-      display: flex;
-      flex-direction: column;
-    }
-
-    .product-form {
-      flex-direction: row;
-
-      .mat-form-field {
-        width: 128px;
-
-        input {
-          text-align: right;
-        }
-      }
-    }
-
-    .payment-configuration-form {
-      padding-top: $padding;
-      padding-bottom: $padding;
-    }
-
-    .customer-form, .address-form {
-      flex-direction: row;
-      flex-wrap: wrap;
-      padding-top: $padding;
-      padding-bottom: $padding;
-
-      .mat-form-field {
-        flex: 1 0 auto;
-      }
-    }
-
-    .payment-setup {
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-
-      .payment-configurators {
-        display: inline-flex;
-        flex: 1 1 auto;
-        padding-bottom: $padding;
-        flex-direction: column;
-        flex-wrap: wrap;
-        justify-content: inherit;
-
-        mat-form-field.wide {
-          width: 100%;
-        }
-
-        .card-container {
-          flex: 1 1 auto;
-          max-width: 50%;
-          display: inherit;
-          flex-wrap: inherit;
-          justify-content: inherit;
-        }
-
-        .card-configuration-container {
-          flex: 1 1 auto;
-          max-width: 50%;
-          display: inherit;
-          flex-direction: inherit;
-          justify-content: inherit;
-        }
-
-        mat-form-field {
-          &[form-field="credit-card"] {
-            flex: 1 0 100%;
-          }
-        }
-      }
-    }
-
-    .payNowButton-container {
-      display: flex;
-
-      #payNowButton {
-        flex: 1 1 auto;
-        height: 3em;
-        display: flex;
-        justify-content: center;
+      input {
+        text-align: right;
       }
     }
   }
+
+  .payment-configuration-form {
+    padding-top: $padding;
+    padding-bottom: $padding;
+  }
+
+  .customer-form, .address-form {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-top: $padding;
+    padding-bottom: $padding;
+
+    .mat-form-field {
+      flex: 1 0 auto;
+    }
+  }
+
+  .payment-setup {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+
+    .payment-configurators {
+      display: inline-flex;
+      flex: 1 1 auto;
+      padding-bottom: $padding;
+      flex-direction: column;
+      flex-wrap: wrap;
+      justify-content: inherit;
+
+      mat-form-field.wide {
+        width: 100%;
+      }
+
+      .card-container {
+        flex: 1 1 auto;
+        max-width: 50%;
+        display: inherit;
+        flex-wrap: inherit;
+        justify-content: inherit;
+      }
+
+      .card-configuration-container {
+        flex: 1 1 auto;
+        max-width: 50%;
+        display: inherit;
+        flex-direction: inherit;
+        justify-content: inherit;
+      }
+
+      [form-field="credit-card"], [form-field="account_holder"], [radio-group="mandate_type"] {
+        flex: 1 0 100%;
+      }
+
+      [form-field="iban"] {
+        flex: 1 0 auto;
+      }
+
+      [form-field="bic"] {
+        flex: 0 0 auto;
+      }
+    }
+  }
+
+  .payNowButton-container {
+    display: flex;
+
+    #payNowButton {
+      flex: 1 1 auto;
+      height: 3em;
+      display: flex;
+      justify-content: center;
+    }
+  }
+}

@@ -8,7 +8,7 @@
     <mat-vertical-stepper [linear]="isLinear" #stepper>
       <mat-step [stepControl]="paymentMethodForm">
         <ng-template matStepLabel>Select a Payment Method</ng-template>
-        <app-payment-method-form  (formReady)="formInitialized('paymentMethodForm', $event)"></app-payment-method-form>
+        <app-payment-method-form  (formReady)="formInitialized('paymentMethodForm', $event)" (bankSelected)="bankSelected($event)"></app-payment-method-form>
         <div>
           <button mat-stroked-button matStepperNext>Next</button>
         </div>

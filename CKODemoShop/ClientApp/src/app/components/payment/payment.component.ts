@@ -35,6 +35,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     i_have_verified_and_want_to_pay: 'My Billing Details are correct and I want to continue with the payment'
   }
   agreesWithGtc: boolean;
+  bank: IBank;
   processing: boolean;
   makePayment: Function;
   autoCapture: boolean = true;
@@ -52,6 +53,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   formInitialized(name: string, form: FormGroup) {
     this.paymentForm.setControl(name, form);
+  }
+
+  bankSelected(bank: IBank) {
+    this.bank = bank;
   }
 
   ngOnInit() {
@@ -103,10 +108,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get card(): any {
     return this.paymentForm.get('paymentMethodForm.card').value;
-  }
-
-  get bank(): IBank {
-    return this.paymentForm.get('paymentMethodForm.bank').value;
   }
 
   get amount(): number {
