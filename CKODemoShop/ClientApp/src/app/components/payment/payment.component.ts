@@ -1,6 +1,5 @@
 import { Component, OnInit, OnDestroy, NgZone, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl } from '@angular/forms';
-import { IGtcDisclaimer } from '../../interfaces/gtc-disclaimer.interface';
+import { FormBuilder, FormGroup, Validators, AbstractControl, FormControl } from '@angular/forms';
 import { PaymentService } from '../../services/payment.service';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
@@ -23,19 +22,11 @@ declare var Frames: any;
 export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptions: Subscription[] = [];
   isLinear = true;
-  paymentForm: FormGroup;
+  order: FormGroup;
   paymentConfigurationFormGroup: FormGroup;
-  customerFormGroup: FormGroup;
-  addressFormGroup: FormGroup;
-  paymentFormGroup: FormGroup;
-  gtcDisclaimer: IGtcDisclaimer = {
-    i_have_read_and_agree: 'I have read and agree with the',
-    g_t_c: 'General Terms & Conditions',
-    g_t_c_uri: 'https://www.checkout.com/legal/terms-and-policies',
-    i_have_verified_and_want_to_pay: 'My Billing Details are correct and I want to continue with the payment'
-  }
-  agreesWithGtc: boolean;
-  bank: IBank;
+  confirmation: FormGroup;
+  sepaMandateAgreement: FormControl;
+  creditorIdentifier: string = 'DE36ZZZ00001690322';
   processing: boolean;
   makePayment: Function;
   autoCapture: boolean = true;
@@ -52,43 +43,34 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   ) { }
 
   formInitialized(name: string, form: FormGroup) {
-    this.paymentForm.setControl(name, form);
+    this.order.setControl(name, form);
   }
 
-  bankSelected(bank: IBank) {
-    this.bank = bank;
+  controlInitialized(name: string, control: FormControl) {
+    this.order.setControl(name, control);
   }
 
-  ngOnInit() {
-    this.paymentForm = this._formBuilder.group({
-      productForm: null,
-      paymentMethodForm: null
+  ngOnInit() {    
+    this.order = this._formBuilder.group({
+      product: null,
+      paymentMethod: null
     });
     this.paymentConfigurationFormGroup = this._formBuilder.group({
       autoCapture: [true, Validators.required],
       threeDs: [false, Validators.required]
     });
-    this.customerFormGroup = this._formBuilder.group({
-      name: ['Bruce Wayne', Validators.required],
-      email: ['bruce@wayne-enterprises.com', [Validators.required, Validators.email]]
+    this.sepaMandateAgreement = this._formBuilder.control(null, Validators.required);
+    this.confirmation = this._formBuilder.group({
+      sepaMandateAgreement: this.sepaMandateAgreement
     });
-    this.addressFormGroup = this._formBuilder.group({
-      address_line1: ['Wayne Plaza 1', Validators.required],
-      address_line2: [''],
-      city: ['Gotham City', Validators.required],
-      state: ['NJ', Validators.required],
-      zip: ['12345', Validators.required],
-      country: ['USA', Validators.required]
-    });
-    this.paymentFormGroup = this._formBuilder.group({
-      gtc: [false, Validators.required]
-    });
+
+
+    this.order.updateValueAndValidity();
   }
 
   ngAfterViewInit() {
     this.subscriptions.push(
-      this.paymentForm.get('paymentMethodForm.selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod)),
-      this.paymentFormGroup.get('gtc').valueChanges.subscribe(agreesWithGtc => this.agreesWithGtc = agreesWithGtc),
+      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod)),
       this.paymentConfigurationFormGroup.get('autoCapture').valueChanges.subscribe(autoCapture => this.autoCapture = autoCapture),
       this.paymentConfigurationFormGroup.get('threeDs').valueChanges.subscribe(threeDs => this.threeDs = threeDs)
     );
@@ -96,25 +78,62 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }  
+  }
 
-  get paymentMethodForm(): AbstractControl {
-    return this.paymentForm.get('paymentMethodForm');
+  get product(): AbstractControl {
+    return this.order.get('product');
+  }
+
+  get paymentMethod(): AbstractControl {
+    return this.order.get('paymentMethod');
+  }
+
+  get mandate(): AbstractControl {
+    return this.paymentMethod.get('mandate');
   }
 
   get selectedPaymentMethod(): IPaymentMethod {
-    return this.paymentForm.get('paymentMethodForm.selectedPaymentMethod').value;
+    return this.paymentMethod.get('selectedPaymentMethod').value;
   }
 
-  get card(): any {
-    return this.paymentForm.get('paymentMethodForm.card').value;
+  get card(): string {
+    return this.paymentMethod.get('card').value;
   }
 
-  get amount(): number {
-    return this.paymentForm.get('productForm.amount').value;
+  get bank(): IBank {
+    return this.paymentMethod.get('bankObject').value;
   };
 
+  get amount(): number {
+    return this.product.get('amount').value;
+  };
+
+  get accountHolder(): string {
+    return this.mandate.get('account_holder').value;
+  }
+
+  get iban(): string {
+    return this.mandate.get('account_iban').value;
+  }
+
+  get bic(): string {
+    return this.mandate.get('bic').value;
+  }
+
+  get mandateType(): string {
+    return this.mandate.get('mandate_type').value;
+  }
+
+  get address(): string {
+    return this.paymentMethod.get('address').value;
+  }
+
+  private resetOrder = () => {
+    this.order.removeControl('confirmation');
+  }
+
   private invokePaymentMethod(paymentMethod: IPaymentMethod) {
+    this.resetOrder();
     switch (paymentMethod.type) {
       case 'cko-frames': {
         this._scriptService.load('cko-frames').then(data => {
@@ -198,6 +217,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         break;
       }
+      case 'sepa': {
+        this.sepaMandateAgreement.setValue(null);
+        this.formInitialized('confirmation', this.confirmation);
+      }
       default: {
         console.warn('No payment method specific action was defined!');
         this.makePayment = () => { throw new Error(`${paymentMethod.name} payment is not implemented yet!`) };
@@ -226,7 +249,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       default: {
-        this.paymentForm.get('paymentMethodForm').reset();
+        this.order.get('paymentMethod').reset();
         this.processing = null;
         throw new Error(`Handling of response status ${response.status} is not implemented!`);
       };
@@ -247,7 +270,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           break;
         }
         default: {
-          this.paymentForm.get('paymentMethodForm').reset();
+          this.order.get('paymentMethod').reset();
           this.processing = null;
           throw new Error(`Handling of response status ${response.status} is not implemented!`);
         }

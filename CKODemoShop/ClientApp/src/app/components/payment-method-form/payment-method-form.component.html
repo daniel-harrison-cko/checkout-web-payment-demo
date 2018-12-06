@@ -1,4 +1,4 @@
-<form [formGroup]="paymentMethodForm">
+<form [formGroup]="paymentMethod">
   <div class="payment-setup">
     <mat-radio-group class="example-radio-group" formControlName="selectedPaymentMethod" required>
       <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod">
@@ -27,42 +27,64 @@
       </ng-container>
       <ng-container *ngIf="selectedPaymentMethod?.type == 'giropay' || selectedPaymentMethod?.type == 'lpp_9'">
         <mat-form-field class="wide">
-          <input type="text" placeholder="Select a bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" required>
+          <input type="text" placeholder="Select a bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()" required>
           <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
             <mat-option>--</mat-option>
             <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
               <span class="monospace">{{bank.value}}</span> {{bank.key}}
             </mat-option>
           </mat-autocomplete>
-          <mat-hint>Easily find a bank by starting to type its name or BIC.</mat-hint>
+          <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list.</mat-hint>
           <mat-error *ngIf="bank.hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment.</mat-error>
         </mat-form-field>
       </ng-container>
       <ng-container *ngIf="selectedPaymentMethod?.type == 'sepa'">
-        <div [formGroup]="mandateForm" class="card-container">
-          <mat-form-field form-field="account_holder">
-            <input matInput placeholder="Full Name" formControlName="account_holder" required />
-            <mat-error *ngIf="mandateForm.get('account_holder').hasError('required')">Please provide the account holder's full name.</mat-error>
-          </mat-form-field>
-          <mat-form-field form-field="iban">
-            <input matInput placeholder="IBAN" formControlName="account_iban" required />
-            <mat-error *ngIf="mandateForm.get('account_iban').hasError('required')">Please provide the account's IBAN.</mat-error>
-          </mat-form-field>
-          <mat-form-field form-field="bic">
-            <input matInput placeholder="BIC" formControlName="verify_bic" />
-          </mat-form-field>
-          <mat-radio-group radio-group="mandate_type" class="example-radio-group" formControlName="mandate_type" required>
-            <label>Mandate Type</label>
-            <mat-radio-button class="example-radio-button" value="single">
-              single
-            </mat-radio-button>
-            <mat-radio-button class="example-radio-button" value="recurring">
-              recurring
-            </mat-radio-button>
-          </mat-radio-group>
+        <div [formGroup]="mandateForm" class="mandate-container">
+          <div class="account-info">
+            <mat-radio-group radio-group="mandate_type" class="example-radio-group" formControlName="mandate_type" required>
+              <label>Mandate Type</label>
+              <mat-radio-button class="example-radio-button" value="single">
+                single
+              </mat-radio-button>
+              <mat-radio-button class="example-radio-button" value="recurring">
+                recurring
+              </mat-radio-button>
+            </mat-radio-group>
+            <mat-form-field form-field="account_holder">
+              <input matInput placeholder="Full Name" formControlName="account_holder" required />
+              <mat-error *ngIf="mandateForm.get('account_holder').hasError('required')">Please provide the account holder's full name.</mat-error>
+            </mat-form-field>
+            <mat-form-field form-field="iban">
+              <input matInput placeholder="IBAN" formControlName="account_iban" required />
+              <mat-error *ngIf="mandateForm.get('account_iban').hasError('required')">Please provide the account's IBAN.</mat-error>
+            </mat-form-field>
+            <mat-form-field form-field="bic">
+              <input matInput placeholder="BIC" formControlName="verify_bic" />
+            </mat-form-field>
+          </div>          
+          <div [formGroup]="addressForm" class="address-form">
+            <mat-form-field>
+              <input matInput placeholder="Address" formControlName="address_line1" required>
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Still Address" formControlName="address_line2">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="City" formControlName="city" required>
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="State" formControlName="state" required>
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Postcode" formControlName="zip" required>
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Country" formControlName="country" required>
+            </mat-form-field>
+          </div>
         </div>
       </ng-container>
     </div>
   </div>
-  <mat-error *ngIf="paymentMethodForm.get('selectedPaymentMethod').hasError('required')"><p>Please select a Payment Method.</p></mat-error>
+  <mat-error *ngIf="paymentMethod.get('selectedPaymentMethod').hasError('required')"><p>Please select a Payment Method.</p></mat-error>
 </form>

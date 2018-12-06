@@ -36,11 +36,11 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
 export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   @Output() formReady = new EventEmitter<FormGroup>();
-  @Output() bankSelected = new EventEmitter<IBank>();
   paymentMethods: IPaymentMethod[] = PAYMENT_METHODS;
-  paymentMethodForm: FormGroup;
+  paymentMethod: FormGroup;
   creditCardForm: FormGroup;
   mandateForm: FormGroup;
+  addressForm: FormGroup;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
 
@@ -48,7 +48,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   private _paymentService: PaymentService) { }
 
   ngOnInit() {
-    this.paymentMethodForm = this._formBuilder.group({
+    this.paymentMethod = this._formBuilder.group({
       selectedPaymentMethod: [null, Validators.required]
     });
     this.creditCardForm = this._formBuilder.group({
@@ -58,18 +58,26 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     });
     this.mandateForm = this._formBuilder.group({
       account_holder: ['Bruce Wayne', Validators.required],
-      account_iban: ['CH02 0483 5000 6268 8200 1', Validators.required],
-      bic: ['CRESCHZZ80A'],
-      verify_bic: [{ value: 'CRESCHZZ80A', disabled: true}],
-      billing_descriptor: ['Thanks for shopping on the CKO Demo Shop', Validators.required],
+      account_iban: ['DE25100100101234567893', Validators.required],
+      bic: ['TESTDETT421'],
+      verify_bic: [{ value: 'TESTDETT421', disabled: true}],
+      billing_descriptor: ['CKO Demo Shop', Validators.required],
       mandate_type: ['single', Validators.required]
+    });
+    this.addressForm = this._formBuilder.group({
+      address_line1: ['Wayne Plaza 1', Validators.required],
+      address_line2: [''],
+      city: ['Gotham City', Validators.required],
+      state: ['NJ', Validators.required],
+      zip: ['12345', Validators.required],
+      country: ['USA', Validators.required]
     });
 
     this.subscriptions.push(
-      this.paymentMethodForm.get('selectedPaymentMethod').valueChanges.subscribe(paymentMethod => this.invokePaymentMethod(paymentMethod))
+      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(paymentMethod => this.invokePaymentMethod(paymentMethod))
     );
 
-    this.formReady.emit(this.paymentMethodForm);
+    this.formReady.emit(this.paymentMethod);
   }
 
   ngOnDestroy() {
@@ -77,19 +85,31 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   get selectedPaymentMethod(): IPaymentMethod {
-    return this.paymentMethodForm.get('selectedPaymentMethod').value;
+    return this.paymentMethod.get('selectedPaymentMethod').value;
   }
 
   get bank(): AbstractControl {
-    return this.paymentMethodForm.get('bank');
+    return this.paymentMethod.get('bank');
+  }
+
+  get bankObject(): AbstractControl {
+    return this.paymentMethod.get('bankObject');
   }
 
   get card(): AbstractControl {
-    return this.paymentMethodForm.get('card');
+    return this.paymentMethod.get('card');
   }
 
   get mandate(): AbstractControl {
-    return this.paymentMethodForm.get('mandate');
+    return this.paymentMethod.get('mandate');
+  }
+
+  get address(): AbstractControl {
+    return this.paymentMethod.get('address');
+  }
+
+  private deselectBank() {
+    this.bankObject.reset();
   }
 
   private _bankFilter(value: string): IBank[] {
@@ -128,45 +148,50 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     });
   }
 
-  private resetPaymentMethodForm = () => {
+  private resetPaymentMethod = () => {
     this.banks = null;
     this.filteredBanks = null;
-    if (this.bank) { this.paymentMethodForm.removeControl('bank') };
-    if (this.card) { this.paymentMethodForm.removeControl('card') };
-    if (this.mandate) { this.paymentMethodForm.removeControl('mandate') };
+    if (this.bank) { this.paymentMethod.removeControl('bank') };
+    if (this.bankObject) { this.paymentMethod.removeControl('bankObject') };
+    if (this.card) { this.paymentMethod.removeControl('card') };
+    if (this.mandate) { this.paymentMethod.removeControl('mandate') };
+    if (this.address) { this.paymentMethod.removeControl('address') };
   }
 
   private onBankSelectionChanged() {
     let bankInput: FormControl = <FormControl>this.bank;
     if (bankInput.value) {
       let currentBank: IBank = bankInput.value;
-      this.bankSelected.emit(currentBank);
+      this.bankObject.setValue(currentBank);
       bankInput.setValue(`${currentBank.value} ${currentBank.key}`);
     }    
   }
 
   invokePaymentMethod(paymentMethod: IPaymentMethod) {
-    this.resetPaymentMethodForm();
+    this.resetPaymentMethod();
     switch (paymentMethod.type) { 
       case 'cko-frames': {
         break;
       }
       case 'card': {
-        this.paymentMethodForm.setControl('card', this.creditCardForm);
+        this.paymentMethod.setControl('card', this.creditCardForm);
         break;
       }
       case 'giropay': {
-        this.paymentMethodForm.setControl('bank', new FormControl(null, Validators.required));
+        this.paymentMethod.setControl('bank', new FormControl(null, Validators.required));
+        this.paymentMethod.setControl('bankObject', new FormControl(null, Validators.required));
         this.getBanks(paymentMethod);
         break;
       }
       case 'lpp_9': {
-        this.paymentMethodForm.setControl('bank', new FormControl(null, Validators.required));
+        this.paymentMethod.setControl('bank', new FormControl(null, Validators.required));
+        this.paymentMethod.setControl('bankObject', new FormControl(null, Validators.required));
         this.getBanksLegacy(paymentMethod);
         break;
       }
       case 'sepa': {
-        this.paymentMethodForm.setControl('mandate', this.mandateForm);
+        this.paymentMethod.setControl('mandate', this.mandateForm);
+        this.paymentMethod.setControl('address', this.addressForm);
         break;
       }
       default: {

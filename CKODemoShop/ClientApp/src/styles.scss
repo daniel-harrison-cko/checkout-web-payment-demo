@@ -326,12 +326,15 @@ app-payment-component {
         width: 100%;
       }
 
-      .card-container {
+      .card-container, .mandate-container, .account-info {
         flex: 1 1 auto;
-        max-width: 50%;
         display: inherit;
         flex-wrap: inherit;
         justify-content: inherit;
+      }
+
+      .card-container, .account-info {
+        max-width: 50%;
       }
 
       .card-configuration-container {
@@ -353,6 +356,31 @@ app-payment-component {
       [form-field="bic"] {
         flex: 0 0 auto;
       }
+    }
+  }
+
+  .mandate {
+    margin-top: $margin;
+
+    .mandate-content {
+      display: flex;
+      flex-wrap: wrap;
+    }
+
+    .creditor, .debitor, .address {
+      flex: 1 0 auto;
+      margin: $margin;
+
+      & > * {
+        margin: unset;
+      }
+    }
+
+    .mandate-info {
+      padding-top: 16px;
+      text-align: center;
+      color: #aaa;
+      font-size: 0.9em;
     }
   }
 
