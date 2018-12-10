@@ -1,0 +1,5 @@
+<form [formGroup]="paymentConfigurationForm" class="payment-configuration-form">
+  <ng-template matStepLabel>Configure the Payment</ng-template>
+  <mat-slide-toggle formControlName="autoCapture" color="accent">Auto-capture is {{autoCapture.value ? 'ON' : 'OFF'}}</mat-slide-toggle>
+  <mat-slide-toggle formControlName="threeDs" color="accent">3D Secure is {{threeDs.value ? 'ON' : 'OFF'}}</mat-slide-toggle>
+</form>

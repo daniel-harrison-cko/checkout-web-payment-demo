@@ -24,14 +24,11 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptions: Subscription[] = [];
   isLinear = true;
   order: FormGroup;
-  paymentConfigurationFormGroup: FormGroup;
   confirmation: FormGroup;
   sepaMandateAgreement: FormControl;
   creditorIdentifier: string = 'DE36ZZZ00001690322';
   processing: boolean;
   makePayment: Function;
-  autoCapture: boolean = true;
-  threeDs: boolean = false;
   
   baseUri: string = window.location.origin;
 
@@ -56,10 +53,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       product: null,
       paymentMethod: null
     });
-    this.paymentConfigurationFormGroup = this._formBuilder.group({
-      autoCapture: [true, Validators.required],
-      threeDs: [false, Validators.required]
-    });
     this.sepaMandateAgreement = this._formBuilder.control(null, Validators.required);
     this.confirmation = this._formBuilder.group({
       sepaMandateAgreement: this.sepaMandateAgreement
@@ -71,9 +64,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   ngAfterViewInit() {
     this.subscriptions.push(
-      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod)),
-      this.paymentConfigurationFormGroup.get('autoCapture').valueChanges.subscribe(autoCapture => this.autoCapture = autoCapture),
-      this.paymentConfigurationFormGroup.get('threeDs').valueChanges.subscribe(threeDs => this.threeDs = threeDs)
+      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod))
     );
   }
 
@@ -83,6 +74,14 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get product(): AbstractControl {
     return this.order.get('product');
+  }
+
+  get autoCapture(): boolean {
+    return this.order.get('paymentConfiguration.autoCapture').value;
+  }
+
+  get threeDs(): boolean {
+    return this.order.get('paymentConfiguration.threeDs').value;
   }
 
   get paymentMethod(): AbstractControl {

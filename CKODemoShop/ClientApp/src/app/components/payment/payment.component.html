@@ -1,6 +1,7 @@
 <div class="row">
   <mat-card>
     <app-product-form (formReady)="formInitialized('product', $event)"></app-product-form>
+    <app-payment-configuration-form (formReady)="formInitialized('paymentConfiguration', $event)"></app-payment-configuration-form>
   </mat-card>  
 </div>
 <div class="row">
@@ -9,16 +10,6 @@
       <mat-step [stepControl]="paymentMethod">
         <ng-template matStepLabel>Select a Payment Method</ng-template>
         <app-payment-method-form  (formReady)="formInitialized('paymentMethod', $event)"></app-payment-method-form>
-        <div>
-          <button mat-stroked-button matStepperNext>Next</button>
-        </div>
-      </mat-step>
-      <mat-step [stepControl]="paymentConfigurationFormGroup">
-        <form [formGroup]="paymentConfigurationFormGroup" class="payment-configuration-form">
-          <ng-template matStepLabel>Configure the Payment</ng-template>
-          <mat-slide-toggle formControlName="autoCapture" color="accent" [checked]="autoCapture">Auto-capture is {{autoCapture ? 'ON' : 'OFF'}}</mat-slide-toggle>
-          <mat-slide-toggle formControlName="threeDs" color="accent" [checked]="threeDs">3D Secure is {{threeDs ? 'ON' : 'OFF'}}</mat-slide-toggle>
-        </form>
         <div>
           <button mat-stroked-button matStepperNext>Next</button>
         </div>
@@ -38,7 +29,7 @@
                 <p>93047&nbsp;Regensburg</p>
                 <p>{{'Germany' | uppercase}}</p>
                 <br />
-                <p class="monospace">Creditor Identifier: {{creditorIdentifier}}</p>
+                <p class="monospace">Creditor ID: {{creditorIdentifier}}</p>
               </div>
               <div class="debitor">
                 <h2>Debtor</h2>

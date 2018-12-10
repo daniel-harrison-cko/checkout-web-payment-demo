@@ -15,6 +15,7 @@ import { OrdersComponent } from './components/orders/orders.component';
 import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.component';
 import { ProductFormComponent } from './components/product-form/product-form.component';
 import { PaymentMethodFormComponent } from './components/payment-method-form/payment-method-form.component';
+import { PaymentConfigurationFormComponent } from './components/payment-configuration-form/payment-configuration-form.component';
 
 @NgModule({
   declarations: [
@@ -26,6 +27,7 @@ import { PaymentMethodFormComponent } from './components/payment-method-form/pay
     HypermediaComponent,
     BreadcrumbsComponent,
     ProductFormComponent,
+    PaymentConfigurationFormComponent,
     PaymentMethodFormComponent
   ],
   imports: [
