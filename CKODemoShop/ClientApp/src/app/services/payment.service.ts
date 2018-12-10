@@ -21,6 +21,11 @@ export class PaymentService {
     return this.http.get<IBanks>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
   }
 
+  addSource(source: any): any {
+    console.log(source);
+    return true;
+  }
+
   requestPayment(paymentRequest: IPaymentRequest): Observable<HttpResponse<any>> {
     switch (paymentRequest.source.type) {
       case 'token': {

@@ -58,6 +58,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     });
     this.mandateForm = this._formBuilder.group({
       account_holder: ['Bruce Wayne', Validators.required],
+      first_name: ['Bruce'],
+      last_name: ['Wayne'],
       account_iban: ['DE25100100101234567893', Validators.required],
       bic: ['TESTDETT421'],
       verify_bic: [{ value: 'TESTDETT421', disabled: true}],

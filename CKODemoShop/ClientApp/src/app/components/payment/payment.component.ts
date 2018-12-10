@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { IPayment } from 'src/app/interfaces/payment.interface';
 import { IPending } from 'src/app/interfaces/pending.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
+import { ISourceData } from 'src/app/interfaces/source-data.interface';
 
 declare var Frames: any;
 
@@ -207,7 +208,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             currency: 'EUR',
             amount: this.amount,
             source: <IGiropaySource>{
-              type: 'giropay',
+              type: paymentMethod.type,
               purpose: 'CKO Demo Shop Test',
               bic: this.bank.value
             },
@@ -220,6 +221,15 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'sepa': {
         this.sepaMandateAgreement.setValue(null);
         this.formInitialized('confirmation', this.confirmation);
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.addSource({
+            type: paymentMethod.type,
+            billing_address: this.address,
+            source_data: <ISourceData>this.mandate.value
+          })
+        };
+        break;
       }
       default: {
         console.warn('No payment method specific action was defined!');
