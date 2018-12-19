@@ -123,6 +123,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.amountControl.value;
   };
 
+  get currency(): string {
+    return this.product.get('currency').value;
+  }
+
   get accountHolder(): string {
     return this.mandate.get('account_holder').value;
   }
@@ -149,7 +153,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private invokePaymentMethod(paymentMethod: IPaymentMethod) {
     this.resetOrder();
-    console.log(paymentMethod);
     switch (paymentMethod.type) {
       case 'cko-frames': {
         this.autoCaptureControl.enable();
@@ -157,7 +160,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         this._scriptService.load('cko-frames').then(data => {
           let cardTokenisedCallback = (event) => {
             this._paymentService.requestPayment({
-              currency: 'EUR',
+              currency: this.currency,
               amount: this.amount,
               source: <ITokenSource>{
                 type: 'token',
@@ -194,7 +197,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
-            currency: 'EUR',
+            currency: this.currency,
             amount: this.amount,
             source: {
               type: 'card',
@@ -218,7 +221,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
-            currency: 'EUR',
+            currency: this.currency,
             amount: this.amount,
             source: <IIdealSource>{
               type: 'ideal',
@@ -236,7 +239,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
-            currency: 'EUR',
+            currency: this.currency,
             amount: this.amount,
             source: <IGiropaySource>{
               type: paymentMethod.type,
@@ -270,7 +273,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
-            currency: 'EUR',
+            currency: this.currency,
             amount: this.amount,
             source: <IGiropaySource>{
               type: paymentMethod.type,
@@ -295,7 +298,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       switch (response.status) {
         case 201: {
           this._paymentService.requestPayment({
-            currency: 'EUR',
+            currency: this.currency,
             amount: this.amount,
             source: <IIdSource>{
               type: 'id',

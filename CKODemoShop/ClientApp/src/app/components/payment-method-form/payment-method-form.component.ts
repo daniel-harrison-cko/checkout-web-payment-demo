@@ -5,31 +5,40 @@ import { IBank } from 'src/app/interfaces/bank.interface';
 import { Observable, Subscription } from 'rxjs';
 import { PaymentService } from 'src/app/services/payment.service';
 import { startWith, map } from 'rxjs/operators';
+import { Icu } from '@angular/compiler/src/i18n/i18n_ast';
+import { ICurrency } from 'src/app/interfaces/currency.interface';
+import { AppService } from 'src/app/services/app.service';
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'Credit Card (Frames)',
-    type: 'cko-frames'
+    type: 'cko-frames',
+    processingCurrencies: ['all']
   },
   {
     name: 'Credit Card (PCI DSS)',
-    type: 'card'
+    type: 'card',
+    processingCurrencies: ['all']
   },
   {
     name: 'giropay',
-    type: 'giropay'
+    type: 'giropay',
+    processingCurrencies: ['EUR']
   },
   {
-    name: 'iDeal',
-    type: 'lpp_9'
+    name: 'iDEAL',
+    type: 'lpp_9',
+    processingCurrencies: ['EUR']
   },
   {
     name: 'SEPA Direct Debit',
-    type: 'sepa'
+    type: 'sepa',
+    processingCurrencies: ['EUR']
   },
   {
     name: 'Sofort',
-    type: 'sofort'
+    type: 'sofort',
+    processingCurrencies: ['EUR']
   }
 ]
 
@@ -47,9 +56,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   addressForm: FormGroup;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
+  selectedCurrency: ICurrency;
 
-  constructor(private _formBuilder: FormBuilder,
-  private _paymentService: PaymentService) { }
+  constructor(
+    private _formBuilder: FormBuilder,
+    private _paymentService: PaymentService,
+    private _appService: AppService
+  ) { }
 
   ngOnInit() {
     this.paymentMethod = this._formBuilder.group({
@@ -80,7 +93,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     });
 
     this.subscriptions.push(
-      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(paymentMethod => this.invokePaymentMethod(paymentMethod))
+      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(paymentMethod => this.invokePaymentMethod(paymentMethod)),
+      this._appService.currency$.subscribe(currency => this.selectedCurrency = currency)
     );
 
     this.formReady.emit(this.paymentMethod);
@@ -88,6 +102,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  }
+
+  private matchProcessingCurrencies(processingCurrencies: string[]): boolean {
+    return processingCurrencies.includes('all') ? true : processingCurrencies.includes(this.selectedCurrency.iso4217);
   }
 
   get selectedPaymentMethod(): IPaymentMethod {
