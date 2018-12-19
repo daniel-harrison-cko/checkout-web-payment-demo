@@ -11,6 +11,7 @@ using Checkout.Common;
 using System;
 using Checkout.Payments;
 using Checkout.Tokens;
+using Checkout.Sources;
 
 namespace CKODemoShop.Tests
 {
@@ -450,6 +451,63 @@ namespace CKODemoShop.Tests
                 it["should return the correct payment"] = () =>
                 {
                     (getPayment as GetPaymentResponse).Id.ShouldBe((payment as PaymentPending).Id);
+                };
+            };
+        }
+
+        SourceRequest sourceRequest;
+        SourceResponse sourceResponse;
+        void when_post_sources()
+        {
+            context["given a sepa source"] = () =>
+            {
+                beforeAllAsync = async () =>
+                {
+                    sourceRequest = new SourceRequest()
+                    {
+                        Type = "sepa",
+                        Reference = "CKO Demo test",
+                        BillingAddress = new Address()
+                        {
+                            AddressLine1 = "Checkout GmbH",
+                            AddressLine2 = "Rudi-Dutschke-Straße 26",
+                            City = "Berlin",
+                            Zip = "10969",
+                            State = "Berlin",
+                            Country = "DE"
+                        },
+                        Phone = new Phone()
+                        {
+                            CountryCode = "+49",
+                            Number = "3088789157"
+                        },
+                        SourceData = new SourceData()
+                        {
+                            FirstName = "Marcus",
+                            LastName = "Barrilius Maximus",
+                            Iban = "DE25100100101234567893",
+                            Bic = "PBNKDEFFXXX",
+                            BillingDescriptor = "CKO Demo test",
+                            MandateType = "single"
+                        }
+                    };
+                    result = await controller.Sources(sourceRequest);
+                    sourceResponse = (result as ObjectResult).Value as SourceResponse;
+                };
+
+                it["should return 201 - Created"] = () =>
+                {
+                    (result as CreatedAtActionResult).StatusCode.ShouldBe(StatusCodes.Status201Created);
+                };
+
+                it["should match request source type with response source type"] = () =>
+                {
+                    sourceResponse.Type.ToLower().ShouldBe(sourceRequest.Type.ToLower());
+                };
+
+                it["should return a mandate reference"] = () =>
+                {
+                    sourceResponse.ResponseData.MandateReference.ShouldNotBeNullOrEmpty();
                 };
             };
         }
