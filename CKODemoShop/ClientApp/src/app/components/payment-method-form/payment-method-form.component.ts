@@ -61,18 +61,18 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       first_name: ['Bruce'],
       last_name: ['Wayne'],
       account_iban: ['DE25100100101234567893', Validators.required],
-      bic: ['TESTDETT421'],
-      verify_bic: [{ value: 'TESTDETT421', disabled: true}],
+      bic: ['PBNKDEFFXXX'],
+      verify_bic: [{ value: 'PBNKDEFFXXX', disabled: true}],
       billing_descriptor: ['CKO Demo Shop', Validators.required],
       mandate_type: ['single', Validators.required]
     });
     this.addressForm = this._formBuilder.group({
-      address_line1: ['Wayne Plaza 1', Validators.required],
-      address_line2: [''],
+      addressLine1: ['Wayne Plaza 1', Validators.required],
+      addressLine2: [''],
       city: ['Gotham City', Validators.required],
       state: ['NJ', Validators.required],
       zip: ['12345', Validators.required],
-      country: ['USA', Validators.required]
+      country: ['US', Validators.required]
     });
 
     this.subscriptions.push(
