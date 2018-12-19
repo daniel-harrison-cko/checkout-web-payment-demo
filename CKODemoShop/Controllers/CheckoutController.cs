@@ -9,6 +9,7 @@ using CKODemoShop.Checkout;
 using System.Net.Http;
 using Checkout.Tokens;
 using Newtonsoft.Json;
+using Checkout.Sources;
 
 namespace CKODemoShop.Controllers
 {
@@ -137,11 +138,60 @@ namespace CKODemoShop.Controllers
             }
         }
 
+        [HttpPost("[action]")]
+        [ProducesResponseType(201, Type = typeof(SourceResponse))]
+        [ProducesResponseType(202, Type = typeof(SourceResponse))]
+        [ProducesResponseType(422, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> Sources(SourceRequest sourceRequest)
+        {
+            try
+            {
+                var sourceResponse = await api.Sources.RequestAsync(sourceRequest);
+                if (sourceResponse != null)
+                {
+                    return CreatedAtAction("RequestSource", new { paymentId = sourceResponse.Id }, sourceResponse);
+                }
+                else
+                {
+                    return AcceptedAtAction("RequestSource", new { paymentId = sourceResponse.Id }, sourceResponse);
+                }
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity(e);
+            }
+        }
+
+
         [HttpPost("[action]/source/token")]
         [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
         [ProducesResponseType(202, Type = typeof(PaymentPending))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> Payments(PaymentRequest<TokenSource> paymentRequestModel)
+        {
+            try
+            {
+                PaymentResponse paymentResponse = await api.Payments.RequestAsync(paymentRequestModel);
+                if (paymentResponse.IsPending)
+                {
+                    return AcceptedAtRoute("GetPayment", new { paymentId = paymentResponse.Pending.Id }, paymentResponse.Pending);
+                }
+                else
+                {
+                    return CreatedAtRoute("GetPayment", new { paymentId = paymentResponse.Payment.Id }, paymentResponse.Payment);
+                }
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity(e);
+            }
+        }
+
+        [HttpPost("[action]/source/id")]
+        [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
+        [ProducesResponseType(202, Type = typeof(PaymentPending))]
+        [ProducesResponseType(422, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> Payments(PaymentRequest<IdSource> paymentRequestModel)
         {
             try
             {
