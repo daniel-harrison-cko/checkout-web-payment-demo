@@ -21,15 +21,13 @@ export class PaymentService {
     return this.http.get<IBanks>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
   }
 
-  addSource(source: any): any {
-    console.log(source);
-    return true;
-  }
-
   requestPayment(paymentRequest: IPaymentRequest): Observable<HttpResponse<any>> {
     switch (paymentRequest.source.type) {
       case 'token': {
         return this.http.post<any>(`/api/checkout/payments/source/token`, paymentRequest, { observe: 'response' });
+      }
+      case 'id': {
+        return this.http.post<any>(`/api/checkout/payments/source/id`, paymentRequest, { observe: 'response' });
       }
       case 'card': {
         return this.http.post<any>(`/api/checkout/payments/source/card`, paymentRequest, { observe: 'response' });
@@ -38,10 +36,6 @@ export class PaymentService {
         return this.http.post<any>(`/api/checkout/payments/source/alternative-payment-method`, paymentRequest, { observe: 'response' });
       }
     }
-  }
-
-  requestToken(tokenRequest: any): Observable<HttpResponse<any>> {
-    return this.http.post<any>(`/api/checkout/tokens`, tokenRequest, { observe: 'response' });
   }
 
   redirect(response: HttpResponse<IPayment>): void {

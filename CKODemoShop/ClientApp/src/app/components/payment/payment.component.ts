@@ -13,6 +13,8 @@ import { IPayment } from 'src/app/interfaces/payment.interface';
 import { IPending } from 'src/app/interfaces/pending.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { ISourceData } from 'src/app/interfaces/source-data.interface';
+import { SourcesService } from 'src/app/services/sources.service';
+import { IIdSource } from 'src/app/interfaces/id-source.interface';
 
 declare var Frames: any;
 
@@ -35,6 +37,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   constructor(
     private _formBuilder: FormBuilder,
     private _paymentService: PaymentService,
+    private _sourcesService: SourcesService,
     private _scriptService: ScriptService,
     private _router: Router,
     private _ngZone: NgZone
@@ -76,12 +79,20 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.order.get('product');
   }
 
+  get autoCaptureControl(): AbstractControl {
+    return this.order.get('paymentConfiguration.autoCapture');
+  }
+
   get autoCapture(): boolean {
-    return this.order.get('paymentConfiguration.autoCapture').value;
+    return this.autoCaptureControl.value;
+  }
+
+  get threeDsControl(): AbstractControl {
+    return this.order.get('paymentConfiguration.threeDs');
   }
 
   get threeDs(): boolean {
-    return this.order.get('paymentConfiguration.threeDs').value;
+    return this.threeDsControl.value;
   }
 
   get paymentMethod(): AbstractControl {
@@ -104,8 +115,12 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.paymentMethod.get('bankObject').value;
   };
 
+  get amountControl(): AbstractControl {
+    return this.product.get('amount');
+  };
+
   get amount(): number {
-    return this.product.get('amount').value;
+    return this.amountControl.value;
   };
 
   get accountHolder(): string {
@@ -134,16 +149,27 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private invokePaymentMethod(paymentMethod: IPaymentMethod) {
     this.resetOrder();
+    console.log(paymentMethod);
     switch (paymentMethod.type) {
       case 'cko-frames': {
+        this.autoCaptureControl.enable();
+        this.threeDsControl.enable();
         this._scriptService.load('cko-frames').then(data => {
           let cardTokenisedCallback = (event) => {
-            this._paymentService.requestToken({
-              type: 'card',
-              number: '5436031030606378',
-              expiryMonth: 12,
-              expiryYear: 2022
-            }).subscribe(response => this.handleCardTokenResponse(response));
+            this._paymentService.requestPayment({
+              currency: 'EUR',
+              amount: this.amount,
+              source: <ITokenSource>{
+                type: 'token',
+                token: event.data.cardToken
+              },
+              capture: this.autoCapture,
+              '3ds': {
+                enabled: this.threeDs
+              },
+              successUrl: `${this.baseUri}/order/succeeded`,
+              failureUrl: `${this.baseUri}/order/failed`
+            }).subscribe(response => this.handlePaymentResponse(response));
           };
           Frames.init({
             publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
@@ -163,6 +189,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       case 'card': {
+        this.autoCaptureControl.enable();
+        this.threeDsControl.enable();
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
@@ -185,6 +213,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       case 'lpp_9': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
@@ -201,6 +231,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       case 'giropay': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment({
@@ -218,15 +250,35 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       case 'sepa': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
         this.sepaMandateAgreement.setValue(null);
         this.formInitialized('confirmation', this.confirmation);
         this.makePayment = () => {
           this.processing = true;
-          this._paymentService.addSource({
+          this._sourcesService.requestSource({
             type: paymentMethod.type,
             billing_address: this.address,
             source_data: <ISourceData>this.mandate.value
-          })
+          }).subscribe(response => this.handleSourceResponse(response))
+        };
+        break;
+      }
+      case 'sofort': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.requestPayment({
+            currency: 'EUR',
+            amount: this.amount,
+            source: <IGiropaySource>{
+              type: paymentMethod.type,
+              bic: 'TESTDETT421'
+            },
+            successUrl: `${this.baseUri}/order/succeeded`,
+            failureUrl: `${this.baseUri}/order/failed`
+          }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
       }
@@ -238,30 +290,29 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  handleCardTokenResponse(response: HttpResponse<any>) {
-    switch (response.status) {
-      case 201: {
-        this._paymentService.requestPayment({
-          currency: 'EUR',
-          amount: this.amount,
-          source: <ITokenSource>{
-            type: 'token',
-            token: response.body['token']
-          },
-          capture: this.autoCapture,
-          '3ds': {
-            enabled: this.threeDs
-          },
-          successUrl: `${this.baseUri}/order/succeeded`,
-          failureUrl: `${this.baseUri}/order/failed`
-        }).subscribe(response => this.handlePaymentResponse(response));
-        break;
+  handleSourceResponse(response: HttpResponse<any>) {
+    try {
+      switch (response.status) {
+        case 201: {
+          this._paymentService.requestPayment({
+            currency: 'EUR',
+            amount: this.amount,
+            source: <IIdSource>{
+              type: 'id',
+              id: response.body.id
+            }
+          }).subscribe(response => this.handlePaymentResponse(response))
+          break;
+        }
+        default: {
+          this.order.get('paymentMethod').reset();
+          this.processing = null;
+          throw new Error(`Handling of response status ${response.status} is not implemented!`);
+        }
       }
-      default: {
-        this.order.get('paymentMethod').reset();
-        this.processing = null;
-        throw new Error(`Handling of response status ${response.status} is not implemented!`);
-      };
+    }
+    catch (e) {
+      console.error(e);
     }
   }
 

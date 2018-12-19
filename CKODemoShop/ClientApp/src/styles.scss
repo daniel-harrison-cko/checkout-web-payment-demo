@@ -251,7 +251,7 @@ app-payment-component {
     margin-bottom: $margin;
   }
 
-  app-product-form {
+  app-product-form, app-payment-configuration-form {
     display: flex;
     flex: 1 1 auto;
   }

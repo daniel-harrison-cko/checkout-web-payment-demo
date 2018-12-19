@@ -26,6 +26,10 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'SEPA Direct Debit',
     type: 'sepa'
+  },
+  {
+    name: 'Sofort',
+    type: 'sofort'
   }
 ]
 
@@ -189,6 +193,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.paymentMethod.setControl('bank', new FormControl(null, Validators.required));
         this.paymentMethod.setControl('bankObject', new FormControl(null, Validators.required));
         this.getBanksLegacy(paymentMethod);
+        break;
+      }
+      case 'sofort': {
         break;
       }
       case 'sepa': {
