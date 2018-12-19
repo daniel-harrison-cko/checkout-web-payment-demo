@@ -13,9 +13,13 @@ export class ProductFormComponent implements OnInit {
 
   ngOnInit() {
     this.productForm = this._formBuilder.group({
-      amount: [1, [Validators.required, Validators.min(0)]]
+      amount: [100, [Validators.required, Validators.min(0)]]
     });
 
     this.formReady.emit(this.productForm);
+  }
+
+  get amount(): number {
+    return this.productForm.get('amount').value;
   }
 }

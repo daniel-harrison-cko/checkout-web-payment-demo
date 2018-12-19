@@ -4,9 +4,9 @@ import { Observable } from 'rxjs';
 import { ICustomer } from '../interfaces/customer.interface';
 
 const USER: ICustomer = {
-  id: '123',
-  name: 'Philippe Leonhardt',
-  email: 'philippe.leonhardt@checkout.com'
+  id: '12345',
+  name: 'John Doe',
+  email: 'john.doe@checkout.com'
 }
 
 @Injectable({
