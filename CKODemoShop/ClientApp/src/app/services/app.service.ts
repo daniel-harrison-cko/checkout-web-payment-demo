@@ -3,9 +3,11 @@ import { BehaviorSubject } from 'rxjs';
 import { ICurrency } from '../interfaces/currency.interface';
 
 const CURRENCIES: ICurrency[] = [
+  { iso4217: 'AUD', base: 100 },
   { iso4217: 'BRL', base: 100 },
   { iso4217: 'EUR', base: 100 },
   { iso4217: 'GBP', base: 100 },
+  { iso4217: 'NZD', base: 100 },
   { iso4217: 'USD', base: 100 }
 ];
 
