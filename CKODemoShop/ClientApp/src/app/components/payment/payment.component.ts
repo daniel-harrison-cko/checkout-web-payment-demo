@@ -15,6 +15,7 @@ import { IBank } from 'src/app/interfaces/bank.interface';
 import { ISourceData } from 'src/app/interfaces/source-data.interface';
 import { SourcesService } from 'src/app/services/sources.service';
 import { IIdSource } from 'src/app/interfaces/id-source.interface';
+import { IBoletoSource } from 'src/app/interfaces/boleto-source.interface';
 
 declare var Frames: any;
 
@@ -147,6 +148,18 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.paymentMethod.get('address').value;
   }
 
+  get customerName(): string {
+    return this.paymentMethod.get('customerName').value;
+  }
+
+  get cpf(): string {
+    return this.paymentMethod.get('cpf').value;
+  }
+
+  get birthDate(): string {
+    return this.paymentMethod.get('birthDate').value;
+  }
+
   private resetOrder = () => {
     this.order.removeControl('confirmation');
   }
@@ -188,7 +201,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.makePayment = () => {
           this.processing = true;
           Frames.submitCard();
-        }
+        };
         break;
       }
       case 'card': {
@@ -212,7 +225,44 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             successUrl: `${this.baseUri}/order/succeeded`,
             failureUrl: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response));
-        }
+        };
+        break;
+      }
+      case 'alipay': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.requestPayment({
+            currency: this.currency,
+            amount: this.amount,
+            source: {
+              type: paymentMethod.type
+            },
+            successUrl: `${this.baseUri}/order/succeeded`,
+            failureUrl: `${this.baseUri}/order/failed`
+          }).subscribe(response => this.handlePaymentResponse(response))
+        };
+        break;
+      }
+      case 'boleto': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.requestPayment({
+            currency: this.currency,
+            amount: this.amount,
+            source: <IBoletoSource>{
+              type: paymentMethod.type,
+              customerName: this.customerName,
+              cpf: this.cpf,
+              birthDate: this.birthDate
+            },
+            successUrl: `${this.baseUri}/order/succeeded`,
+            failureUrl: `${this.baseUri}/order/failed`
+          }).subscribe(response => this.handlePaymentResponse(response))
+        };
         break;
       }
       case 'lpp_9': {
@@ -267,6 +317,23 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         break;
       }
+      case 'poli': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.requestPayment({
+            currency: this.currency,
+            amount: this.amount,
+            source: {
+              type: paymentMethod.type
+            },
+            successUrl: `${this.baseUri}/order/succeeded`,
+            failureUrl: `${this.baseUri}/order/failed`
+          }).subscribe(response => this.handlePaymentResponse(response))
+        };
+        break;
+      }
       case 'sofort': {
         this.autoCaptureControl.disable();
         this.threeDsControl.disable();
@@ -275,9 +342,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this._paymentService.requestPayment({
             currency: this.currency,
             amount: this.amount,
-            source: <IGiropaySource>{
-              type: paymentMethod.type,
-              bic: 'TESTDETT421'
+            source: {
+              type: paymentMethod.type
             },
             successUrl: `${this.baseUri}/order/succeeded`,
             failureUrl: `${this.baseUri}/order/failed`
@@ -286,7 +352,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       default: {
-        console.warn('No payment method specific action was defined!');
+        console.warn(`No ${paymentMethod.name} specific action was defined!`);
         this.makePayment = () => { throw new Error(`${paymentMethod.name} payment is not implemented yet!`) };
         break;
       }

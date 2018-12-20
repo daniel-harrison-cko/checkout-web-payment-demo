@@ -5,7 +5,6 @@ import { IBank } from 'src/app/interfaces/bank.interface';
 import { Observable, Subscription } from 'rxjs';
 import { PaymentService } from 'src/app/services/payment.service';
 import { startWith, map } from 'rxjs/operators';
-import { Icu } from '@angular/compiler/src/i18n/i18n_ast';
 import { ICurrency } from 'src/app/interfaces/currency.interface';
 import { AppService } from 'src/app/services/app.service';
 
@@ -21,6 +20,16 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     processingCurrencies: ['all']
   },
   {
+    name: 'Alipay',
+    type: 'alipay',
+    processingCurrencies: ['USD']
+  },
+  {
+    name: 'Boleto',
+    type: 'boleto',
+    processingCurrencies: ['BRL', 'USD']
+  },
+  {
     name: 'giropay',
     type: 'giropay',
     processingCurrencies: ['EUR']
@@ -29,6 +38,11 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     name: 'iDEAL',
     type: 'lpp_9',
     processingCurrencies: ['EUR']
+  },
+  {
+    name: 'Poli',
+    type: 'poli',
+    processingCurrencies: ['AUD', 'NZD']
   },
   {
     name: 'SEPA Direct Debit',
@@ -116,6 +130,18 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     return this.paymentMethod.get('bank');
   }
 
+  get customerName(): AbstractControl {
+    return this.paymentMethod.get('customerName');
+  }
+
+  get cpf(): AbstractControl {
+    return this.paymentMethod.get('cpf');
+  }
+
+  get birthDate(): AbstractControl {
+    return this.paymentMethod.get('birthDate');
+  }
+
   get bankObject(): AbstractControl {
     return this.paymentMethod.get('bankObject');
   }
@@ -180,6 +206,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     if (this.card) { this.paymentMethod.removeControl('card') };
     if (this.mandate) { this.paymentMethod.removeControl('mandate') };
     if (this.address) { this.paymentMethod.removeControl('address') };
+    if (this.customerName) { this.paymentMethod.removeControl('customerName') };
+    if (this.cpf) { this.paymentMethod.removeControl('cpf') };
+    if (this.birthDate) { this.paymentMethod.removeControl('birthDate') };
   }
 
   private onBankSelectionChanged() {
@@ -201,10 +230,22 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.paymentMethod.setControl('card', this.creditCardForm);
         break;
       }
+      case 'alipay': {
+        break;
+      }
+      case 'boleto': {
+        this.paymentMethod.setControl('customerName', new FormControl('Sarah Mitchell', Validators.required));
+        this.paymentMethod.setControl('cpf', new FormControl('00003456789', Validators.required));
+        this.paymentMethod.setControl('birthDate', new FormControl('1984-03-04', Validators.required));
+        break;
+      }
       case 'giropay': {
         this.paymentMethod.setControl('bank', new FormControl(null, Validators.required));
         this.paymentMethod.setControl('bankObject', new FormControl(null, Validators.required));
         this.getBanks(paymentMethod);
+        break;
+      }
+      case 'poli': {
         break;
       }
       case 'lpp_9': {
