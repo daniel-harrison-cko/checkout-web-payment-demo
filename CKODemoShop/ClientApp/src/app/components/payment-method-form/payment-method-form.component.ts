@@ -30,9 +30,14 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     processingCurrencies: ['BRL', 'USD']
   },
   {
-    name: 'giropay',
+    name: 'Giropay',
     type: 'giropay',
     processingCurrencies: ['EUR']
+  },
+  {
+    name: 'Google Pay',
+    type: 'googlepay',
+    processingCurrencies: ['all']
   },
   {
     name: 'iDEAL',
@@ -243,6 +248,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.paymentMethod.setControl('bank', new FormControl(null, Validators.required));
         this.paymentMethod.setControl('bankObject', new FormControl(null, Validators.required));
         this.getBanks(paymentMethod);
+        break;
+      }
+      case 'googlepay': {
         break;
       }
       case 'poli': {

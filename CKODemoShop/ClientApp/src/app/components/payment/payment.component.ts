@@ -16,8 +16,10 @@ import { ISourceData } from 'src/app/interfaces/source-data.interface';
 import { SourcesService } from 'src/app/services/sources.service';
 import { IIdSource } from 'src/app/interfaces/id-source.interface';
 import { IBoletoSource } from 'src/app/interfaces/boleto-source.interface';
+import { ISource } from 'src/app/interfaces/source.interface';
 
 declare var Frames: any;
+declare var google: any;
 
 @Component({
   selector: 'app-payment-component',
@@ -170,34 +172,36 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       case 'cko-frames': {
         this.autoCaptureControl.enable();
         this.threeDsControl.enable();
-        this._scriptService.load('cko-frames').then(data => {
-          let cardTokenisedCallback = (event) => {
-            this._paymentService.requestPayment({
-              currency: this.currency,
-              amount: this.amount,
-              source: <ITokenSource>{
-                type: 'token',
-                token: event.data.cardToken
+        this._scriptService.load('cko-frames')
+          .then(data => {
+            let cardTokenisedCallback = (event) => {
+              this._paymentService.requestPayment({
+                currency: this.currency,
+                amount: this.amount,
+                source: <ITokenSource>{
+                  type: 'token',
+                  token: event.data.cardToken
+                },
+                capture: this.autoCapture,
+                '3ds': {
+                  enabled: this.threeDs
+                },
+                successUrl: `${this.baseUri}/order/succeeded`,
+                failureUrl: `${this.baseUri}/order/failed`
+              }).subscribe(response => this.handlePaymentResponse(response));
+            };
+            Frames.init({
+              publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
+              containerSelector: '.cko-container',
+              cardTokenised: function (event) {
+                cardTokenisedCallback(event);
               },
-              capture: this.autoCapture,
-              '3ds': {
-                enabled: this.threeDs
-              },
-              successUrl: `${this.baseUri}/order/succeeded`,
-              failureUrl: `${this.baseUri}/order/failed`
-            }).subscribe(response => this.handlePaymentResponse(response));
-          };
-          Frames.init({
-            publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
-            containerSelector: '.cko-container',
-            cardTokenised: function (event) {
-              cardTokenisedCallback(event);
-            },
-            cardTokenisationFailed: function (event) {
-              // catch the error
-            }
-          });
-        }).catch(error => console.log(error));
+              cardTokenisationFailed: function (event) {
+                // catch the error
+              }
+            });
+          })
+          .catch(error => console.log(error));
         this.makePayment = () => {
           this.processing = true;
           Frames.submitCard();
@@ -302,6 +306,62 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         break;
       }
+      case 'googlepay': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        let googleClient;
+        let allowedPaymentMethods = ['CARD', 'TOKENIZED_CARD'];
+        this._scriptService.load('googlepay')
+          .then(data => {
+            let isReadyToPayCallback = () => {
+              this.makePayment = () => {
+                this.processing = true;
+                let processPayment = (paymentData) => {
+                  this._paymentService.requestToken({
+                    type: paymentMethod.type,
+                    tokenData: JSON.parse(paymentData.paymentMethodToken.token)
+                  }).subscribe(response => this.handleSourceResponse(response));
+                };
+                let paymentDataRequest = {
+                  merchantId: '01234567890123456789',
+                  paymentMethodTokenizationParameters: {
+                    tokenizationType: 'PAYMENT_GATEWAY',
+                    parameters: {
+                      'gateway': 'checkoutltd',
+                      'gatewayMerchantId': 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7'
+                    }
+                  },
+                  allowedPaymentMethods: allowedPaymentMethods,
+                  cardRequirements: {
+                    allowedCardNetworks: ['MASTERCARD', 'VISA']
+                  },
+                  transactionInfo: {
+                    currencyCode: this.currency,
+                    totalPriceStatus: 'FINAL',
+                    totalPrice: this.amount
+                  }
+                };
+
+                googleClient.loadPaymentData(paymentDataRequest)
+                  .then(paymentData => processPayment(paymentData))
+                  .catch(error => console.error(error));
+              };
+            };
+            googleClient = new google.payments.api.PaymentsClient({
+              environment: 'TEST'
+            });
+            googleClient.isReadyToPay({
+              allowedPaymentMethods: allowedPaymentMethods
+            })
+              .then(response => {
+                if (response.result) {
+                  isReadyToPayCallback();
+                }
+              })
+              .catch(error => console.error(error));
+          });
+        break;
+      }
       case 'sepa': {
         this.autoCaptureControl.disable();
         this.threeDsControl.disable();
@@ -360,16 +420,33 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   handleSourceResponse(response: HttpResponse<any>) {
+    let source: ISource;
+    try {
+      if (response.body.id) {
+        source = <IIdSource>{
+          type: 'id',
+          id: response.body.id
+        }
+      } else if (response.body.token) {
+        source = <ITokenSource>{
+          type: 'token',
+          token: response.body.token
+        }
+      }
+      else {
+        throw new Error(`Unkown Source Type`);
+      }
+    }
+    catch (e) {
+      console.error(e);
+    }
     try {
       switch (response.status) {
         case 201: {
           this._paymentService.requestPayment({
             currency: this.currency,
             amount: this.amount,
-            source: <IIdSource>{
-              type: 'id',
-              id: response.body.id
-            }
+            source: source
           }).subscribe(response => this.handlePaymentResponse(response))
           break;
         }

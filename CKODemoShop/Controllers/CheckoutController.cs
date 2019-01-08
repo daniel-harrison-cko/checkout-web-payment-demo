@@ -79,10 +79,26 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        [HttpPost("[action]")]
+        [HttpPost("[action]/source/card")]
         [ProducesResponseType(201, Type = typeof(TokenResponse))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> Tokens(CardTokenRequest tokenRequest)
+        {
+            try
+            {
+                var tokenResponse = await api.Tokens.RequestAsync(tokenRequest);
+                return CreatedAtAction(nameof(Tokens), tokenResponse);
+            }
+            catch (Exception e)
+            {
+                return UnprocessableEntity(e);
+            }
+        }
+
+        [HttpPost("[action]/source/wallet")]
+        [ProducesResponseType(201, Type = typeof(TokenResponse))]
+        [ProducesResponseType(422, Type = typeof(ErrorResponse))]
+        public async Task<IActionResult> Tokens(WalletTokenRequest tokenRequest)
         {
             try
             {
