@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.SpaServices.AngularCli;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
+using App.Metrics.Health;
+using App.Metrics.Health.Formatters.Json;
 namespace CKODemoShop
 {
     public class Startup
@@ -21,17 +23,21 @@ namespace CKODemoShop
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            ConfigureHealthChecks(services);
 
             // In production, the Angular files will be served from this directory
             services.AddSpaStaticFiles(configuration =>
             {
-                configuration.RootPath = "ClientApp/dist";
+                configuration.RootPath = "ClientApp/dist/ClientApp";
             });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+            app.UseHealthEndpoint();
+            app.UsePingEndpoint();
+            
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -64,6 +70,20 @@ namespace CKODemoShop
                 {
                     spa.UseAngularCliServer(npmScript: "start");
                 }
+            });
+        }
+
+        private void ConfigureHealthChecks(IServiceCollection services)
+        {
+            var metrics = AppMetricsHealth.CreateDefaultBuilder()
+            //TODO .HealthChecks.AddCheck<>()
+            .BuildAndAddTo(services);
+
+            services.AddHealthEndpoints(options =>
+            {
+                options.HealthEndpointEnabled = true;
+                options.PingEndpointEnabled = true;
+                options.HealthEndpointOutputFormatter = new HealthStatusJsonOutputFormatter();
             });
         }
     }

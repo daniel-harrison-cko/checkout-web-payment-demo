@@ -17,6 +17,8 @@
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.SpaServices.Extensions" Version="2.1.1" />
+    <PackageReference Include="App.Metrics.AspNetCore.Health.Endpoints" Version="2.0.0" />
+    <PackageReference Include="App.Metrics.Formatters.Json" Version="2.1.0" />
   </ItemGroup>
 
   <ItemGroup>
