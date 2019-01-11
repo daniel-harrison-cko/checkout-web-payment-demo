@@ -61,7 +61,7 @@ namespace CKODemoShop.Controllers
                 else if (lppId == "giropay")
                 {
                     client.DefaultRequestHeaders.Clear();
-                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
                     HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/banks");
                     string content = await result.Content.ReadAsStringAsync();
                     BanksResponse banksProcessed = JsonConvert.DeserializeObject<BanksResponse>(content);
@@ -163,13 +163,13 @@ namespace CKODemoShop.Controllers
             try
             {
                 var sourceResponse = await api.Sources.RequestAsync(sourceRequest);
-                if (sourceResponse != null)
+                if (sourceResponse.IsPending)
                 {
-                    return CreatedAtAction("RequestSource", new { paymentId = sourceResponse.Id }, sourceResponse);
+                    return AcceptedAtAction("RequestSource", new { paymentId = sourceResponse.Pending.Id }, sourceResponse.Pending);
                 }
                 else
                 {
-                    return AcceptedAtAction("RequestSource", new { paymentId = sourceResponse.Id }, sourceResponse);
+                    return CreatedAtAction("RequestSource", new { paymentId = sourceResponse.Source.Id }, sourceResponse.Source);
                 }
             }
             catch (Exception e)
