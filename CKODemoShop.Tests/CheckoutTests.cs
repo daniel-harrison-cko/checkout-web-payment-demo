@@ -456,18 +456,16 @@ namespace CKODemoShop.Tests
         }
 
         SourceRequest sourceRequest;
-        SourceResponse sourceResponse;
+        Resource source;
         void when_post_sources()
         {
             context["given a sepa source"] = () =>
             {
                 beforeAllAsync = async () =>
                 {
-                    sourceRequest = new SourceRequest()
-                    {
-                        Type = "sepa",
-                        Reference = "CKO Demo test",
-                        BillingAddress = new Address()
+                    sourceRequest = new SourceRequest(
+                        type: "sepa",
+                        billingAddress: new Address()
                         {
                             AddressLine1 = "Checkout GmbH",
                             AddressLine2 = "Rudi-Dutschke-Straße 26",
@@ -475,7 +473,9 @@ namespace CKODemoShop.Tests
                             Zip = "10969",
                             State = "Berlin",
                             Country = "DE"
-                        },
+                        })
+                    {
+                        Reference = "CKO Demo test",
                         Phone = new Phone()
                         {
                             CountryCode = "+49",
@@ -492,7 +492,7 @@ namespace CKODemoShop.Tests
                         }
                     };
                     result = await controller.Sources(sourceRequest);
-                    sourceResponse = (result as ObjectResult).Value as SourceResponse;
+                    source = (result as ObjectResult).Value as Resource;
                 };
 
                 it["should return 201 - Created"] = () =>
@@ -502,12 +502,12 @@ namespace CKODemoShop.Tests
 
                 it["should match request source type with response source type"] = () =>
                 {
-                    sourceResponse.Type.ToLower().ShouldBe(sourceRequest.Type.ToLower());
+                    (source as SourceProcessed).Type.ToLower().ShouldBe(sourceRequest.Type.ToLower());
                 };
 
                 it["should return a mandate reference"] = () =>
                 {
-                    sourceResponse.ResponseData.MandateReference.ShouldNotBeNullOrEmpty();
+                    (source as SourceProcessed).ResponseData.MandateReference.ShouldNotBeNullOrEmpty();
                 };
             };
         }
