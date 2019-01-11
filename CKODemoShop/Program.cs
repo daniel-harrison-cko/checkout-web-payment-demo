@@ -19,6 +19,11 @@ namespace CKODemoShop
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                .UseStartup<Startup>()
+                .ConfigureAppHealthHostingConfiguration(options =>
+                 {
+                     options.HealthEndpoint = "/_system/health";
+                     options.PingEndpoint = "/_system/ping";
+                 });
     }
 }
