@@ -318,7 +318,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.processing = true;
                 let processPayment = (paymentData) => {
                   this._paymentService.requestToken({
-                    type: paymentMethod.type,
+                    walletType: paymentMethod.type,
                     tokenData: JSON.parse(paymentData.paymentMethodToken.token)
                   }).subscribe(response => this.handleSourceResponse(response));
                 };
