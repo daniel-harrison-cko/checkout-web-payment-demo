@@ -112,7 +112,7 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpGet("[action]/{paymentId}", Name = "GetPayment")]
-        [ProducesResponseType(200, Type = typeof(PaymentProcessed))]
+        [ProducesResponseType(200, Type = typeof(GetPaymentResponse))]
         [ProducesResponseType(404)]
         public async Task<IActionResult> Payments(string paymentId)
         {
@@ -128,25 +128,14 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpGet("payments/{paymentId}/[action]", Name = "GetPaymentActions")]
-        [ProducesResponseType(200, Type = typeof(PaymentProcessed))]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<PaymentAction>))]
         [ProducesResponseType(404)]
         public async Task<IActionResult> Actions(string paymentId)
         {
             try
             {
-                client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
-                HttpResponseMessage result = await client.GetAsync($"https://api.sandbox.checkout.com/payments/{paymentId}/actions");
-                if(result.IsSuccessStatusCode)
-                {
-                    string content = await result.Content.ReadAsStringAsync();
-                    List<object> actions = JsonConvert.DeserializeObject<List<object>>(content);
-                    return Ok(actions);
-                }
-                else
-                {
-                    return NotFound();
-                }
+                var actions = await api.Payments.GetActionsAsync(paymentId);
+                return Ok(actions);
             }
             catch (Exception e)
             {
