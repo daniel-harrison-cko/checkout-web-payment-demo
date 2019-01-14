@@ -8,7 +8,7 @@
         <mat-card-subtitle>{{orderStatus(order.status) || 'Awaiting Status ...'}}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
-        <p>Requested on {{order.requestedOn | date:'y-MMM-dd@HH:mm:ss (z)':'UTC'}}</p>
+        <p>Requested on {{order.requested_on | date:'y-MMM-dd@HH:mm:ss (z)':'UTC'}}</p>
         <p>Amount {{order.amount / 100 | currency:order.currency:'symbol'}}</p>
         <mat-expansion-panel>
           <mat-expansion-panel-header>

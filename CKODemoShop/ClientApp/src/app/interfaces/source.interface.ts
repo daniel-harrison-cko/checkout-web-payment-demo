@@ -3,10 +3,10 @@ import { IAddress } from "./address.interface";
 export interface ISource {
   type: string;
   id?: string;
-  billingAddress?: IAddress;
+  billing_address?: IAddress;
   phone?: object;
-  expiryMonth?: number;
-  expiryYear?: number;
+  expiry_month?: number;
+  expiry_year?: number;
   name?: string;
   scheme?: string;
   last4?: string;

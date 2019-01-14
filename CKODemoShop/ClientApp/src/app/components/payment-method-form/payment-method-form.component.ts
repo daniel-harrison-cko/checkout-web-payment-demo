@@ -103,8 +103,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       mandate_type: ['single', Validators.required]
     });
     this.addressForm = this._formBuilder.group({
-      addressLine1: ['Wayne Plaza 1', Validators.required],
-      addressLine2: [''],
+      address_line1: ['Wayne Plaza 1', Validators.required],
+      address_line2: [''],
       city: ['Gotham City', Validators.required],
       state: ['NJ', Validators.required],
       zip: ['12345', Validators.required],

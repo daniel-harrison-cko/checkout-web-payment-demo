@@ -186,8 +186,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                 '3ds': {
                   enabled: this.threeDs
                 },
-                successUrl: `${this.baseUri}/order/succeeded`,
-                failureUrl: `${this.baseUri}/order/failed`
+                success_url: `${this.baseUri}/order/succeeded`,
+                failure_url: `${this.baseUri}/order/failed`
               }).subscribe(response => this.handlePaymentResponse(response));
             };
             Frames.init({
@@ -219,15 +219,15 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             source: {
               type: 'card',
               number: this.card["number"],
-              expiryMonth: Number((<string>this.card["expiration"]).slice(0, 2)),
-              expiryYear: Number((<string>this.card["expiration"]).slice(2))
+              expiry_month: Number((<string>this.card["expiration"]).slice(0, 2)),
+              expiry_year: Number((<string>this.card["expiration"]).slice(2))
             },
             capture: this.autoCapture,
             '3ds': {
               enabled: this.threeDs
             },
-            successUrl: `${this.baseUri}/order/succeeded`,
-            failureUrl: `${this.baseUri}/order/failed`
+            success_url: `${this.baseUri}/order/succeeded`,
+            failure_url: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response));
         };
         break;
@@ -243,8 +243,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             source: {
               type: paymentMethod.type
             },
-            successUrl: `${this.baseUri}/order/succeeded`,
-            failureUrl: `${this.baseUri}/order/failed`
+            success_url: `${this.baseUri}/order/succeeded`,
+            failure_url: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
@@ -263,8 +263,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
               cpf: this.cpf,
               birthDate: this.birthDate
             },
-            successUrl: `${this.baseUri}/order/succeeded`,
-            failureUrl: `${this.baseUri}/order/failed`
+            success_url: `${this.baseUri}/order/succeeded`,
+            failure_url: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
@@ -281,8 +281,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
               type: 'ideal',
               issuer_id: this.bank.value,
             },
-            successUrl: `${this.baseUri}/order/succeeded`,
-            failureUrl: `${this.baseUri}/order/failed`
+            success_url: `${this.baseUri}/order/succeeded`,
+            failure_url: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
@@ -300,8 +300,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
               purpose: 'CKO Demo Shop Test',
               bic: this.bank.value
             },
-            successUrl: `${this.baseUri}/order/succeeded`,
-            failureUrl: `${this.baseUri}/order/failed`
+            success_url: `${this.baseUri}/order/succeeded`,
+            failure_url: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
@@ -318,8 +318,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.processing = true;
                 let processPayment = (paymentData) => {
                   this._paymentService.requestToken({
-                    walletType: paymentMethod.type,
-                    tokenData: JSON.parse(paymentData.paymentMethodToken.token)
+                    wallet_type: paymentMethod.type,
+                    token_data: JSON.parse(paymentData.paymentMethodToken.token)
                   }).subscribe(response => this.handleSourceResponse(response));
                 };
                 let paymentDataRequest = {
@@ -388,8 +388,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             source: {
               type: paymentMethod.type
             },
-            successUrl: `${this.baseUri}/order/succeeded`,
-            failureUrl: `${this.baseUri}/order/failed`
+            success_url: `${this.baseUri}/order/succeeded`,
+            failure_url: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;
@@ -405,8 +405,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             source: {
               type: paymentMethod.type
             },
-            successUrl: `${this.baseUri}/order/succeeded`,
-            failureUrl: `${this.baseUri}/order/failed`
+            success_url: `${this.baseUri}/order/succeeded`,
+            failure_url: `${this.baseUri}/order/failed`
           }).subscribe(response => this.handlePaymentResponse(response))
         };
         break;

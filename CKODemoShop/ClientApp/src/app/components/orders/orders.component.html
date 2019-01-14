@@ -10,7 +10,7 @@
 
         <ng-container matColumnDef="requestedOn">
           <th mat-header-cell *matHeaderCellDef mat-sort-header> Requested On </th>
-          <td mat-cell *matCellDef="let payment">{{payment.requestedOn | date:'y-MMM-dd@HH:mm:ss (z)':'UTC'}}</td>
+          <td mat-cell *matCellDef="let payment">{{payment.requested_on | date:'y-MMM-dd@HH:mm:ss (z)':'UTC'}}</td>
         </ng-container>
 
         <ng-container matColumnDef="id">
