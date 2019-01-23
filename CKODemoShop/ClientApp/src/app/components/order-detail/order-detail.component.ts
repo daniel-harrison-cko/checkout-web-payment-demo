@@ -26,10 +26,6 @@ export class OrderDetailComponent {
     )
   }
 
-  private orderStatus(id: number): string {
-    return this._orderService.statusIdToName(id);
-  }
-
   private paymentMethodIcon(payment: IPayment): string {
     return this._orderService.paymentMethodIcon(payment);
   }

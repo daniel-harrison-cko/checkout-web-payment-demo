@@ -4,21 +4,6 @@ import { Observable, BehaviorSubject, Subscription } from 'rxjs';
 import { IPayment } from '../interfaces/payment.interface';
 import { IProduct } from '../interfaces/product.interface';
 
-const STATUS: string[] = [
-  "Authorized",
-  "Cancelled",
-  "Captured",
-  "Declined",
-  "Expired",
-  "Partially Captured",
-  "Partially Refunded",
-  "Pending",
-  "Refunded",
-  "Voided",
-  "Card Verified",
-  "Chargeback"
-];
-
 @Injectable({
   providedIn: 'root'
 })
@@ -41,10 +26,6 @@ export class OrderService {
 
   getPaymentActions(id: string): Observable<HttpResponse<any>> {
     return this._http.get<any>(`api/checkout/payments/${id}/actions`, {observe: 'response' })
-  }
-
-  statusIdToName(id: number): string {
-    return STATUS[id];
   }
 
   paymentMethodIcon(payment: IPayment): string {

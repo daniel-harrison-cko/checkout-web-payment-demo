@@ -5,7 +5,7 @@
       <mat-card-header>
         <img mat-card-avatar class="payment-method-avatar" src="/assets/payment_method/{{paymentMethodIcon(order) || 'undefined'}}.jpg">
         <mat-card-title>{{order.id}}</mat-card-title>
-        <mat-card-subtitle>{{orderStatus(order.status) || 'Awaiting Status ...'}}</mat-card-subtitle>
+        <mat-card-subtitle>{{order.status || 'Awaiting Status ...'}}</mat-card-subtitle>
       </mat-card-header>
       <mat-card-content>
         <p>Requested on {{order.requested_on | date:'y-MMM-dd@HH:mm:ss (z)':'UTC'}}</p>
