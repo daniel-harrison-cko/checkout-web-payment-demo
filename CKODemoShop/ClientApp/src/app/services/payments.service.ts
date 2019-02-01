@@ -7,6 +7,8 @@ import { IBanks } from '../interfaces/banks.interface';
 import { IPayment } from '../interfaces/payment.interface';
 import { ICurrency } from '../interfaces/currency.interface';
 
+const DEFAULT_AMOUNT: number = 100;
+
 const CURRENCIES: ICurrency[] = [
   { iso4217: 'AUD', base: 100 },
   { iso4217: 'BRL', base: 100 },
@@ -26,9 +28,11 @@ export class PaymentsService {
 
   // Subjects
   private currencySource = new BehaviorSubject<ICurrency>(CURRENCIES[0]);
+  private amountSource = new BehaviorSubject<number>(DEFAULT_AMOUNT);
 
   // Observables
   public currency$ = this.currencySource.asObservable();
+  public amount$ = this.amountSource.asObservable();
 
   // Methods
   public setCurrency(currency: ICurrency) {
@@ -37,6 +41,10 @@ export class PaymentsService {
 
   get currencies(): ICurrency[] {
     return CURRENCIES;
+  }
+
+  public setAmount(amount: number) {
+    this.amountSource.next(amount);
   }
 
   paymentMethodIcon(payment: IPayment): string {

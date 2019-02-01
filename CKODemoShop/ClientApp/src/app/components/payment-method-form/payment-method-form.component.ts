@@ -1,10 +1,10 @@
 import { Component, Output, OnInit, EventEmitter, OnDestroy, NgZone } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, AbstractControl, FormControl } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, AbstractControl, FormControl, FormArray } from '@angular/forms';
 import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Observable, Subscription } from 'rxjs';
 import { PaymentsService } from 'src/app/services/payments.service';
-import { startWith, map } from 'rxjs/operators';
+import { startWith, map, distinctUntilChanged } from 'rxjs/operators';
 import { ICurrency } from 'src/app/interfaces/currency.interface';
 import { HttpResponse } from '@angular/common/http';
 import { IKlarnaPaymentOption } from 'src/app/interfaces/klarna-payment-option.interface';
@@ -78,6 +78,7 @@ declare var Klarna: any;
   selector: 'app-payment-method-form',
   templateUrl: './payment-method-form.component.html'
 })
+
 export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   @Output() formReady = new EventEmitter<FormGroup>();
@@ -125,23 +126,23 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       purchase_country: ['DE', Validators.required],
       currency: [this.selectedCurrency.iso4217, Validators.required],
       locale: ['de-DE', Validators.required],
-      amount: [100, Validators.required],
+      amount: [null, Validators.required],
       tax_amount: [1, Validators.required],
       products: this._formBuilder.array([
         this._formBuilder.group({
           name: ['Smoke Pellet', Validators.required],
-          quantity: [25, Validators.required],
-          unit_price: [1, Validators.required],
+          quantity: [1, Validators.required],
+          unit_price: [null, Validators.required],
           tax_rate: [1, Validators.required],
-          total_amount: [25, Validators.required],
+          total_amount: [null, Validators.required],
           total_tax_amount: [1, Validators.required],
         }),
         this._formBuilder.group({
-          name: ['Batarang', Validators.required],
+          name: ['Flashbang', Validators.required],
           quantity: [1, Validators.required],
-          unit_price: [75, Validators.required],
+          unit_price: [null, Validators.required],
           tax_rate: [1, Validators.required],
-          total_amount: [75, Validators.required],
+          total_amount: [null, Validators.required],
           total_tax_amount: [1, Validators.required]
         })
       ]),
@@ -171,13 +172,18 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       zip: ['12345', Validators.required],
       country: ['US', Validators.required]
     });
-
+    
     this.subscriptions.push(
       this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(paymentMethod => this.invokePaymentMethod(paymentMethod)),
+      this._paymentsService.amount$.subscribe(amount => {
+        this.klarnaForm.get('amount').setValue(amount);
+        this.klarnaProductsPriceUpdate(amount);
+      }),
       this._paymentsService.currency$.subscribe(currency => {
         this.selectedCurrency = currency;
         this.klarnaForm.get('currency').setValue(this.selectedCurrency.iso4217);
-      })
+      }),
+      this.klarnaForm.get('amount').valueChanges.pipe(distinctUntilChanged()).subscribe(amount => this.klarnaProductsPriceUpdate(amount))
     );
 
     this.formReady.emit(this.paymentMethod);
@@ -286,7 +292,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   private klarnaProductTotal = (product) => product.total_amount;
-  private klarnaProductsTotal = (prev, next) => ( prev + next );
+  private klarnaProductsTotal = (prev, next) => (prev + next);
+  private klarnaProductsPriceUpdate(amount: number) {
+    (this.klarnaForm.get('products') as FormArray).controls[0].get('unit_price').setValue(Math.round(amount * 0.25));
+    (this.klarnaForm.get('products') as FormArray).controls[0].get('total_amount').setValue(Math.round(amount * 0.25));
+    (this.klarnaForm.get('products') as FormArray).controls[1].get('unit_price').setValue(Math.round(amount * 0.75));
+    (this.klarnaForm.get('products') as FormArray).controls[1].get('total_amount').setValue(Math.round(amount * 0.75));
+  };
   get klarnaGrandTotal() { return (this.klarnaForm.get('products').value as []).map(this.klarnaProductTotal).reduce(this.klarnaProductsTotal) };
 
   private resetPaymentMethod = () => {
