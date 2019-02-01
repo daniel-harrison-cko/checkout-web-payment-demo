@@ -1,15 +1,14 @@
 import { Component, Output, OnInit, EventEmitter, OnDestroy, NgZone } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormArray, AbstractControl, FormControl } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, AbstractControl, FormControl } from '@angular/forms';
 import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Observable, Subscription } from 'rxjs';
-import { PaymentService } from 'src/app/services/payment.service';
+import { PaymentsService } from 'src/app/services/payments.service';
 import { startWith, map } from 'rxjs/operators';
 import { ICurrency } from 'src/app/interfaces/currency.interface';
 import { HttpResponse } from '@angular/common/http';
 import { IKlarnaPaymentOption } from 'src/app/interfaces/klarna-payment-option.interface';
 import { ScriptService } from 'src/app/services/script.service';
-import { OrderService } from 'src/app/services/order.service';
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
@@ -93,14 +92,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   addressForm: FormGroup;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
-  selectedCurrency: ICurrency = this._orderService.currencies[0];
+  selectedCurrency: ICurrency = this._paymentsService.currencies[0];
   klarnaProductColumns: string[] =['name', 'quantity', 'unit_price', 'total_amount'];
 
   constructor(
     private _formBuilder: FormBuilder,
-    private _paymentService: PaymentService,
+    private _paymentsService: PaymentsService,
     private _scriptService: ScriptService,
-    private _orderService: OrderService,
     private _ngZone: NgZone
   ) { }
 
@@ -176,7 +174,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
     this.subscriptions.push(
       this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(paymentMethod => this.invokePaymentMethod(paymentMethod)),
-      this._orderService.currency$.subscribe(currency => {
+      this._paymentsService.currency$.subscribe(currency => {
         this.selectedCurrency = currency;
         this.klarnaForm.get('currency').setValue(this.selectedCurrency.iso4217);
       })
@@ -251,7 +249,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   getBanksLegacy(paymentMethod: IPaymentMethod) {
-    this._paymentService.getLegacyBanks(paymentMethod).subscribe(response => {
+    this._paymentsService.getLegacyBanks(paymentMethod).subscribe(response => {
       this.banks = response.body
       this.filteredBanks = (<FormControl>this.bank).valueChanges.pipe(
         startWith(''),
@@ -261,7 +259,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   getBanks(paymentMethod: IPaymentMethod) {
-    this._paymentService.getBanks(paymentMethod).subscribe(response => {
+    this._paymentsService.getBanks(paymentMethod).subscribe(response => {
       let banks: IBank[] = [];
       Object.keys(response.body.banks).forEach(function (key) {
         banks.push({
@@ -362,7 +360,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       case 'klarna': {
         this.paymentMethod.setControl('klarnaSession', this.klarnaForm);
         this.paymentMethod.setControl('klarnaPaymentOption', new FormControl(null, Validators.required));
-        this._paymentService.requestKlarnaSession(this.klarnaForm.value).subscribe(response => this.handleKlarnaSession(response));
+        this._paymentsService.requestKlarnaSession(this.klarnaForm.value).subscribe(response => this.handleKlarnaSession(response));
       }
       case 'paypal': {
         break;

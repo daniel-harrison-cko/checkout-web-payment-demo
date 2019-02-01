@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, NgZone, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, FormControl } from '@angular/forms';
-import { PaymentService } from '../../services/payment.service';
+import { PaymentsService } from '../../services/payments.service';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
 import { IIdealSource } from '../../interfaces/ideal-source.interface';
@@ -38,7 +38,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private _formBuilder: FormBuilder,
-    private _paymentService: PaymentService,
+    private _paymentService: PaymentsService,
     private _sourcesService: SourcesService,
     private _scriptService: ScriptService,
     private _router: Router,

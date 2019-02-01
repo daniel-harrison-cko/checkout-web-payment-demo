@@ -1,8 +1,8 @@
 import { Component } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { OrderService } from '../../services/order.service';
 import { IPayment } from '../../interfaces/payment.interface';
 import { finalize } from 'rxjs/operators';
+import { PaymentsService } from 'src/app/services/payments.service';
 
 @Component({
   selector: 'app-order-detail',
@@ -14,9 +14,12 @@ export class OrderDetailComponent {
   orderNotFound: boolean;
 
 
-  constructor(private _orderService: OrderService, private _activatedRoute: ActivatedRoute) {
+  constructor(
+    private _paymentsService: PaymentsService,
+    private _activatedRoute: ActivatedRoute
+  ) {
     let orderId = _activatedRoute.snapshot.params['orderId'] || _activatedRoute.snapshot.queryParams['cko-session-id'];
-    _orderService.getOrder(orderId)
+    _paymentsService.getPayment(orderId)
       .pipe(
         finalize(() => this.loading = false)
       )
@@ -27,6 +30,6 @@ export class OrderDetailComponent {
   }
 
   private paymentMethodIcon(payment: IPayment): string {
-    return this._orderService.paymentMethodIcon(payment);
+    return this._paymentsService.paymentMethodIcon(payment);
   }
 }

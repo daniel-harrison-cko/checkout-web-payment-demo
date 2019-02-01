@@ -3,7 +3,7 @@ import { ICustomer } from '../../interfaces/customer.interface';
 import { IPayment } from '../../interfaces/payment.interface';
 import { MatTableDataSource, MatSort, MatSortable } from '@angular/material';
 import { UserService } from '../../services/user.service';
-import { OrderService } from 'src/app/services/order.service';
+import { PaymentsService } from 'src/app/services/payments.service';
 
 @Component({
   selector: 'app-orders',
@@ -17,12 +17,15 @@ export class OrdersComponent {
 
   @ViewChild(MatSort) sort: MatSort;
 
-  constructor(private _userService: UserService, private _orderService: OrderService) {
+  constructor(
+    private _userService: UserService,
+    private _paymentsService: PaymentsService
+  ) {
     this.user = _userService.getUser();
     let recordedOrders: string[] = JSON.parse(localStorage.getItem('payments'));
     if (recordedOrders !== null) {
       recordedOrders.forEach(paymentId => {
-        _orderService.getOrder(paymentId).subscribe(response => {
+        _paymentsService.getPayment(paymentId).subscribe(response => {
           if (!this.orders) {
             this.orders = [response.body]
           } else {
@@ -47,6 +50,6 @@ export class OrdersComponent {
   }
 
   private paymentMethodIcon(payment: IPayment): string {
-    return this._orderService.paymentMethodIcon(payment);
+    return this._paymentsService.paymentMethodIcon(payment);
   }
 }

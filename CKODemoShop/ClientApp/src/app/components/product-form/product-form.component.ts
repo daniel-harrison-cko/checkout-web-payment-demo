@@ -2,7 +2,7 @@ import { Component, Output, OnInit, EventEmitter, OnDestroy } from '@angular/cor
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { ICurrency } from 'src/app/interfaces/currency.interface';
-import { OrderService } from 'src/app/services/order.service';
+import { PaymentsService } from 'src/app/services/payments.service';
 
 @Component({
   selector: 'app-product-form',
@@ -14,7 +14,10 @@ export class ProductFormComponent implements OnInit, OnDestroy {
   @Output() formReady = new EventEmitter<FormGroup>();
   productForm: FormGroup;
 
-  constructor(private _formBuilder: FormBuilder, private _orderService: OrderService) { }
+  constructor(
+    private _paymentsService: PaymentsService,
+    private _formBuilder: FormBuilder
+  ) { }
 
   ngOnInit() {
     this.productForm = this._formBuilder.group({
@@ -25,7 +28,7 @@ export class ProductFormComponent implements OnInit, OnDestroy {
     this.formReady.emit(this.productForm);
 
     this.subscriptions.push(
-      this._orderService.currency$.subscribe(currency => {
+      this._paymentsService.currency$.subscribe(currency => {
         this.currency = currency;
         this.productForm.get('currency').setValue(currency.iso4217);
       })
