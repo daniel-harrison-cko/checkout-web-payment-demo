@@ -1,11 +1,12 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpResponse, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { IBank } from '../interfaces/bank.interface';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
-import { IPaymentRequest } from '../interfaces/payment-request.interface';
 import { IBanks } from '../interfaces/banks.interface';
 import { IPayment } from '../interfaces/payment.interface';
+
+const publicKey: string = 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7';
 
 @Injectable({
   providedIn: 'root'
@@ -25,21 +26,12 @@ export class PaymentService {
     return this.http.post<any>(`/api/checkout/tokens/source/wallet`, tokenRequest, { observe: 'response' });
   }
 
-  requestPayment(paymentRequest: IPaymentRequest): Observable<HttpResponse<any>> {
-    switch (paymentRequest.source.type) {
-      case 'token': {
-        return this.http.post<any>(`/api/checkout/payments/source/token`, paymentRequest, { observe: 'response' });
-      }
-      case 'id': {
-        return this.http.post<any>(`/api/checkout/payments/source/id`, paymentRequest, { observe: 'response' });
-      }
-      case 'card': {
-        return this.http.post<any>(`/api/checkout/payments/source/card`, paymentRequest, { observe: 'response' });
-      }
-      default: {
-        return this.http.post<any>(`/api/checkout/payments/source/alternative-payment-method`, paymentRequest, { observe: 'response' });
-      }
-    }
+  requestKlarnaSession(creditSessionRequest): Observable<HttpResponse<any>> {
+    return this.http.post<any>(`/api/klarna/creditSessions`, creditSessionRequest, { observe: 'response' });
+  }
+
+  requestPayment(paymentRequest: any): Observable<HttpResponse<any>> {
+    return this.http.post<any>(`/api/checkout/payments`, paymentRequest, { observe: 'response' });
   }
 
   redirect(response: HttpResponse<IPayment>): void {

@@ -28,6 +28,20 @@ $padding: $margin;
   margin: 5px;
 }
 
+.klarna-radio-group {
+  display: inline-flex;
+  flex-direction: row;
+  padding-top: $padding;
+  padding-bottom: $padding;
+}
+
+.klarna-radio-button {
+  margin: 5px;
+  .mat-radio-container {
+    display: none;
+  }
+}
+
 .example-selected-value {
   margin: 15px 0;
 }

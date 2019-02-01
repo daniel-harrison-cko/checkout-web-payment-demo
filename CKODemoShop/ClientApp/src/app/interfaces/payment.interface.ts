@@ -30,4 +30,5 @@ export interface IPayment {
   processed_on: string;
   scheme_id?: string;
   _links: ILinks;
+  actions?: Object[];
 }

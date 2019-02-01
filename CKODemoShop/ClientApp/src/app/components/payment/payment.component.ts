@@ -20,6 +20,7 @@ import { ISource } from 'src/app/interfaces/source.interface';
 
 declare var Frames: any;
 declare var google: any;
+declare var Klarna: any;
 
 @Component({
   selector: 'app-payment-component',
@@ -34,8 +35,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   creditorIdentifier: string = 'DE36ZZZ00001690322';
   processing: boolean;
   makePayment: Function;
-  
-  baseUri: string = window.location.origin;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -104,6 +103,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get mandate(): AbstractControl {
     return this.paymentMethod.get('mandate');
+  }
+
+  get klarnaSession(): AbstractControl {
+    return this.paymentMethod.get('klarnaSession');
   }
 
   get selectedPaymentMethod(): IPaymentMethod {
@@ -185,10 +188,13 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                 capture: this.autoCapture,
                 '3ds': {
                   enabled: this.threeDs
-                },
-                success_url: `${this.baseUri}/order/succeeded`,
-                failure_url: `${this.baseUri}/order/failed`
-              }).subscribe(response => this.handlePaymentResponse(response));
+                }
+              }).subscribe(
+                response => this.handlePaymentResponse(response),
+                error => {
+                  console.warn(error);
+                  this.processing = null;
+                });
             };
             Frames.init({
               publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
@@ -225,10 +231,13 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             capture: this.autoCapture,
             '3ds': {
               enabled: this.threeDs
-            },
-            success_url: `${this.baseUri}/order/succeeded`,
-            failure_url: `${this.baseUri}/order/failed`
-          }).subscribe(response => this.handlePaymentResponse(response));
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
         };
         break;
       }
@@ -242,10 +251,13 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             amount: this.amount,
             source: {
               type: paymentMethod.type
-            },
-            success_url: `${this.baseUri}/order/succeeded`,
-            failure_url: `${this.baseUri}/order/failed`
-          }).subscribe(response => this.handlePaymentResponse(response))
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
         };
         break;
       }
@@ -259,31 +271,16 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             amount: this.amount,
             source: <IBoletoSource>{
               type: paymentMethod.type,
-              customerName: this.customerName,
+              customer_name: this.customerName,
               cpf: this.cpf,
-              birthDate: this.birthDate
-            },
-            success_url: `${this.baseUri}/order/succeeded`,
-            failure_url: `${this.baseUri}/order/failed`
-          }).subscribe(response => this.handlePaymentResponse(response))
-        };
-        break;
-      }
-      case 'lpp_9': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: <IIdealSource>{
-              type: 'ideal',
-              issuer_id: this.bank.value,
-            },
-            success_url: `${this.baseUri}/order/succeeded`,
-            failure_url: `${this.baseUri}/order/failed`
-          }).subscribe(response => this.handlePaymentResponse(response))
+              birth_date: this.birthDate
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
         };
         break;
       }
@@ -299,10 +296,13 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
               type: paymentMethod.type,
               purpose: 'CKO Demo Shop Test',
               bic: this.bank.value
-            },
-            success_url: `${this.baseUri}/order/succeeded`,
-            failure_url: `${this.baseUri}/order/failed`
-          }).subscribe(response => this.handlePaymentResponse(response))
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
         };
         break;
       }
@@ -320,7 +320,12 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                   this._paymentService.requestToken({
                     wallet_type: paymentMethod.type,
                     token_data: JSON.parse(paymentData.paymentMethodToken.token)
-                  }).subscribe(response => this.handleSourceResponse(response));
+                  }).subscribe(
+                    response => this.handleSourceResponse(response),
+                    error => {
+                      console.warn(error);
+                      this.processing = null;
+                    });
                 };
                 let paymentDataRequest = {
                   merchantId: '01234567890123456789',
@@ -362,19 +367,78 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           });
         break;
       }
-      case 'sepa': {
+      case 'lpp_9': {
         this.autoCaptureControl.disable();
         this.threeDsControl.disable();
-        this.sepaMandateAgreement.setValue(null);
-        this.formInitialized('confirmation', this.confirmation);
         this.makePayment = () => {
           this.processing = true;
-          this._sourcesService.requestSource({
-            type: paymentMethod.type,
-            billing_address: this.address,
-            source_data: <ISourceData>this.mandate.value
-          }).subscribe(response => this.handleSourceResponse(response))
+          this._paymentService.requestPayment({
+            currency: this.currency,
+            amount: this.amount,
+            source: <IIdealSource>{
+              type: 'ideal',
+              issuer_id: this.bank.value,
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
         };
+        break;
+      }
+      case 'klarna': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        let klarnaAuthorizeCallback = (response) => {
+          this._paymentService.requestPayment({
+            currency: this.currency,
+            amount: this.amount,
+            source: {
+              type: paymentMethod.type,
+              authorization_token: response.authorization_token,
+              locale: this.klarnaSession.get('locale').value,
+              purchase_country: this.klarnaSession.get('purchase_country').value,
+              tax_amount: this.klarnaSession.get('tax_amount').value,
+              billing_address: this.klarnaSession.get('billing_address').value,
+              products: this.klarnaSession.get('products').value
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
+        };
+        this.makePayment = () => {
+          this.processing = true;
+          Klarna.Payments.authorize({
+            payment_method_category: "pay_later"
+          }, function (response) {
+            klarnaAuthorizeCallback(response);
+          })
+        }
+        break;
+      }
+      case 'paypal': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.requestPayment({
+            currency: this.currency,
+            amount: this.amount,
+            source: {
+              type : paymentMethod.type
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
+        }
         break;
       }
       case 'poli': {
@@ -387,10 +451,33 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             amount: this.amount,
             source: {
               type: paymentMethod.type
-            },
-            success_url: `${this.baseUri}/order/succeeded`,
-            failure_url: `${this.baseUri}/order/failed`
-          }).subscribe(response => this.handlePaymentResponse(response))
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
+        };
+        break;
+      }
+      case 'sepa': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        this.sepaMandateAgreement.setValue(null);
+        this.formInitialized('confirmation', this.confirmation);
+        this.makePayment = () => {
+          this.processing = true;
+          this._sourcesService.requestSource({
+            type: paymentMethod.type,
+            billing_address: this.address,
+            source_data: <ISourceData>this.mandate.value
+          }).subscribe(
+            response => this.handleSourceResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
         };
         break;
       }
@@ -404,10 +491,13 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             amount: this.amount,
             source: {
               type: paymentMethod.type
-            },
-            success_url: `${this.baseUri}/order/succeeded`,
-            failure_url: `${this.baseUri}/order/failed`
-          }).subscribe(response => this.handlePaymentResponse(response))
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
         };
         break;
       }
@@ -447,7 +537,12 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             currency: this.currency,
             amount: this.amount,
             source: source
-          }).subscribe(response => this.handlePaymentResponse(response))
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
           break;
         }
         default: {

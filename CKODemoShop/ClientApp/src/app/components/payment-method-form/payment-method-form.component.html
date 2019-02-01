@@ -53,6 +53,86 @@
           <mat-error *ngIf="bank.hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment.</mat-error>
         </mat-form-field>
       </ng-container>
+      <ng-container *ngIf="selectedPaymentMethod?.type == 'klarna'">
+        <div [formGroup]="klarnaForm" class="klarna-form-container">
+          <mat-form-field form-field="purchase_country">
+            <input matInput placeholder="Purchase Country" formControlName="purchase_country" required />
+          </mat-form-field>
+          <mat-form-field form-field="locale">
+            <input matInput placeholder="Locale" formControlName="locale" required />
+          </mat-form-field>
+          <br />
+          <div [formGroup]="klarnaCustomerForm" class="klarna-customer-form">
+            <mat-form-field>
+              <input matInput placeholder="Date of Birth" formControlName="date_of_birth">
+            </mat-form-field>
+          </div>
+          <div [formGroup]="klarnaBillingAddressForm" class="klarna-address-form">
+            <mat-form-field>
+              <input matInput placeholder="Title" formControlName="title">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Given Name" formControlName="given_name">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Family Name" formControlName="family_name">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Email" formControlName="email">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Phone" formControlName="phone">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Address" formControlName="street_address">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Still Address" formControlName="street_address2">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="City" formControlName="city">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Postcode" formControlName="postal_code">
+            </mat-form-field>
+            <mat-form-field>
+              <input matInput placeholder="Country" formControlName="country">
+            </mat-form-field>
+          </div>
+          <br />
+          <table mat-table [dataSource]="klarnaSession.get('products').value" class="mat-elevation-z0">
+            <ng-container matColumnDef="name">
+              <th mat-header-cell *matHeaderCellDef> Name </th>
+              <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+              <td mat-footer-cell *matFooterCellDef> Grand Total </td>
+            </ng-container>
+            <ng-container matColumnDef="quantity">
+              <th mat-header-cell *matHeaderCellDef> Quantity </th>
+              <td mat-cell *matCellDef="let element"> {{element.quantity}} </td>
+              <td mat-footer-cell *matFooterCellDef></td>
+            </ng-container>
+            <ng-container matColumnDef="unit_price">
+              <th mat-header-cell *matHeaderCellDef> Price per Unit </th>
+              <td mat-cell *matCellDef="let element"> {{(element.unit_price / selectedCurrency?.base) | currency:selectedCurrency?.iso4217:'symbol'}} </td>
+              <td mat-footer-cell *matFooterCellDef></td>
+            </ng-container>
+            <ng-container matColumnDef="total_amount">
+              <th mat-header-cell *matHeaderCellDef> Total </th>
+              <td mat-cell *matCellDef="let element"> {{(element.total_amount / selectedCurrency?.base) | currency:selectedCurrency?.iso4217:'symbol'}} </td>
+              <td mat-footer-cell *matFooterCellDef> {{(klarnaGrandTotal / selectedCurrency?.base) | currency:selectedCurrency?.iso4217:'symbol'}} </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="klarnaProductColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: klarnaProductColumns;"></tr>
+            <tr mat-footer-row *matFooterRowDef="klarnaProductColumns"></tr>
+          </table>
+        </div>
+        <mat-radio-group class="klarna-radio-group" formControlName="klarnaPaymentOption" required>
+          <mat-radio-button class="klarna-radio-button" *ngFor="let paymentOption of klarnaPaymentOptions" [value]="paymentOption.identifier" (change)="onKlarnaPaymentOptionSelectionChanged(paymentOption)">
+            <img src="{{paymentOption.asset_urls['descriptive']}}" />
+          </mat-radio-button>
+        </mat-radio-group>
+        <div id="klarna-container"></div>
+      </ng-container>
       <ng-container *ngIf="selectedPaymentMethod?.type == 'sepa'">
         <div [formGroup]="mandateForm" class="mandate-container">
           <div class="account-info">

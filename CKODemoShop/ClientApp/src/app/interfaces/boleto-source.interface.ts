@@ -1,7 +1,7 @@
 import { ISource } from "./source.interface";
 
 export interface IBoletoSource extends ISource {
-  birthDate: string;
+  birth_date: string;
   cpf: string;
-  customerName: string;
+  customer_name: string;
 }
