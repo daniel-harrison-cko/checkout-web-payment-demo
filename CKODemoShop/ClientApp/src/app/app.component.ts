@@ -3,6 +3,7 @@ import { ICurrency } from './interfaces/currency.interface';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { PaymentsService } from './services/payments.service';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -13,7 +14,7 @@ export class AppComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   title: string = 'CKO Demo';
   currencies: ICurrency[] = this._paymentsService.currencies;
-  selectedCurrency: ICurrency;
+  private _selectedCurrency: ICurrency;
   currencyForm: FormGroup;
 
   constructor(
@@ -22,14 +23,22 @@ export class AppComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
-    this.selectedCurrency = this.currencies[0];
     this.currencyForm = this._formBuilder.group({
-      currency: [this.selectedCurrency, Validators.required]
+      currency: [null, Validators.required]
     });
     this.subscriptions.push(
       this._paymentsService.currency$.subscribe(currency => this.selectedCurrency = currency),
-      this.currencyForm.get('currency').valueChanges.subscribe(currency => this._paymentsService.setCurrency(currency)) // TODO: debug selection of currency
+      this.currencyForm.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => this._paymentsService.setCurrency(currency)) // TODO: debug selection of currency
     );
+  }
+
+  get selectedCurrency(): ICurrency {
+    return this._selectedCurrency;
+  }
+
+  set selectedCurrency(currency: ICurrency) {
+    this._selectedCurrency = currency;
+    this.currencyForm.get('currency').setValue(currency);
   }
 
   ngOnDestroy() {

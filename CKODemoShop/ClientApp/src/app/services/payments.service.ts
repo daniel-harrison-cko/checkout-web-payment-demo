@@ -27,7 +27,7 @@ export class PaymentsService {
   constructor(private _http: HttpClient) { }
 
   // Subjects
-  private currencySource = new BehaviorSubject<ICurrency>(CURRENCIES[0]);
+  private currencySource = new BehaviorSubject<ICurrency>(CURRENCIES.find(currency => currency.iso4217 == 'EUR'));
   private amountSource = new BehaviorSubject<number>(DEFAULT_AMOUNT);
 
   // Observables
