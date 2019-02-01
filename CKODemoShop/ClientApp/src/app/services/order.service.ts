@@ -3,21 +3,47 @@ import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject, Subscription } from 'rxjs';
 import { IPayment } from '../interfaces/payment.interface';
 import { IProduct } from '../interfaces/product.interface';
+import { ICurrency } from '../interfaces/currency.interface';
+
+const CURRENCIES: ICurrency[] = [
+  { iso4217: 'AUD', base: 100 },
+  { iso4217: 'BRL', base: 100 },
+  { iso4217: 'EUR', base: 100 },
+  { iso4217: 'GBP', base: 100 },
+  { iso4217: 'NZD', base: 100 },
+  { iso4217: 'USD', base: 100 }
+];
 
 @Injectable({
   providedIn: 'root'
 })
+
 export class OrderService {
   subscriptions: Subscription[] = [];
   pointsAmount: number;
-  orderDataSource = new BehaviorSubject<IProduct[]>([]);
-  orderData$ = this.orderDataSource.asObservable();
   orderData: IProduct[];
 
   constructor(private _http: HttpClient) {
     this.subscriptions.push(
       this.orderData$.subscribe(product => this.orderData = product)
     );
+  }
+
+  // Subjects
+  orderDataSource = new BehaviorSubject<IProduct[]>([]);
+  private currencySource = new BehaviorSubject<ICurrency>(CURRENCIES[0]);
+
+  // Observables
+  orderData$ = this.orderDataSource.asObservable();
+  public currency$ = this.currencySource.asObservable();
+
+  // Methods
+  public setCurrency(currency: ICurrency) {
+    this.currencySource.next(currency);
+  }
+
+  get currencies(): ICurrency[] {
+    return CURRENCIES;
   }
 
   getOrder(id: string): Observable<HttpResponse<IPayment>> {

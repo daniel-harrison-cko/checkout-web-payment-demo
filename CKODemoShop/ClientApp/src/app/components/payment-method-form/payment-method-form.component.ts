@@ -6,10 +6,10 @@ import { Observable, Subscription } from 'rxjs';
 import { PaymentService } from 'src/app/services/payment.service';
 import { startWith, map } from 'rxjs/operators';
 import { ICurrency } from 'src/app/interfaces/currency.interface';
-import { AppService } from 'src/app/services/app.service';
 import { HttpResponse } from '@angular/common/http';
 import { IKlarnaPaymentOption } from 'src/app/interfaces/klarna-payment-option.interface';
 import { ScriptService } from 'src/app/services/script.service';
+import { OrderService } from 'src/app/services/order.service';
 
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
@@ -93,14 +93,14 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   addressForm: FormGroup;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
-  selectedCurrency: ICurrency = this._appService.currencies[0];
+  selectedCurrency: ICurrency = this._orderService.currencies[0];
   klarnaProductColumns: string[] =['name', 'quantity', 'unit_price', 'total_amount'];
 
   constructor(
     private _formBuilder: FormBuilder,
     private _paymentService: PaymentService,
     private _scriptService: ScriptService,
-    private _appService: AppService,
+    private _orderService: OrderService,
     private _ngZone: NgZone
   ) { }
 
@@ -176,7 +176,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
     this.subscriptions.push(
       this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(paymentMethod => this.invokePaymentMethod(paymentMethod)),
-      this._appService.currency$.subscribe(currency => {
+      this._orderService.currency$.subscribe(currency => {
         this.selectedCurrency = currency;
         this.klarnaForm.get('currency').setValue(this.selectedCurrency.iso4217);
       })
