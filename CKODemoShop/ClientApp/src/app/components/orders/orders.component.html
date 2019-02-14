@@ -14,8 +14,8 @@
         </ng-container>
 
         <ng-container matColumnDef="id">
-          <th mat-header-cell *matHeaderCellDef> ID </th>
-          <td mat-cell *matCellDef="let payment"><a mat-button [routerLink]="['/user/orders/' + payment.id]" color="primary" class="monospace">{{payment.id}}&emsp;<mat-icon>link</mat-icon></a></td>
+          <th mat-header-cell *matHeaderCellDef> Reference </th>
+          <td mat-cell *matCellDef="let payment"><a mat-button [routerLink]="['/user/orders/' + payment.id]" color="primary" class="monospace">{{payment.reference}}&emsp;<mat-icon>link</mat-icon></a></td>
         </ng-container>
 
         <ng-container matColumnDef="amount">
