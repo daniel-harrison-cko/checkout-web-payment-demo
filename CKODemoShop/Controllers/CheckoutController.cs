@@ -9,7 +9,7 @@ using CKODemoShop.Checkout;
 using System.Net.Http;
 using Checkout.Tokens;
 using Newtonsoft.Json;
-//using Checkout.Sources;
+using Checkout.Sources;
 using System.Net.Http.Headers;
 
 namespace CKODemoShop.Controllers
@@ -50,6 +50,12 @@ namespace CKODemoShop.Controllers
         public ShippingDetails Shipping { get; set; }
         [JsonProperty(PropertyName = "3ds")]
         public ThreeDSRequest ThreeDs { get; set; }
+    }
+
+    public class HypermediaRequest
+    {
+        public string Link { get; set; }
+        public object Payload { get; set; }
     }
 
     public class Source : IRequestSource
@@ -239,7 +245,7 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        /*[HttpPost("[action]")]
+        [HttpPost("[action]")]
         [ProducesResponseType(201, Type = typeof(SourceResponse))]
         [ProducesResponseType(202, Type = typeof(SourceResponse))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
@@ -250,7 +256,7 @@ namespace CKODemoShop.Controllers
                 var sourceResponse = await api.Sources.RequestAsync(sourceRequest);
                 if (sourceResponse.IsPending)
                 {
-                    return AcceptedAtAction("RequestSource", new { paymentId = sourceResponse.Pending.Id }, sourceResponse.Pending);
+                    throw new NotImplementedException("There is no use case for SourceResponse.Pending yet.");
                 }
                 else
                 {
@@ -261,7 +267,7 @@ namespace CKODemoShop.Controllers
             {
                 return UnprocessableEntity(e);
             }
-        }*/
+        }
 
         [HttpPost("[action]", Name = "PostPayment")]
         [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
@@ -296,6 +302,25 @@ namespace CKODemoShop.Controllers
             catch (Exception e)
             {
                 return UnprocessableEntity(e);
+            }
+        }
+
+        [HttpPost("[action]", Name = "Hypermedia")]
+        [ProducesResponseType(202, Type = typeof(GetPaymentResponse))]
+        [ProducesResponseType(400)]
+        public async Task<IActionResult> Hypermedia(HypermediaRequest hypermediaRequest)
+        {
+            try
+            {
+                client.DefaultRequestHeaders.Clear();
+                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                HttpResponseMessage result = await client.PostAsJsonAsync(hypermediaRequest.Link, hypermediaRequest.Payload);
+                string content = await result.Content.ReadAsStringAsync();
+                return AcceptedAtRoute("Hypermedia", content);
+            }
+            catch (Exception e)
+            {
+                return BadRequest();
             }
         }
 
@@ -342,9 +367,9 @@ namespace CKODemoShop.Controllers
                         {"authorization_token", source.AuthorizationToken },
                         {"locale", source.Locale },
                         {"purchase_country", source.PurchaseCountry },
-                        {"tax_amount", source.TaxAmount.ToString() }/*,
+                        {"tax_amount", source.TaxAmount.ToString() },
                         {"billing_address", source.BillingAddress },
-                        {"products", source.Products }*/
+                        {"products", source.Products }
                     };
                 default:
                     return new AlternativePaymentSource(source.Type);
@@ -363,9 +388,9 @@ namespace CKODemoShop.Controllers
             );
         static HttpClient client = new HttpClient();
 
-        [HttpPost("[action]", Name = "PostCreditSession")]
+        [HttpPost("[action]", Name = "CreditSessions")]
         [ProducesResponseType(201, Type = typeof(GetPaymentResponse))]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> CreditSessions(SessionRequest sessionRequest)
         {
             try
@@ -374,7 +399,7 @@ namespace CKODemoShop.Controllers
                 client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
                 HttpResponseMessage result = await client.PostAsJsonAsync("https://sbapi.ckotech.co/klarna-external/credit-sessions", sessionRequest);
                 string content = await result.Content.ReadAsStringAsync();
-                return Ok(content);
+                return CreatedAtAction("CreditSessions", content);
             }
             catch (Exception e)
             {

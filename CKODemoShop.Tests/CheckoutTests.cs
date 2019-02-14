@@ -11,7 +11,7 @@ using Checkout.Common;
 using System;
 using Checkout.Payments;
 using Checkout.Tokens;
-//using Checkout.Sources;
+using Checkout.Sources;
 
 namespace CKODemoShop.Tests
 {
@@ -444,7 +444,7 @@ namespace CKODemoShop.Tests
             };
         }
 
-        /*SourceRequest sourceRequest;
+        SourceRequest sourceRequest;
         Resource source;
         void when_post_sources()
         {
@@ -496,10 +496,10 @@ namespace CKODemoShop.Tests
 
                 it["should return a mandate reference"] = () =>
                 {
-                    (source as SourceProcessed).ResponseData["mandate_reference"].ShouldNotBeNullOrEmpty();
+                    (source as SourceProcessed).ResponseData["mandate_reference"].ShouldNotBeNull();
                 };
             };
-        }*/
+        }
 
         void when_get_hypermedia_actions()
         {
