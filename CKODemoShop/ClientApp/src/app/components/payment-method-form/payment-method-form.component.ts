@@ -288,6 +288,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         Klarna.Payments.init({
           client_token: response.body.client_token
         });
+      })
+      .then(_ => {
+        let paymentMethodCategories: string[] = (response.body.payment_method_categories as any[]).map(paymentMethodCategory => paymentMethodCategory.identifier);
+        // this.loadKlarnaWidget(paymentMethodCategories);
       });
   }
 
@@ -325,17 +329,18 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     }    
   }
 
-  private onKlarnaPaymentOptionSelectionChanged(klarnaPaymentOption: IKlarnaPaymentOption) {
+  private loadKlarnaWidget(paymentMethodCategories: string[], billingAddress: any = this.klarnaBillingAddressForm.value, customer: any = this.klarnaCustomerForm.value) {
     document.querySelector('#klarna-container').innerHTML = "";
     let klarnaLoadCallback = (response) => {
       this._ngZone.run(() => { });
     };
     Klarna.Payments.load({
       container: '#klarna-container',
-      payment_method_category: klarnaPaymentOption.identifier
+      payment_method_categories: paymentMethodCategories,
+      instance_id: 'cko-demo-klarna-instance'
     }, {
-        billing_address: this.klarnaBillingAddressForm.value,
-        customer: this.klarnaCustomerForm.value
+        billing_address: billingAddress,
+        customer: customer
     }, function (response) {
         klarnaLoadCallback(response);
     })

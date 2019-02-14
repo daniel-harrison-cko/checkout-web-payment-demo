@@ -63,43 +63,42 @@
           </mat-form-field>
           <br />
           <div [formGroup]="klarnaCustomerForm" class="klarna-customer-form">
-            <mat-form-field>
+            <mat-form-field form-field="date_of_birth">
               <input matInput placeholder="Date of Birth" formControlName="date_of_birth">
             </mat-form-field>
           </div>
           <div [formGroup]="klarnaBillingAddressForm" class="klarna-address-form">
-            <mat-form-field>
+            <mat-form-field form-field="title">
               <input matInput placeholder="Title" formControlName="title">
             </mat-form-field>
-            <mat-form-field>
+            <mat-form-field form-field="given_name">
               <input matInput placeholder="Given Name" formControlName="given_name">
             </mat-form-field>
-            <mat-form-field>
+            <mat-form-field form-field="family_name">
               <input matInput placeholder="Family Name" formControlName="family_name">
             </mat-form-field>
-            <mat-form-field>
+            <mat-form-field form-field="email">
               <input matInput placeholder="Email" formControlName="email">
             </mat-form-field>
-            <mat-form-field>
+            <mat-form-field form-field="phone">
               <input matInput placeholder="Phone" formControlName="phone">
             </mat-form-field>
-            <mat-form-field>
+            <mat-form-field form-field="street_address">
               <input matInput placeholder="Address" formControlName="street_address">
             </mat-form-field>
-            <mat-form-field>
+            <mat-form-field form-field="street_address2">
               <input matInput placeholder="Still Address" formControlName="street_address2">
             </mat-form-field>
-            <mat-form-field>
-              <input matInput placeholder="City" formControlName="city">
-            </mat-form-field>
-            <mat-form-field>
+            <mat-form-field form-field="postal_code">
               <input matInput placeholder="Postcode" formControlName="postal_code">
             </mat-form-field>
-            <mat-form-field>
+            <mat-form-field form-field="city">
+              <input matInput placeholder="City" formControlName="city">
+            </mat-form-field>
+            <mat-form-field form-field="country">
               <input matInput placeholder="Country" formControlName="country">
             </mat-form-field>
           </div>
-          <br />
           <table mat-table [dataSource]="klarnaSession.get('products').value" class="mat-elevation-z0">
             <ng-container matColumnDef="name">
               <th mat-header-cell *matHeaderCellDef> Name </th>
@@ -127,7 +126,7 @@
           </table>
         </div>
         <mat-radio-group class="klarna-radio-group" formControlName="klarnaPaymentOption" required>
-          <mat-radio-button class="klarna-radio-button" *ngFor="let paymentOption of klarnaPaymentOptions" [value]="paymentOption.identifier" (change)="onKlarnaPaymentOptionSelectionChanged(paymentOption)">
+          <mat-radio-button class="klarna-radio-button" *ngFor="let paymentOption of klarnaPaymentOptions" [value]="paymentOption.identifier" (change)="loadKlarnaWidget([paymentOption.identifier])">
             <img src="{{paymentOption.asset_urls['descriptive']}}" />
           </mat-radio-button>
         </mat-radio-group>
