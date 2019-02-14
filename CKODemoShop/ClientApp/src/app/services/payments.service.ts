@@ -6,6 +6,8 @@ import { IPaymentMethod } from '../interfaces/payment-method.interface';
 import { IBanks } from '../interfaces/banks.interface';
 import { IPayment } from '../interfaces/payment.interface';
 import { ICurrency } from '../interfaces/currency.interface';
+import { ILink } from '../interfaces/link.interface';
+import { HypermediaRequest } from '../components/hypermedia/hypermedia-request';
 
 const DEFAULT_AMOUNT: number = 100;
 
@@ -51,9 +53,8 @@ export class PaymentsService {
     return payment.source.type == 'card' ? (<string>payment.source["scheme"]).toLowerCase() : payment.source.type;
   }
 
-  redirect(response: HttpResponse<IPayment>): void {
-    let payment: IPayment = response.body;
-    window.location.href = payment._links.redirect.href;
+  redirect(redirection: ILink): void {
+    window.location.href = redirection.href;
   }
 
   getMonth(expiryDate: string): number {
@@ -91,5 +92,9 @@ export class PaymentsService {
 
   getPaymentActions(id: string): Observable<HttpResponse<any>> {
     return this._http.get<any>(`api/checkout/payments/${id}/actions`, { observe: 'response' })
+  }
+
+  performHypermediaAction(hypermediaRequest: HypermediaRequest): Observable<HttpResponse<any>> {
+    return this._http.post<any>(`/api/checkout/hypermedia`, hypermediaRequest, { observe: 'response' });
   }
 }

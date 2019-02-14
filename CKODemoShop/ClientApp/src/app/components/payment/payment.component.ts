@@ -414,7 +414,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.makePayment = () => {
           this.processing = true;
           Klarna.Payments.authorize({
-            payment_method_category: "pay_later"
+            instance_id: 'cko-demo-klarna-instance'
           }, function (response) {
             klarnaAuthorizeCallback(response);
           })
@@ -561,13 +561,15 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     try {
       switch (response.status) {
         case 201: {
-          this.addPaymentToLocalStorage((<IPayment>response.body).id);
-          this._ngZone.run(() => this._router.navigate([`/user/orders/${(<IPayment>response.body).id}`]));
+          if (response.body._links.redirect) {
+            this.paymentRedirect(response.body);
+          } else {
+            this.paymentRoute(response.body);
+          }
           break;
         }
         case 202: {
-          this.addPaymentToLocalStorage((<IPending>response.body).id);
-          this._paymentService.redirect(response);
+          this.paymentRedirect(response.body);
           break;
         }
         default: {
@@ -579,6 +581,20 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     } catch (e) {
       console.error(e);
     }
+  }
+
+  paymentRoute(payment: IPayment) {
+    this.addPaymentToLocalStorage(payment.id);
+    this._ngZone.run(() => this._router.navigate([`/user/orders/${payment.id}`]));
+  }
+
+  paymentRedirect(payment: IPayment) {
+    if (payment._links.redirect) {
+      this.addPaymentToLocalStorage(payment.id);
+      this._paymentService.redirect(payment._links.redirect);
+    } else {
+      this.paymentRoute(payment);
+    }    
   }
 
   addPaymentToLocalStorage(id: string) {
