@@ -10,6 +10,9 @@ using App.Metrics.Health;
 using App.Metrics.Health.Formatters.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
+using System.Net.Http;
+using Checkout;
+using CKODemoShop.Checkout;
 
 namespace CKODemoShop
 {
@@ -43,6 +46,10 @@ namespace CKODemoShop
             {
                 configuration.RootPath = "ClientApp/dist/ClientApp";
             });
+
+            services.AddTransient<HttpClient>(provider => provider.GetService<System.Net.Http.IHttpClientFactory>().CreateClient());
+            services.AddSingleton<CheckoutApi>(_ => CheckoutApiFactory.ConfiguredFromEnvironment());
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

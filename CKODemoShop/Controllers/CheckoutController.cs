@@ -126,12 +126,14 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class CheckoutController : Controller
     {
-        static CheckoutApi api = CheckoutApi.Create(
-            secretKey: Environment.GetEnvironmentVariable("CKO_SECRET_KEY"),
-            publicKey: Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"),
-            useSandbox: true
-            );
-        static HttpClient client = new HttpClient();
+        private CheckoutApi api;
+        private HttpClient client;
+
+        public CheckoutController(CheckoutApi api, HttpClient client)
+        {
+            this.api = api ?? throw new ArgumentNullException(nameof(api));
+            this.client = client ?? throw new ArgumentNullException(nameof(client));
+        }
 
         [HttpGet("{lppId}/[action]")]
         [ProducesResponseType(200, Type = typeof(IList<IIBank>))]
@@ -381,12 +383,14 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class KlarnaController : Controller
     {
-        static CheckoutApi api = CheckoutApi.Create(
-            secretKey: Environment.GetEnvironmentVariable("CKO_SECRET_KEY"),
-            publicKey: Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"),
-            useSandbox: true
-            );
-        static HttpClient client = new HttpClient();
+        private CheckoutApi api;
+        private HttpClient client;
+
+        public KlarnaController(CheckoutApi api, HttpClient client)
+        {
+            this.api = api ?? throw new ArgumentNullException(nameof(api));
+            this.client = client ?? throw new ArgumentNullException(nameof(client));
+        }
 
         [HttpPost("[action]", Name = "CreditSessions")]
         [ProducesResponseType(201, Type = typeof(GetPaymentResponse))]
