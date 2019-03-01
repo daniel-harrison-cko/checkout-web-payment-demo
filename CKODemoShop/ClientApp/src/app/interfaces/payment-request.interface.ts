@@ -1,24 +1,23 @@
 import { ISource } from "./source.interface";
 
 export interface IPaymentRequest {
-  paymentIp?: string;
-  failureUrl?: string;
-  successUrl?: string;
-  Risk?: object;
-  previousPaymentId?: string;
-  '3ds'?: object;
-  shipping?: object;
-  billingDescriptor?: object;
-  customer?: object;
-  captureOn?: object;
-  capture?: boolean;
-  description?: string;
+  source: ISource;
+  amount?: number;
+  currency: string;
+  payment_type?: object;
   reference?: string;
-  paymentType?: object;
+  description?: string;
+  capture?: boolean;
+  capture_on?: string;
+  customer?: object;
+  billing_descriptor?: object;
+  shipping?: object;
+  '3ds'?: object;
+  previous_payment_id?: string;
+  risk?: object;
+  success_url?: string;
+  failure_url?: string;
+  payment_ip?: string;
   recipient?: object;
   metadata?: object;
-
-  currency: string;
-  amount?: number;
-  source: ISource;
 }

@@ -8,6 +8,9 @@ using Microsoft.Extensions.DependencyInjection;
 
 using App.Metrics.Health;
 using App.Metrics.Health.Formatters.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
+
 namespace CKODemoShop
 {
     public class Startup
@@ -22,7 +25,17 @@ namespace CKODemoShop
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services
+                .AddMvcCore()
+                .AddJsonFormatters(serializerOptions =>
+                {
+                    serializerOptions.NullValueHandling = NullValueHandling.Ignore;
+                    serializerOptions.ContractResolver = new DefaultContractResolver()
+                    {
+                        NamingStrategy = new SnakeCaseNamingStrategy()
+                    };
+                })
+                .SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             ConfigureHealthChecks(services);
 
             // In production, the Angular files will be served from this directory
