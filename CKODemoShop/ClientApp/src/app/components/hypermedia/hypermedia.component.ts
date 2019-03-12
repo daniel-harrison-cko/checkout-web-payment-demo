@@ -25,30 +25,9 @@ export class HypermediaComponent implements OnInit {
   }
 
   private initiateHypermediaAction(relation: string, link: string) {
-    let hypermediaRequest = new HypermediaRequest(link);
-    try {
-      switch (relation) {
-        case 'klarna:payment-capture': {
-          hypermediaRequest.payload = {
-            amount: 100,
-            reference: 'Klarna Test Capture',
-            metadata: null,
-            type: this.payment.source.type,
-            klarna: {
-              description: 'Klarna Data Description',
-              products: [],
-              shipping_info: [],
-              shipping_delay: 0
-            }
-          };
-          break;
-        }
-      }
-    } catch (e) {
-      console.error(e);
-    }
+    let hypermediaRequest = new HypermediaRequest(relation, link);
     this._paymentsService.performHypermediaAction(hypermediaRequest).subscribe(
-      response => console.log(response),
+      response => location.reload(true),
       error => console.warn(error)
     );
   }
