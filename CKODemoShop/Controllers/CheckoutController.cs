@@ -10,10 +10,26 @@ using System.Net.Http;
 using Checkout.Tokens;
 using Newtonsoft.Json;
 using Checkout.Sources;
-using System.Net.Http.Headers;
 
 namespace CKODemoShop.Controllers
 {
+    public class IssuingBank
+    {
+        public string Bic { get; set; }
+        public string Name { get; set; }
+    }
+
+    public class IssuingCountry
+    {
+        public string Name { get; set; }
+        public List<IssuingBank> Issuers { get; set; } 
+    }
+
+    public class IssuersResponse : Resource
+    {
+        public List<IssuingCountry> Countries { get; set; }
+    }
+
     public class BanksResponse : Resource
     {
         public Dictionary<string, string> Banks { get; set; }
@@ -75,7 +91,7 @@ namespace CKODemoShop.Controllers
         public int ExpiryYear { get; set; }
         public string Bic { get; set; }
         public string Purpose { get; set; }
-        public string IssuerId { get; set; }
+        public string Description { get; set; }
         [JsonProperty(PropertyName = "customer_name")]
         public string CustomerName { get; set; }
         public string Cpf { get; set; }
@@ -138,36 +154,26 @@ namespace CKODemoShop.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Banks(string lppId)
         {
-            object response = null;
-            IList<IIBank> legacyBanks;
-            IDictionary<string, string> banks;
+            object response;
             try
             {
                 if (lppId == "lpp_9")
                 {
-                    legacyBanks = new List<IIBank>
-                    {
-                        new Bank()
-                        {
-                            Key = "Simulation INGDiba",
-                            Value = "INGBNL2A"
-                        },
-                        new Bank()
-                        {
-                            Key = "Simulation Rabo Bank",
-                            Value = "RABONL2U"
-                        }
-                    };
-                    response = legacyBanks;
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
+                    HttpResponseMessage result = await client.GetAsync("https://sbapi.ckotech.co/ideal-external-api/issuers");
+                    string content = await result.Content.ReadAsStringAsync();
+                    IssuersResponse issuersResponse = JsonConvert.DeserializeObject<IssuersResponse>(content);
+                    response = issuersResponse;
                 }
                 else if (lppId == "giropay")
                 {
                     client.DefaultRequestHeaders.Clear();
                     client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
-                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/banks");
+                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/giropay/banks");
                     string content = await result.Content.ReadAsStringAsync();
-                    BanksResponse banksProcessed = JsonConvert.DeserializeObject<BanksResponse>(content);
-                    response = banksProcessed;
+                    BanksResponse banksResponse = JsonConvert.DeserializeObject<BanksResponse>(content);
+                    response = banksResponse;
                 }
                 else
                 {
@@ -359,7 +365,8 @@ namespace CKODemoShop.Controllers
                 case "ideal":
                     return new AlternativePaymentSource(source.Type)
                     {
-                        {"issuer_id", source.IssuerId }
+                        {"bic", source.Bic },
+                        {"description", source.Description }
                     };
                 case "klarna":
                     return new AlternativePaymentSource(source.Type)
@@ -405,6 +412,18 @@ namespace CKODemoShop.Controllers
             {
                 return BadRequest();
             }
+        }
+    }
+
+    [Route("api/[controller]")]
+    [ApiController]
+    public class WebhooksController : Controller
+    {
+        [HttpPost("incoming/checkout")]
+        [ProducesResponseType(200)]
+        public IActionResult Webhooks(object sessionRequest)
+        {
+            return Ok();
         }
     }
 }

@@ -295,7 +295,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             source: <IGiropaySource>{
               type: paymentMethod.type,
               purpose: 'CKO Demo Shop Test',
-              bic: this.bank.value
+              bic: this.bank.bic
             }
           }).subscribe(
             response => this.handlePaymentResponse(response),
@@ -349,7 +349,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
                 googleClient.loadPaymentData(paymentDataRequest)
                   .then(paymentData => processPayment(paymentData))
-                  .catch(error => console.error(error));
+                  .catch(error => {
+                    console.error(error);
+                    this.processing = false;
+                  });
               };
             };
             googleClient = new google.payments.api.PaymentsClient({
@@ -377,7 +380,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             amount: this.amount,
             source: <IIdealSource>{
               type: 'ideal',
-              issuer_id: this.bank.value,
+              bic: this.bank.bic,
+              description: 'CKO Demo Shop Test',
             }
           }).subscribe(
             response => this.handlePaymentResponse(response),
@@ -416,6 +420,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           Klarna.Payments.authorize({
             instance_id: 'cko-demo-klarna-instance'
           }, function (response) {
+            console.log(response);
             klarnaAuthorizeCallback(response);
           })
         }

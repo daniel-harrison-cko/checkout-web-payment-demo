@@ -30,15 +30,20 @@ $padding: $margin;
 
 .klarna-radio-group {
   display: inline-flex;
-  flex-direction: row;
+  flex-direction: column;
   padding-top: $padding;
   padding-bottom: $padding;
+  img {
+    width: 64px;
+  }
 }
 
 .klarna-radio-button {
   margin: 5px;
-  .mat-radio-container {
-    display: none;
+
+  span {
+    display: flex;
+    align-items: center;
   }
 }
 
@@ -312,7 +317,7 @@ app-payment-component {
     padding-bottom: $padding;
   }
 
-  .customer-form, .address-form {
+  .customer-form, .address-form, .klarna-address-form {
     flex-direction: row;
     flex-wrap: wrap;
     padding-top: $padding;
@@ -357,6 +362,10 @@ app-payment-component {
         display: inherit;
         flex-direction: inherit;
         justify-content: inherit;
+      }
+
+      [form-field="email"] {
+        min-width: 300px;
       }
 
       [form-field="credit-card"], [form-field="account_holder"], [radio-group="mandate_type"] {

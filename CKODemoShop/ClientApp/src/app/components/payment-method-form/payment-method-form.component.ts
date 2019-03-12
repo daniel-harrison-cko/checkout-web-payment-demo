@@ -4,12 +4,13 @@ import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Observable, Subscription } from 'rxjs';
 import { PaymentsService } from 'src/app/services/payments.service';
-import { startWith, map, distinctUntilChanged } from 'rxjs/operators';
+import { startWith, map, distinctUntilChanged, debounceTime } from 'rxjs/operators';
 import { ICurrency } from 'src/app/interfaces/currency.interface';
 import { HttpResponse } from '@angular/common/http';
 import { IKlarnaPaymentOption } from 'src/app/interfaces/klarna-payment-option.interface';
 import { ScriptService } from 'src/app/services/script.service';
 
+declare var Klarna: any;
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'Credit Card (Frames)',
@@ -49,7 +50,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'Klarna',
     type: 'klarna',
-    processingCurrencies: ['EUR']
+    processingCurrencies: ['EUR', 'NOK', 'SEK']
   },
   {
     name: 'PayPal',
@@ -72,7 +73,15 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     processingCurrencies: ['EUR']
   }
 ]
-declare var Klarna: any;
+const flatten = <T = any>(arr: T[]) => {
+  const reducer = <T = any>(prev: T[], curr: T | T[]) => {
+    if (curr.constructor !== Array) {
+      return [...prev, curr];
+    }
+    return (<T[]>curr).reduce(reducer, prev);
+  };
+  return arr.reduce(reducer, []);
+};
 
 @Component({
   selector: 'app-payment-method-form',
@@ -125,7 +134,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this.klarnaForm = this._formBuilder.group({
       purchase_country: ['DE', Validators.required],
       currency: [this.selectedCurrency.iso4217, Validators.required],
-      locale: ['de-DE', Validators.required],
+      locale: ['de-de', Validators.required],
       amount: [null, Validators.required],
       tax_amount: [1, Validators.required],
       products: this._formBuilder.array([
@@ -183,7 +192,12 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.selectedCurrency = currency;
         this.klarnaForm.get('currency').setValue(this.selectedCurrency.iso4217);
       }),
-      this.klarnaForm.get('amount').valueChanges.pipe(distinctUntilChanged()).subscribe(amount => this.klarnaProductsPriceUpdate(amount))
+      this.klarnaForm.get('amount').valueChanges.pipe(distinctUntilChanged()).subscribe(amount => this.klarnaProductsPriceUpdate(amount)),
+      this.klarnaForm.get('locale').valueChanges.pipe(debounceTime(2000), distinctUntilChanged()).subscribe(_ => {
+        this.klarnaPaymentOption.reset();
+        document.querySelector('#klarna-container').innerHTML = "";
+        this.requestKlarnaSession();
+      })
     );
 
     this.formReady.emit(this.paymentMethod);
@@ -250,13 +264,15 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       return this.banks;
     } else {
       const filterValue = value.toString().toLowerCase();
-      return this.banks.filter(bank => { return `${bank.value.toLowerCase()} ${bank.key.toLowerCase()}`.includes(filterValue) });
+      return this.banks.filter(bank => { return `${bank.bic.toLowerCase()} ${bank.name.toLowerCase()}`.includes(filterValue) });
     }    
   }
 
   getBanksLegacy(paymentMethod: IPaymentMethod) {
     this._paymentsService.getLegacyBanks(paymentMethod).subscribe(response => {
-      this.banks = response.body
+      let banks: IBank[] = [];
+      response.body.countries.forEach(country => banks.push(country.issuers));
+      this.banks = <IBank[]>flatten(banks);
       this.filteredBanks = (<FormControl>this.bank).valueChanges.pipe(
         startWith(''),
         map(value => this._bankFilter(value))
@@ -269,8 +285,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       let banks: IBank[] = [];
       Object.keys(response.body.banks).forEach(function (key) {
         banks.push({
-          key: response.body.banks[key],
-          value: key
+          bic: key,
+          name: response.body.banks[key]          
         })
       });
       this.banks = banks;
@@ -284,14 +300,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   handleKlarnaSession(response: HttpResponse<any>) {
     this.klarnaPaymentOptions = response.body.payment_method_categories;
     this._scriptService.load('klarna')
-      .then(data => {
+      .then(_ => {
         Klarna.Payments.init({
           client_token: response.body.client_token
         });
-      })
-      .then(_ => {
-        let paymentMethodCategories: string[] = (response.body.payment_method_categories as any[]).map(paymentMethodCategory => paymentMethodCategory.identifier);
-        // this.loadKlarnaWidget(paymentMethodCategories);
       });
   }
 
@@ -325,8 +337,12 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     if (bankInput.value) {
       let currentBank: IBank = bankInput.value;
       this.bankObject.setValue(currentBank);
-      bankInput.setValue(`${currentBank.value} ${currentBank.key}`);
+      bankInput.setValue(`${currentBank.bic} ${currentBank.name}`);
     }    
+  }
+
+  private requestKlarnaSession() {
+    this._paymentsService.requestKlarnaSession(this.klarnaForm.value).subscribe(response => this.handleKlarnaSession(response));
   }
 
   private loadKlarnaWidget(paymentMethodCategories: string[], billingAddress: any = this.klarnaBillingAddressForm.value, customer: any = this.klarnaCustomerForm.value) {
@@ -377,7 +393,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       case 'klarna': {
         this.paymentMethod.setControl('klarnaSession', this.klarnaForm);
         this.paymentMethod.setControl('klarnaPaymentOption', new FormControl(null, Validators.required));
-        this._paymentsService.requestKlarnaSession(this.klarnaForm.value).subscribe(response => this.handleKlarnaSession(response));
+        this.requestKlarnaSession();
       }
       case 'paypal': {
         break;

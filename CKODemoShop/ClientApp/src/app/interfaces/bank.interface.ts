@@ -1,4 +1,4 @@
 export interface IBank {
-  key: string;
-  value: string;
+  bic: string;
+  name: string;
 }
