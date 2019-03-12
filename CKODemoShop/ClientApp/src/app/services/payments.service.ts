@@ -16,7 +16,9 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'BRL', base: 100 },
   { iso4217: 'EUR', base: 100 },
   { iso4217: 'GBP', base: 100 },
+  { iso4217: 'NOK', base: 100 },
   { iso4217: 'NZD', base: 100 },
+  { iso4217: 'SEK', base: 100 },
   { iso4217: 'USD', base: 100 }
 ];
 
@@ -66,8 +68,8 @@ export class PaymentsService {
   }
 
   // API
-  getLegacyBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBank[]>> {
-    return this._http.get<IBank[]>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
+  getLegacyBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<any>> {
+    return this._http.get<any>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
   }
 
   getBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBanks>> {
