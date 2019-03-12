@@ -12,6 +12,7 @@ using System;
 using Checkout.Payments;
 using Checkout.Tokens;
 using Checkout.Sources;
+using System.Net.Http;
 
 namespace CKODemoShop.Tests
 {
@@ -23,7 +24,7 @@ namespace CKODemoShop.Tests
 
         void before_all()
         {
-            controller = new CheckoutController();
+            controller = new CheckoutController(CheckoutApiFactory.ConfiguredFromEnvironment(), new HttpClient());
             Console.WriteLine("CheckoutController instantiated");
         }
 
