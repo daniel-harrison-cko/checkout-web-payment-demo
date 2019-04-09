@@ -47,6 +47,7 @@ namespace CKODemoShop
                 configuration.RootPath = "ClientApp/dist/ClientApp";
             });
 
+            services.AddHttpClient();
             services.AddTransient<HttpClient>(provider => provider.GetService<System.Net.Http.IHttpClientFactory>().CreateClient());
             services.AddSingleton<CheckoutApi>(_ => CheckoutApiFactory.ConfiguredFromEnvironment());
 
