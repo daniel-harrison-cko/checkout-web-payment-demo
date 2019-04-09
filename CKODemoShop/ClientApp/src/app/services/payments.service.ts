@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
-import { IBank } from '../interfaces/bank.interface';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
 import { IBanks } from '../interfaces/banks.interface';
 import { IPayment } from '../interfaces/payment.interface';
@@ -14,6 +13,7 @@ const DEFAULT_AMOUNT: number = 100;
 const CURRENCIES: ICurrency[] = [
   { iso4217: 'AUD', base: 100 },
   { iso4217: 'BRL', base: 100 },
+  { iso4217: 'CHF', base: 100 },
   { iso4217: 'EUR', base: 100 },
   { iso4217: 'GBP', base: 100 },
   { iso4217: 'NOK', base: 100 },

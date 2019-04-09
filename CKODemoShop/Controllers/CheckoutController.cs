@@ -107,6 +107,12 @@ namespace CKODemoShop.Controllers
         [JsonProperty(PropertyName = "billing_address")]
         public object BillingAddress { get; set; }
         public IEnumerable<KlarnaProduct> Products { get; set; }
+        [JsonProperty(PropertyName = "payment_country")]
+        public string PaymentCountry { get; set; }
+        [JsonProperty(PropertyName = "account_holder_name")]
+        public string AccountHolderName { get; set; }
+        [JsonProperty(PropertyName = "billing_descritor")]
+        public string BillingDescriptor { get; set; }
 
     }
 
@@ -290,6 +296,7 @@ namespace CKODemoShop.Controllers
                 Capture = request.Capture,
                 ThreeDS = request.ThreeDs,
                 Reference = $"cko_demo_{Guid.NewGuid()}",
+                PaymentIp = "192.168.1.1",
                 SuccessUrl = "http://localhost:59890/order/succeeded",
                 FailureUrl = "http://localhost:59890/order/failed"
             };
@@ -349,6 +356,13 @@ namespace CKODemoShop.Controllers
         {
             switch (source.Type)
             {
+                case "bancontact":
+                    return new AlternativePaymentSource(source.Type)
+                    {
+                        {"payment_country", source.PaymentCountry },
+                        {"account_holder_name", source.AccountHolderName },
+                        {"billing_descriptor", source.BillingDescriptor }
+                    };
                 case "boleto":
                     return new AlternativePaymentSource(source.Type)
                     {
