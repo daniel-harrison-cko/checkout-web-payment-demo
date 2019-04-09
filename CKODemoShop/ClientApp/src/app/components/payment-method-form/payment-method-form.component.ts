@@ -28,6 +28,11 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     processingCurrencies: ['USD']
   },
   {
+    name: 'Bancontact',
+    type: 'bancontact',
+    processingCurrencies: ['EUR']
+  },
+  {
     name: 'Boleto',
     type: 'boleto',
     processingCurrencies: ['BRL', 'USD']
@@ -255,6 +260,18 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     return this.paymentMethod.get('klarnaPaymentOption');
   }
 
+  get paymentCountry(): AbstractControl {
+    return this.paymentMethod.get('paymentCountry');
+  }
+
+  get accountHolderName(): AbstractControl {
+    return this.paymentMethod.get('accountHolderName');
+  }
+
+  get billingDescriptor(): AbstractControl {
+    return this.paymentMethod.get('billingDescriptor');
+  }
+
   private deselectBank() {
     this.bankObject.reset();
   }
@@ -330,6 +347,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     if (this.birthDate) { this.paymentMethod.removeControl('birthDate') };
     if (this.klarnaSession) { this.paymentMethod.removeControl('klarnaSession') };
     if (this.klarnaPaymentOption) { this.paymentMethod.removeControl('klarnaPaymentOption') };
+    if (this.paymentCountry) { this.paymentMethod.removeControl('paymentCountry') };
+    if (this.accountHolderName) { this.paymentMethod.removeControl('accountHolderName') };
+    if (this.billingDescriptor) { this.paymentMethod.removeControl('billingDescriptor') };
   }
 
   private onBankSelectionChanged() {
@@ -373,6 +393,12 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'alipay': {
+        break;
+      }
+      case 'bancontact': {
+        this.paymentMethod.setControl('paymentCountry', new FormControl('DE', Validators.required));
+        this.paymentMethod.setControl('accountHolderName', new FormControl('Bruce Wayne', Validators.required));
+        this.paymentMethod.setControl('billingDescriptor', new FormControl(null));
         break;
       }
       case 'boleto': {

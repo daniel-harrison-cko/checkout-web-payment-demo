@@ -10,7 +10,6 @@ import { ScriptService } from '../../services/script.service';
 import { ITokenSource } from 'src/app/interfaces/token-source.interface';
 import { Router } from '@angular/router';
 import { IPayment } from 'src/app/interfaces/payment.interface';
-import { IPending } from 'src/app/interfaces/pending.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { ISourceData } from 'src/app/interfaces/source-data.interface';
 import { SourcesService } from 'src/app/services/sources.service';
@@ -165,6 +164,18 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     return this.paymentMethod.get('birthDate').value;
   }
 
+  get paymentCountry(): string {
+    return this.paymentMethod.get('paymentCountry').value;
+  }
+
+  get accountHolderName(): string {
+    return this.paymentMethod.get('accountHolderName').value;
+  }
+
+  get billingDescriptor(): string {
+    return this.paymentMethod.get('billingDescriptor').value;
+  }
+
   private resetOrder = () => {
     this.order.removeControl('confirmation');
   }
@@ -251,6 +262,29 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             amount: this.amount,
             source: {
               type: paymentMethod.type
+            }
+          }).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
+        };
+        break;
+      }
+      case 'bancontact': {
+        this.autoCaptureControl.disable();
+        this.threeDsControl.disable();
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.requestPayment({
+            currency: this.currency,
+            amount: this.amount,
+            source: <any>{
+              type: paymentMethod.type,
+              payment_country: this.paymentCountry,
+              account_holder_name: this.accountHolderName,
+              billing_descriptor: this.billingDescriptor
             }
           }).subscribe(
             response => this.handlePaymentResponse(response),
