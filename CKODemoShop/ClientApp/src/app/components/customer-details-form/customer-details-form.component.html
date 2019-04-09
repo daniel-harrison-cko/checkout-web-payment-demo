@@ -1,0 +1,73 @@
+<form [formGroup]="customerDetailsForm">
+  <div class="payment-setup">
+    <div class="payment-configurators">
+      <div [formGroup]="BillingAddressForm" class="klarna-address-form">
+        <h4>Billing Information</h4>
+        <mat-form-field form-field="title">
+          <input matInput placeholder="Title" formControlName="title">
+        </mat-form-field>
+        <mat-form-field form-field="given_name">
+          <input matInput placeholder="Given Name" formControlName="given_name">
+        </mat-form-field>
+        <mat-form-field form-field="family_name">
+          <input matInput placeholder="Family Name" formControlName="family_name">
+        </mat-form-field>
+        <br />
+        <mat-form-field form-field="street_address">
+          <input matInput placeholder="Address" formControlName="street_address">
+        </mat-form-field>
+        <mat-form-field form-field="street_address2">
+          <input matInput placeholder="Still Address" formControlName="street_address2">
+        </mat-form-field>
+        <mat-form-field form-field="postal_code">
+          <input matInput placeholder="Postcode" formControlName="postal_code">
+        </mat-form-field>
+        <mat-form-field form-field="city">
+          <input matInput placeholder="City" formControlName="city">
+        </mat-form-field>
+        <mat-form-field form-field="country">
+          <input matInput placeholder="Country" formControlName="country">
+        </mat-form-field>
+        <br />
+        <mat-form-field form-field="email">
+          <input matInput placeholder="Email" formControlName="email">
+        </mat-form-field>
+      </div>
+      <div [formGroup]="ShippingAddressForm" class="klarna-address-form">
+        <h4>Shipping Information</h4>
+        <mat-form-field form-field="title">
+          <input matInput placeholder="Title" formControlName="title">
+        </mat-form-field>
+        <mat-form-field form-field="given_name">
+          <input matInput placeholder="Given Name" formControlName="given_name">
+        </mat-form-field>
+        <mat-form-field form-field="family_name">
+          <input matInput placeholder="Family Name" formControlName="family_name">
+        </mat-form-field>
+        <br />
+        <mat-form-field form-field="street_address">
+          <input matInput placeholder="Address" formControlName="street_address">
+        </mat-form-field>
+        <mat-form-field form-field="street_address2">
+          <input matInput placeholder="Still Address" formControlName="street_address2">
+        </mat-form-field>
+        <mat-form-field form-field="postal_code">
+          <input matInput placeholder="Postcode" formControlName="postal_code">
+        </mat-form-field>
+        <mat-form-field form-field="city">
+          <input matInput placeholder="City" formControlName="city">
+        </mat-form-field>
+        <mat-form-field form-field="country">
+          <input matInput placeholder="Country" formControlName="country">
+        </mat-form-field>
+        <br />
+        <mat-form-field form-field="email">
+          <input matInput placeholder="Email" formControlName="email">
+        </mat-form-field>
+        <mat-form-field form-field="phone">
+          <input matInput placeholder="Phone" formControlName="phone">
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+</form>

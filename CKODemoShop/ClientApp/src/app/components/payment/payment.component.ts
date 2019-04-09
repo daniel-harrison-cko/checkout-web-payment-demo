@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, NgZone, AfterViewInit } from '@angular/core';
+import { Component, OnInit, OnDestroy, NgZone, AfterViewInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, AbstractControl, FormControl } from '@angular/forms';
 import { PaymentsService } from '../../services/payments.service';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
@@ -16,6 +16,7 @@ import { SourcesService } from 'src/app/services/sources.service';
 import { IIdSource } from 'src/app/interfaces/id-source.interface';
 import { IBoletoSource } from 'src/app/interfaces/boleto-source.interface';
 import { ISource } from 'src/app/interfaces/source.interface';
+import { MatStepper } from '@angular/material';
 
 declare var Frames: any;
 declare var google: any;
@@ -34,6 +35,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   creditorIdentifier: string = 'DE36ZZZ00001690322';
   processing: boolean;
   makePayment: Function;
+  @ViewChild('stepper') stepper: MatStepper;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -67,6 +69,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngAfterViewInit() {
+    this.stepper.selectedIndex = 1;
     this.subscriptions.push(
       this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod))
     );

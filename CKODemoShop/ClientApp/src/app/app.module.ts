@@ -16,6 +16,7 @@ import { BreadcrumbsComponent } from './components/breadcrumbs/breadcrumbs.compo
 import { ProductFormComponent } from './components/product-form/product-form.component';
 import { PaymentMethodFormComponent } from './components/payment-method-form/payment-method-form.component';
 import { PaymentConfigurationFormComponent } from './components/payment-configuration-form/payment-configuration-form.component';
+import { CustomerDetailsFormComponent } from './components/customer-details-form/customer-details-form.component';
 
 @NgModule({
   declarations: [
@@ -28,7 +29,8 @@ import { PaymentConfigurationFormComponent } from './components/payment-configur
     BreadcrumbsComponent,
     ProductFormComponent,
     PaymentConfigurationFormComponent,
-    PaymentMethodFormComponent
+    PaymentMethodFormComponent,
+    CustomerDetailsFormComponent
   ],
   imports: [
     HttpClientModule,
