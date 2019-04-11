@@ -189,12 +189,22 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     this.order.removeControl('confirmation');
   }
 
+  set autoCapture(autoCapture: boolean) {
+    let captureField = this.paymentDetails.get('capture');
+    autoCapture ? captureField.enable() : captureField.disable();
+  }
+
+  set threeDs(threeDs: boolean) {
+    let threeDsEnabledField = this.paymentDetails.get('3ds.enabled');
+    threeDs ? threeDsEnabledField.enable() : threeDsEnabledField.disable();
+  }
+
   private invokePaymentMethod2(sourceType: string) {
     this.resetOrder();
     switch (sourceType) {
       case 'card': {
-        this.autoCaptureControl.enable();
-        this.threeDsControl.enable();
+        this.autoCapture = true;
+        this.threeDs = true;
         this.makePayment = () => {
           this.processing = true;
           this._paymentService.requestPayment(this.paymentRequest).subscribe(

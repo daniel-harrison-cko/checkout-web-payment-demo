@@ -1,5 +1,7 @@
-<form [formGroup]="paymentConfigurationForm" class="payment-configuration-form">
+<form [formGroup]="paymentDetails" class="payment-configuration-form">
   <ng-template matStepLabel>Configure the Payment</ng-template>
-  <mat-slide-toggle formControlName="autoCapture" color="accent">Auto-capture is {{autoCapture.value ? 'ON' : 'OFF'}}</mat-slide-toggle>
-  <mat-slide-toggle formControlName="threeDs" color="accent">3D Secure is {{threeDs.value ? 'ON' : 'OFF'}}</mat-slide-toggle>
+  <mat-slide-toggle formControlName="capture" color="accent">Auto-capture is {{paymentDetails.get('capture').value ? 'ON' : 'OFF'}}</mat-slide-toggle>
+  <div formGroupName="3ds">
+    <mat-slide-toggle formControlName="enabled" color="accent">3D Secure is {{paymentDetails.get('3ds.enabled').value ? 'ON' : 'OFF'}}</mat-slide-toggle>
+  </div>
 </form>

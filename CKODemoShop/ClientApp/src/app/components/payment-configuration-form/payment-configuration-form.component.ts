@@ -1,26 +1,34 @@
-import { Component, Output, OnInit, EventEmitter } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
+import { PaymentDetailsService } from 'src/app/services/payment-details.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-payment-configuration-form',
   templateUrl: './payment-configuration-form.component.html'
 })
-export class PaymentConfigurationFormComponent implements OnInit {
-  @Output() formReady = new EventEmitter<FormGroup>();
-  paymentConfigurationForm: FormGroup;
-  autoCapture: FormControl;
-  threeDs: FormControl;
+export class PaymentConfigurationFormComponent implements OnInit, OnDestroy {
+  subscriptions: Subscription[] = [];
+  paymentDetails: FormGroup;
+  threeDs: FormGroup;
 
-  constructor(private _formBuilder: FormBuilder) { }
+  constructor(
+    private _formBuilder: FormBuilder,
+    private _paymentDetailsService: PaymentDetailsService
+  ) { }
 
   ngOnInit() {
-    this.autoCapture = this._formBuilder.control(true, Validators.required);
-    this.threeDs = this._formBuilder.control(false, Validators.required);
-    this.paymentConfigurationForm = this._formBuilder.group({
-      autoCapture: this.autoCapture,
-      threeDs: this.threeDs
+    this.threeDs = this._formBuilder.group({
+      enabled: false
     });
+    this.subscriptions.push(
+      this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails)
+    );
+    this.paymentDetails.addControl('capture', new FormControl(true, Validators.required));
+    this.paymentDetails.addControl('3ds', this.threeDs);
+  }
 
-    this.formReady.emit(this.paymentConfigurationForm);
+  ngOnDestroy() {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 }
