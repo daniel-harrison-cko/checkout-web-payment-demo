@@ -1,49 +1,88 @@
 <form [formGroup]="paymentDetails">
-  <pre>{{paymentDetails.getRawValue() | json}}</pre>
-  <div class="payment-setup">
-    <div formGroupName="source">
-      <mat-radio-group class="example-radio-group" formControlName="type" required>
-        <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod.type" [disabled]="!matchProcessingCurrencies(paymentMethod.processingCurrencies)">
-          {{paymentMethod.name}}
-        </mat-radio-button>
-      </mat-radio-group>
-      <div class="payment-configurators">
-        <ng-container *ngIf="paymentDetails.value.source.type == 'card'">
-          <div class="card-container">
-            <mat-form-field form-field="number">
-              <input matInput placeholder="Card Number" formControlName="number" autocomplete="cc-number" required />
-              <mat-error *ngIf="paymentDetails.get('source.number').hasError('required')">Please enter a Credit Card number.</mat-error>
-            </mat-form-field>
-            <mat-form-field form-field="expiry_month">
-              <input matInput placeholder="MM" formControlName="expiry_month" autocomplete="cc-exp-month" required />
-              <mat-error *ngIf="paymentDetails.get('source.expiry_month').hasError('required')">Please enter the Credit Card's expiration month.</mat-error>
-            </mat-form-field>
-            <mat-form-field form-field="expiry_year">
-              <input matInput placeholder="YYYY" formControlName="expiry_year" autocomplete="cc-exp-year" required />
-              <mat-error *ngIf="paymentDetails.get('source.expiry_year').hasError('required')">Please enter the Credit Card's expiration year.</mat-error>
-            </mat-form-field>
-            <mat-form-field form-field="cvv">
-              <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
-              <mat-error *ngIf="paymentDetails.get('source.cvv').hasError('minlength') || creditCardForm.get('cvv').hasError('maxlength')">Your CVV must have 3-4 digits.</mat-error>
-            </mat-form-field>
-          </div>
-        </ng-container>
-        <ng-container *ngIf="paymentDetails.value.source.type == 'boleto'">
-          <mat-form-field form-field="customerName">
-            <input matInput placeholder="Full Name" formControlName="customerName" required />
-            <mat-error *ngIf="paymentDetails.get('source.customerName').hasError('required')">Please provide your full name.</mat-error>
+  <pre>{{paymentDetails.getRawValue().source | json}}</pre>
+  <div class="payment-setup" formGroupName="source">
+    <mat-radio-group class="example-radio-group" formControlName="type" required>
+      <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod.type" [disabled]="!matchProcessingCurrencies(paymentMethod.processingCurrencies)">
+        <span title="{{paymentMethod.processingCurrencies}}">{{paymentMethod.name}}</span>
+      </mat-radio-button>
+    </mat-radio-group>
+    <div class="payment-configurators">
+      <ng-container *ngIf="paymentDetails.value.source.type == 'card'">
+        <div class="card-container">
+          <mat-form-field form-field="card_number">
+            <input matInput placeholder="Card Number" formControlName="number" autocomplete="cc-number" required />
+            <mat-error *ngIf="paymentDetails.get('source.number').hasError('required')">Please enter a Credit Card number</mat-error>
           </mat-form-field>
-          <mat-form-field form-field="cpf">
-            <input matInput placeholder="CPF" formControlName="cpf" required />
-            <mat-hint>Please provide your CPF (= Brazilian National Insurance Number).</mat-hint>
-            <mat-error *ngIf="paymentDetails.get('source.cpf').hasError('required')">Please provide your CPF.</mat-error>
+          <mat-form-field form-field="card_expiry_month">
+            <input matInput placeholder="Expiry Month" formControlName="expiry_month" autocomplete="cc-exp-month" required />
+            <mat-hint>(MM)</mat-hint>
+            <mat-error *ngIf="paymentDetails.get('source.expiry_month').hasError('required')">Please enter the Credit Card's expiration month</mat-error>
           </mat-form-field>
-          <mat-form-field form-field="birthDate">
-            <input matInput placeholder="Date of Birth" formControlName="birthDate" required />
-            <mat-error *ngIf="paymentDetails.get('source.birthDate').hasError('required')">Please provide your Date of Birth.</mat-error>
+          <mat-form-field form-field="card_expiry_year">
+            <input matInput placeholder="Expiry Year" formControlName="expiry_year" autocomplete="cc-exp-year" required />
+            <mat-hint>(YYYY)</mat-hint>
+            <mat-error *ngIf="paymentDetails.get('source.expiry_year').hasError('required')">Please enter the Credit Card's expiration year</mat-error>
           </mat-form-field>
-        </ng-container>
-      </div>
+          <mat-form-field form-field="card_cvv">
+            <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
+            <mat-error *ngIf="paymentDetails.get('source.cvv').hasError('minlength') || creditCardForm.get('cvv').hasError('maxlength')">Your CVV must have 3-4 digits</mat-error>
+          </mat-form-field>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="paymentDetails.value.source.type == 'bancontact'">
+        <mat-form-field form-field="bancontact_payment_country">
+          <input matInput placeholder="Payment Country" formControlName="payment_country" required />
+        </mat-form-field>
+        <mat-form-field form-field="bancontact_account_holder_name">
+          <input matInput placeholder="Account Holder Name" formControlName="account_holder_name" required />
+          <mat-hint>Same as name in Billing Information</mat-hint>
+        </mat-form-field>
+        <mat-form-field form-field="bancontact_billing_descriptor">
+          <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />
+        </mat-form-field>
+      </ng-container>
+      <ng-container *ngIf="paymentDetails.value.source.type == 'boleto'">
+        <mat-form-field form-field="boleto_customerName">
+          <input matInput placeholder="Full Name" formControlName="customerName" required />
+          <mat-hint>Same as name in Billing Information</mat-hint>
+        </mat-form-field>
+        <mat-form-field form-field="boleto_cpf">
+          <input matInput placeholder="CPF" formControlName="cpf" required />
+          <mat-hint>Please provide your CPF (= Brazilian National Insurance Number)</mat-hint>
+          <mat-error *ngIf="paymentDetails.get('source.cpf').hasError('required')">Please provide your CPF</mat-error>
+        </mat-form-field>
+        <mat-form-field form-field="boleto_birthDate">
+          <input matInput placeholder="Date of Birth" formControlName="birthDate" required />
+          <mat-hint>(YYYY-MM-DD)</mat-hint>
+          <mat-error *ngIf="paymentDetails.get('source.birthDate').hasError('required')">Please provide your Date of Birth</mat-error>
+        </mat-form-field>
+      </ng-container>
+      <ng-container *ngIf="paymentDetails.value.source.type == 'giropay'">
+        <mat-form-field class="wide">
+          <input type="text" placeholder="Select a bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()" required>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
+            <mat-option>--</mat-option>
+            <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+              <span class="monospace">{{bank.bic}}</span> {{bank.name}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list</mat-hint>
+          <mat-error *ngIf="paymentDetails.get('source.bank').hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment</mat-error>
+        </mat-form-field>
+      </ng-container>
+      <ng-container *ngIf="paymentDetails.value.source.type == 'lpp_9'">
+        <mat-form-field class="wide">
+          <input type="text" placeholder="Select a bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()" required>
+          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
+            <mat-option>--</mat-option>
+            <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+              <span class="monospace">{{bank.bic}}</span> {{bank.name}}
+            </mat-option>
+          </mat-autocomplete>
+          <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list</mat-hint>
+          <mat-error *ngIf="paymentDetails.get('source.bank').hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment</mat-error>
+        </mat-form-field>
+      </ng-container>
     </div>
   </div>
 </form>
@@ -64,31 +103,31 @@
         <div [formGroup]="creditCardForm" class="card-container">
           <mat-form-field form-field="credit-card">
             <input matInput placeholder="Card Number" formControlName="number" autocomplete="cc-number" required />
-            <mat-error *ngIf="creditCardForm.get('number').hasError('required')">Please enter a Credit Card number.</mat-error>
+            <mat-error *ngIf="creditCardForm.get('number').hasError('required')">Please enter a Credit Card number</mat-error>
           </mat-form-field>
           <mat-form-field form-field="expiry">
             <input matInput placeholder="MM | YYYY" formControlName="expiration" autocomplete="cc-exp" required />
-            <mat-error *ngIf="creditCardForm.get('expiration').hasError('required')">Please enter the Credit Card's expiration date.</mat-error>
+            <mat-error *ngIf="creditCardForm.get('expiration').hasError('required')">Please enter the Credit Card's expiration date</mat-error>
           </mat-form-field>
           <mat-form-field form-field="cvv">
             <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
-            <mat-error *ngIf="creditCardForm.get('cvv').hasError('minlength') || creditCardForm.get('cvv').hasError('maxlength')">Your CVV must have 3-4 digits.</mat-error>
+            <mat-error *ngIf="creditCardForm.get('cvv').hasError('minlength') || creditCardForm.get('cvv').hasError('maxlength')">Your CVV must have 3-4 digits</mat-error>
           </mat-form-field>
         </div>
       </ng-container>
       <ng-container *ngIf="selectedPaymentMethod?.type == 'boleto'">
         <mat-form-field form-field="customerName">
           <input matInput placeholder="Full Name" formControlName="customerName" required />
-          <mat-error *ngIf="customerName.hasError('required')">Please provide your full name.</mat-error>
+          <mat-error *ngIf="customerName.hasError('required')">Please provide your full name</mat-error>
         </mat-form-field>
         <mat-form-field form-field="cpf">
           <input matInput placeholder="CPF" formControlName="cpf" required />
-          <mat-hint>Please provide your CPF (= Brazilian National Insurance Number).</mat-hint>
-          <mat-error *ngIf="cpf.hasError('required')">Please provide your CPF.</mat-error>
+          <mat-hint>Please provide your CPF (= Brazilian National Insurance Number)</mat-hint>
+          <mat-error *ngIf="cpf.hasError('required')">Please provide your CPF</mat-error>
         </mat-form-field>
         <mat-form-field form-field="birthDate">
           <input matInput placeholder="Date of Birth" formControlName="birthDate" required />
-          <mat-error *ngIf="birthDate.hasError('required')">Please provide your Date of Birth.</mat-error>
+          <mat-error *ngIf="birthDate.hasError('required')">Please provide your Date of Birth</mat-error>
         </mat-form-field>
       </ng-container>
       <ng-container *ngIf="selectedPaymentMethod?.type == 'giropay' || selectedPaymentMethod?.type == 'lpp_9'">
@@ -100,8 +139,8 @@
               <span class="monospace">{{bank.bic}}</span> {{bank.name}}
             </mat-option>
           </mat-autocomplete>
-          <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list.</mat-hint>
-          <mat-error *ngIf="bank.hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment.</mat-error>
+          <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list</mat-hint>
+          <mat-error *ngIf="bank.hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment</mat-error>
         </mat-form-field>
       </ng-container>
       <ng-container *ngIf="selectedPaymentMethod?.type == 'klarna'">
@@ -199,11 +238,11 @@
             </mat-radio-group>
             <mat-form-field form-field="account_holder">
               <input matInput placeholder="Full Name" formControlName="account_holder" required />
-              <mat-error *ngIf="mandateForm.get('account_holder').hasError('required')">Please provide the account holder's full name.</mat-error>
+              <mat-error *ngIf="mandateForm.get('account_holder').hasError('required')">Please provide the account holder's full name</mat-error>
             </mat-form-field>
             <mat-form-field form-field="iban">
               <input matInput placeholder="IBAN" formControlName="account_iban" required />
-              <mat-error *ngIf="mandateForm.get('account_iban').hasError('required')">Please provide the account's IBAN.</mat-error>
+              <mat-error *ngIf="mandateForm.get('account_iban').hasError('required')">Please provide the account's IBAN</mat-error>
             </mat-form-field>
             <mat-form-field form-field="bic">
               <input matInput placeholder="BIC" formControlName="verify_bic" />
@@ -233,5 +272,5 @@
       </ng-container>
     </div>
   </div>
-  <mat-error *ngIf="paymentMethod.get('selectedPaymentMethod').hasError('required')"><p>Please select a Payment Method.</p></mat-error>
+  <mat-error *ngIf="paymentMethod.get('selectedPaymentMethod').hasError('required')"><p>Please select a Payment Method</p></mat-error>
 </form>

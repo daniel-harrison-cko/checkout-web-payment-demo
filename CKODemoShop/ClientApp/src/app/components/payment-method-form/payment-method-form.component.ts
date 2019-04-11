@@ -16,12 +16,12 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'Credit Card (Frames)',
     type: 'cko-frames',
-    processingCurrencies: ['all']
+    processingCurrencies: []
   },
   {
     name: 'Credit Card (PCI DSS)',
     type: 'card',
-    processingCurrencies: ['all']
+    processingCurrencies: []
   },
   {
     name: 'Alipay',
@@ -46,7 +46,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'Google Pay',
     type: 'googlepay',
-    processingCurrencies: ['all']
+    processingCurrencies: []
   },
   {
     name: 'iDEAL',
@@ -61,7 +61,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'PayPal',
     type: 'paypal',
-    processingCurrencies: ['all']
+    processingCurrencies: []
   },
   {
     name: 'Poli',
@@ -221,7 +221,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   private matchProcessingCurrencies(processingCurrencies: string[]): boolean {
-    return processingCurrencies.includes('all') ? true : processingCurrencies.includes(this.selectedCurrency.iso4217);
+    return processingCurrencies.length == 0 ? true : processingCurrencies.includes(this.selectedCurrency.iso4217);
   }
 
   get source(): FormGroup {
@@ -285,7 +285,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   private deselectBank() {
-    this.bankObject.reset();
+    let bankObject = this.bankObject || this.paymentDetails.get('source.bankObject');
+    bankObject.reset();
   }
 
   private _bankFilter(value: string): IBank[] {
@@ -302,7 +303,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       let banks: IBank[] = [];
       response.body.countries.forEach(country => banks.push(country.issuers));
       this.banks = <IBank[]>flatten(banks);
-      this.filteredBanks = (<FormControl>this.bank).valueChanges.pipe(
+      let bank = <FormControl>this.bank || <FormControl>this.paymentDetails.get('source.bank');
+      this.filteredBanks = bank.valueChanges.pipe(
         startWith(''),
         map(value => this._bankFilter(value))
       );
@@ -319,7 +321,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         })
       });
       this.banks = banks;
-      this.filteredBanks = (<FormControl>this.bank).valueChanges.pipe(
+      let bank = <FormControl>this.bank || <FormControl>this.paymentDetails.get('source.bank');
+      this.filteredBanks = bank.valueChanges.pipe(
         startWith(''),
         map(value => this._bankFilter(value))
       );
@@ -375,10 +378,11 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   private onBankSelectionChanged() {
-    let bankInput: FormControl = <FormControl>this.bank;
+    let bankInput: FormControl = <FormControl>this.bank || <FormControl>this.paymentDetails.get('source.bank');
     if (bankInput.value) {
       let currentBank: IBank = bankInput.value;
-      this.bankObject.setValue(currentBank);
+      let bankObject = this.bankObject || this.paymentDetails.get('source.bankObject');
+      bankObject.setValue(currentBank);
       bankInput.setValue(`${currentBank.bic} ${currentBank.name}`);
     }    
   }
@@ -412,10 +416,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.source.registerControl('number', new FormControl('4242424242424242', Validators.required));
         this.source.registerControl('expiry_month', new FormControl(12, Validators.required));
         this.source.registerControl('expiry_year', new FormControl(2022, Validators.required));
-        this.source.registerControl('name', new FormControl(null));
+        this.source.registerControl('name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }));
         this.source.registerControl('cvv', new FormControl('100'));
         this.source.registerControl('stored', new FormControl(null));
-        this.source.registerControl('billing_address', new FormControl(null));
+        this.source.registerControl('billing_address', new FormControl({ value: this.paymentDetails.value.billing_address, disabled: true }));
         this.source.registerControl('phone', new FormControl(null));
         break;
       }
@@ -423,9 +427,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'bancontact': {
-        this.source.registerControl('payment_country', new FormControl('DE', Validators.required));
+        this.source.registerControl('payment_country', new FormControl({ value: 'DE', disabled: true }, Validators.required));
         this.source.registerControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
-        this.source.registerControl('billingDescriptor', new FormControl(null));
+        this.source.registerControl('billing_descriptor', new FormControl('Bancontact Test Payment'));
         break;
       }
       case 'boleto': {
@@ -435,10 +439,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'giropay': {
-        this.source.registerControl('purpose', new FormControl(null, Validators.required));
+        this.source.registerControl('purpose', new FormControl('Giropay Test Payment', Validators.required));
         this.source.registerControl('bic', new FormControl(null, Validators.required));
         this.source.registerControl('iban', new FormControl(null));
-        //this.getBanks(paymentMethod);
+
+        this.source.registerControl('bank', new FormControl(null, Validators.required));
+        this.source.registerControl('bankObject', new FormControl(null, Validators.required));
+        this.getBanks(paymentMethod);
         break;
       }
       case 'googlepay': {
@@ -448,7 +455,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.source.registerControl('description', new FormControl(null, Validators.required));
         this.source.registerControl('bic', new FormControl(null, Validators.required));
         this.source.registerControl('language', new FormControl(null));
-        //this.getBanksLegacy(paymentMethod);
+
+        this.source.registerControl('bank', new FormControl(null, Validators.required));
+        this.source.registerControl('bankObject', new FormControl(null, Validators.required));
+        this.getBanksLegacy(paymentMethod);
         break;
       }
       case 'klarna': {

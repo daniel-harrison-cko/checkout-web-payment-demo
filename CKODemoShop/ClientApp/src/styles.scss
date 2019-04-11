@@ -13,6 +13,10 @@ $padding: $margin;
   font-family: monospace;
 }
 
+.mat-form-field {
+  margin-top: $margin;
+}
+
 .cko-container {
   flex: 1 1 auto;
 }
@@ -368,8 +372,12 @@ app-payment-component {
         min-width: 300px;
       }
 
-      [form-field="credit-card"], [form-field="account_holder"], [radio-group="mandate_type"] {
+      [form-field="card_number"], [form-field="credit-card"], [form-field="account_holder"], [radio-group="mandate_type"] {
         flex: 1 0 100%;
+      }
+
+      [form-field="card_expiry_month"], [form-field="card_expiry_year"], [form-field="card_cvv"] {
+        flex: 1 0 auto;
       }
 
       [form-field="iban"] {
