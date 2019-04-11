@@ -15,7 +15,7 @@ import { IIdSource } from 'src/app/interfaces/id-source.interface';
 import { ISource } from 'src/app/interfaces/source.interface';
 import { MatStepper } from '@angular/material';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, filter } from 'rxjs/operators';
 
 declare var Frames: any;
 declare var google: any;
@@ -29,7 +29,9 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptions: Subscription[] = [];
   isLinear = true;
   order: FormGroup;
+  paymentRequest: any;
   paymentDetails: FormGroup;
+  listenToValueChanges: boolean;
   sourceDetails: FormGroup;
   confirmation: FormGroup;
   sepaMandateAgreement: FormControl;
@@ -67,7 +69,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     this.subscriptions.push(
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
-      this.paymentDetails.valueChanges.pipe(distinctUntilChanged()).subscribe(values => console.log('PAYMENT CHANGED', values))
+      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
     );
 
     this.order.updateValueAndValidity();
@@ -76,7 +78,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {
     this.stepper.selectedIndex = 1;
     this.subscriptions.push(
-      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod))
+      this.paymentDetails.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(paymentDetails => { this.paymentRequest = paymentDetails; console.log(this.paymentRequest); }),
+
+      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod)),
+      this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.invokePaymentMethod2(sourceType))
     );
   }
 
@@ -182,6 +187,31 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private resetOrder = () => {
     this.order.removeControl('confirmation');
+  }
+
+  private invokePaymentMethod2(sourceType: string) {
+    this.resetOrder();
+    switch (sourceType) {
+      case 'card': {
+        this.autoCaptureControl.enable();
+        this.threeDsControl.enable();
+        this.makePayment = () => {
+          this.processing = true;
+          this._paymentService.requestPayment(this.paymentRequest).subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.processing = null;
+            });
+        };
+        break;
+      }
+      default: {
+        console.warn(`No ${sourceType} specific action was defined!`);
+        this.makePayment = () => { throw new Error(`${sourceType} payment is not implemented yet!`) };
+        break;
+      }
+    }
   }
 
   private invokePaymentMethod(paymentMethod: IPaymentMethod) {

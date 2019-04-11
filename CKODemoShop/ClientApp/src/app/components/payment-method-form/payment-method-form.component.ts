@@ -100,7 +100,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   paymentMethods: IPaymentMethod[] = PAYMENT_METHODS;
   paymentMethod: FormGroup;
   paymentDetails: FormGroup;
-  listenToValueChanges: boolean = true;
+  listenToValueChanges: boolean;
+  selectedSourceType: string;
   klarnaPaymentOptions: IKlarnaPaymentOption[];
   creditCardForm: FormGroup;
   klarnaForm: FormGroup;
@@ -207,7 +208,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         document.querySelector('#klarna-container').innerHTML = "";
         this.requestKlarnaSession();
       }),
-
+      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
       this.paymentDetails.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(values => console.log('PAYMENT CHANGED', values)),
       this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.invokePaymentMethod2(source))
@@ -409,42 +410,43 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   invokePaymentMethod2(paymentMethod: IPaymentMethod) {
-    this.listenToValueChanges = false;
+    if (paymentMethod.type == this.selectedSourceType) return;
+    this._paymentDetailsService.stopListeningToValueChanges();
     this.resetPaymentMethod2();
     switch (paymentMethod.type) {
       case 'card': {
-        this.source.registerControl('number', new FormControl('4242424242424242', Validators.required));
-        this.source.registerControl('expiry_month', new FormControl(12, Validators.required));
-        this.source.registerControl('expiry_year', new FormControl(2022, Validators.required));
-        this.source.registerControl('name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }));
-        this.source.registerControl('cvv', new FormControl('100'));
-        this.source.registerControl('stored', new FormControl(null));
-        this.source.registerControl('billing_address', new FormControl({ value: this.paymentDetails.value.billing_address, disabled: true }));
-        this.source.registerControl('phone', new FormControl(null));
+        this.source.addControl('number', new FormControl('4242424242424242', Validators.required));
+        this.source.addControl('expiry_month', new FormControl(12, Validators.required));
+        this.source.addControl('expiry_year', new FormControl(2022, Validators.required));
+        this.source.addControl('name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }));
+        this.source.addControl('cvv', new FormControl('100'));
+        this.source.addControl('stored', new FormControl(null));
+        this.source.addControl('billing_address', new FormControl({ value: this.paymentDetails.value.billing_address, disabled: true }));
+        this.source.addControl('phone', new FormControl(null));
         break;
       }
       case 'alipay': {
         break;
       }
       case 'bancontact': {
-        this.source.registerControl('payment_country', new FormControl({ value: 'DE', disabled: true }, Validators.required));
-        this.source.registerControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
-        this.source.registerControl('billing_descriptor', new FormControl('Bancontact Test Payment'));
+        this.source.addControl('payment_country', new FormControl({ value: 'DE', disabled: true }, Validators.required));
+        this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
+        this.source.addControl('billing_descriptor', new FormControl('Bancontact Test Payment'));
         break;
       }
       case 'boleto': {
-        this.source.registerControl('birthDate', new FormControl('1984-03-04', Validators.required));
-        this.source.registerControl('cpf', new FormControl('00003456789', Validators.required));
-        this.source.registerControl('customerName', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
+        this.source.addControl('birthDate', new FormControl('1984-03-04', Validators.required));
+        this.source.addControl('cpf', new FormControl('00003456789', Validators.required));
+        this.source.addControl('customerName', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
         break;
       }
       case 'giropay': {
-        this.source.registerControl('purpose', new FormControl('Giropay Test Payment', Validators.required));
-        this.source.registerControl('bic', new FormControl(null, Validators.required));
-        this.source.registerControl('iban', new FormControl(null));
+        this.source.addControl('purpose', new FormControl('Giropay Test Payment', Validators.required));
+        this.source.addControl('bic', new FormControl(null, Validators.required));
+        this.source.addControl('iban', new FormControl(null));
 
-        this.source.registerControl('bank', new FormControl(null, Validators.required));
-        this.source.registerControl('bankObject', new FormControl(null, Validators.required));
+        this.source.addControl('bank', new FormControl(null, Validators.required));
+        this.source.addControl('bankObject', new FormControl(null, Validators.required));
         this.getBanks(paymentMethod);
         break;
       }
@@ -452,29 +454,29 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case /*'ideal'*/'lpp_9': {
-        this.source.registerControl('description', new FormControl(null, Validators.required));
-        this.source.registerControl('bic', new FormControl(null, Validators.required));
-        this.source.registerControl('language', new FormControl(null));
+        this.source.addControl('description', new FormControl(null, Validators.required));
+        this.source.addControl('bic', new FormControl(null, Validators.required));
+        this.source.addControl('language', new FormControl(null));
 
-        this.source.registerControl('bank', new FormControl(null, Validators.required));
-        this.source.registerControl('bankObject', new FormControl(null, Validators.required));
+        this.source.addControl('bank', new FormControl(null, Validators.required));
+        this.source.addControl('bankObject', new FormControl(null, Validators.required));
         this.getBanksLegacy(paymentMethod);
         break;
       }
       case 'klarna': {
-        this.source.registerControl('authorization_token', new FormControl(null, Validators.required));
-        this.source.registerControl('locale', new FormControl(null, Validators.required));
-        this.source.registerControl('purchase_country', new FormControl(null, Validators.required));
-        // this.source.registerControl('auto_capture', new FormControl(null, Validators.required));
-        this.source.registerControl('billing_address', new FormControl(null, Validators.required));
-        this.source.registerControl('shipping_address', new FormControl(null));
-        this.source.registerControl('tax_amount', new FormControl(null, Validators.required));
-        this.source.registerControl('products', new FormControl(null, Validators.required));
-        this.source.registerControl('customer', new FormControl(null));
-        this.source.registerControl('merchant_reference1', new FormControl(null));
-        this.source.registerControl('merchant_reference2', new FormControl(null));
-        this.source.registerControl('merchant_data', new FormControl(null));
-        this.source.registerControl('attachment', new FormControl(null));
+        this.source.addControl('authorization_token', new FormControl(null, Validators.required));
+        this.source.addControl('locale', new FormControl(null, Validators.required));
+        this.source.addControl('purchase_country', new FormControl(null, Validators.required));
+        // this.source.addControl('auto_capture', new FormControl(null, Validators.required));
+        this.source.addControl('billing_address', new FormControl(null, Validators.required));
+        this.source.addControl('shipping_address', new FormControl(null));
+        this.source.addControl('tax_amount', new FormControl(null, Validators.required));
+        this.source.addControl('products', new FormControl(null, Validators.required));
+        this.source.addControl('customer', new FormControl(null));
+        this.source.addControl('merchant_reference1', new FormControl(null));
+        this.source.addControl('merchant_reference2', new FormControl(null));
+        this.source.addControl('merchant_data', new FormControl(null));
+        this.source.addControl('attachment', new FormControl(null));
         break;
       }
       case 'paypal': {
@@ -484,11 +486,11 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'sepa': {
-        this.source.registerControl('reference', new FormControl(null));
-        this.source.registerControl('billing_address', new FormControl(null, Validators.required));
-        this.source.registerControl('phone', new FormControl(null));
-        this.source.registerControl('customer', new FormControl(null));
-        this.source.registerControl('source_data', this.sepaSourceDataForm);
+        this.source.addControl('reference', new FormControl(null));
+        this.source.addControl('billing_address', new FormControl(null, Validators.required));
+        this.source.addControl('phone', new FormControl(null));
+        this.source.addControl('customer', new FormControl(null));
+        this.source.addControl('source_data', this.sepaSourceDataForm);
         break;
       }
       case 'sofort': {
@@ -498,7 +500,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         throw new Error(`Handling of Payment Method type ${paymentMethod.type} is not implemented!`);
       }
     }
-    this.listenToValueChanges = true;
+    this._paymentDetailsService.resumeListeningToValueChanges();
+    this.selectedSourceType = paymentMethod.type;
   }
 
   invokePaymentMethod(paymentMethod: IPaymentMethod) {
