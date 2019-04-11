@@ -70,7 +70,11 @@
     </mat-vertical-stepper>
     <br />
     <div class="payNowButton-container">
-      <button mat-flat-button color="accent" [disabled]="order.invalid || processing" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
+      <button mat-flat-button color="accent" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
+      <!--<button mat-flat-button color="accent" [disabled]="order.invalid || processing" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>-->
     </div>
+  </mat-card>
+  <mat-card>
+    <pre>{{paymentDetails.getRawValue() | json}}</pre>
   </mat-card>
 </div>
