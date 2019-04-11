@@ -111,7 +111,7 @@ namespace CKODemoShop.Controllers
         public string PaymentCountry { get; set; }
         [JsonProperty(PropertyName = "account_holder_name")]
         public string AccountHolderName { get; set; }
-        [JsonProperty(PropertyName = "billing_descritor")]
+        [JsonProperty(PropertyName = "billing_descriptor")]
         public string BillingDescriptor { get; set; }
 
     }
