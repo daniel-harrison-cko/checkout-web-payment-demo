@@ -19,7 +19,11 @@ export class PaymentConfigurationFormComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.threeDs = this._formBuilder.group({
-      enabled: false
+      enabled: false,
+      attempt_n3d: null,
+      eci: null,
+      cryptogram: null,
+      xid: null
     });
     this.subscriptions.push(
       this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails)
