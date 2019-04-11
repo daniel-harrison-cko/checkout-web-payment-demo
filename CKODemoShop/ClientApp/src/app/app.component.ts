@@ -1,10 +1,9 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ICurrency } from './interfaces/currency.interface';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
-import { PaymentsService } from './services/payments.service';
-import { distinctUntilChanged } from 'rxjs/operators';
 import { Router } from '@angular/router';
+import { PaymentDetailsService } from './services/payment-details.service';
 
 @Component({
   selector: 'app-root',
@@ -14,33 +13,18 @@ import { Router } from '@angular/router';
 export class AppComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   title: string = 'CKO Demo';
-  currencies: ICurrency[] = this._paymentsService.currencies;
-  private _selectedCurrency: ICurrency;
-  currencyForm: FormGroup;
+  currencies: ICurrency[] = this._paymentDetailsService.currencies;
+  paymentDetails: FormGroup;
 
   constructor(
-    private _paymentsService: PaymentsService,
-    private _formBuilder: FormBuilder,
+    private _paymentDetailsService: PaymentDetailsService,
     private _router: Router
   ) { }
 
   ngOnInit() {
-    this.currencyForm = this._formBuilder.group({
-      currency: [null, Validators.required]
-    });
     this.subscriptions.push(
-      this._paymentsService.currency$.subscribe(currency => this.selectedCurrency = currency),
-      this.currencyForm.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => this._paymentsService.setCurrency(currency)) // TODO: debug selection of currency
+      this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails)
     );
-  }
-
-  get selectedCurrency(): ICurrency {
-    return this._selectedCurrency;
-  }
-
-  set selectedCurrency(currency: ICurrency) {
-    this._selectedCurrency = currency;
-    this.currencyForm.get('currency').setValue(currency);
   }
 
   ngOnDestroy() {

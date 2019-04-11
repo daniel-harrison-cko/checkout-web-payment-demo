@@ -1,6 +1,19 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { ICurrency } from '../interfaces/currency.interface';
+
+const CURRENCIES: ICurrency[] = [
+  { iso4217: 'AUD', base: 100 },
+  { iso4217: 'BRL', base: 100 },
+  { iso4217: 'CHF', base: 100 },
+  { iso4217: 'EUR', base: 100 },
+  { iso4217: 'GBP', base: 100 },
+  { iso4217: 'NOK', base: 100 },
+  { iso4217: 'NZD', base: 100 },
+  { iso4217: 'SEK', base: 100 },
+  { iso4217: 'USD', base: 100 }
+];
 
 @Injectable({
   providedIn: 'root'
@@ -28,10 +41,14 @@ export class PaymentDetailsService {
     this.listenToValueChangesSource.next(false);
   }
 
+  get currencies(): ICurrency[] {
+    return CURRENCIES;
+  }
+
   get paymentDetailsTemplate(): FormGroup {
     let paymentDetailsTemplate = this._formBuilder.group({
-      amount: 0,
-      currency: [null, Validators.required],
+      amount: [100, [Validators.required, Validators.min(0)]],
+      currency: ['EUR', Validators.required],
       source: this._formBuilder.group({
         type: [null, Validators.required]
       }),

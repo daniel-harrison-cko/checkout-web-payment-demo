@@ -2,10 +2,10 @@
   <mat-toolbar-row>
     <app-breadcrumbs [appTitle]="title"></app-breadcrumbs>
     <span class="toolbar-spacer"></span>
-    <form [formGroup]="currencyForm" class="toolbar-item currency-form">
+    <form [formGroup]="paymentDetails" class="toolbar-item currency-form">
       <mat-form-field>
-        <mat-select [(value)]="selectedCurrency" formControlName="currency">
-          <mat-option *ngFor="let currency of currencies" [value]="currency">
+        <mat-select [value]="currency" formControlName="currency">
+          <mat-option *ngFor="let currency of currencies" [value]="currency.iso4217">
             {{currency.iso4217}}
           </mat-option>
         </mat-select>
