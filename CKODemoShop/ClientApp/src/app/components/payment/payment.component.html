@@ -9,7 +9,7 @@
     <mat-vertical-stepper [linear]="isLinear" #stepper>
       <mat-step [stepControl]="customerDetails">
         <ng-template matStepLabel>Customer Details</ng-template>
-        <app-customer-details-form (formReady)="formInitialized('customerDetails', $event)"></app-customer-details-form>
+        <app-customer-details-form></app-customer-details-form>
         <div>
           <button mat-stroked-button matStepperNext>Next</button>
         </div>

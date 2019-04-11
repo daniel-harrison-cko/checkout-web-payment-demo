@@ -1,6 +1,8 @@
-import { Component, Output, OnInit, EventEmitter, OnDestroy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { PaymentDetailsService } from 'src/app/services/payment-details.service';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-customer-details-form',
@@ -9,48 +11,31 @@ import { Subscription } from 'rxjs';
 
 export class CustomerDetailsFormComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
-  @Output() formReady = new EventEmitter<FormGroup>();
-  customerDetailsForm: FormGroup;
-  BillingAddressForm: FormGroup;
-  ShippingAddressForm: FormGroup;
+  paymentDetails: FormGroup;
+  shippingToBilling: boolean = true;
 
-  constructor(private _formBuilder: FormBuilder) { }
+  constructor(
+    private _paymentDetailsService: PaymentDetailsService
+  ) { }
 
-  ngOnInit() {
-    this.BillingAddressForm = this._formBuilder.group({
-      given_name: ['Philippe', Validators.required],
-      family_name: ['Leonhardt', Validators.required],
-      email: ['philippe.leonhardt@checkout.com', Validators.required],
-      title: ['Mr'],
-      street_address: ['Rudi-Dutschke-Str. 26', Validators.required],
-      street_address2: [''],
-      postal_code: ['10969', Validators.required],
-      city: ['Berlin', Validators.required],
-      country: ['DE', Validators.required]
-    });
-    this.ShippingAddressForm = this._formBuilder.group({
-      given_name: ['Philippe'],
-      family_name: ['Leonhardt'],
-      email: ['philippe.leonhardt@checkout.com'],
-      title: ['Mr'],
-      street_address: ['Rudi-Dutschke-Str. 26'],
-      street_address2: [''],
-      postal_code: ['10969'],
-      city: ['Berlin'],
-      phone: ['0123456789'],
-      country: ['DE']
-    });
-    this.customerDetailsForm = this._formBuilder.group({
-      billingAddress: this.BillingAddressForm,
-      shippingAddress: this.ShippingAddressForm
-    });
-    
-    this.subscriptions.push();
-
-    this.formReady.emit(this.customerDetailsForm);
+  ngOnInit() {    
+    this.subscriptions.push(
+      this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
+      this.paymentDetails.valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this._paymentDetailsService.updatePaymentDetails(this.paymentDetails))
+    );
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+  }
+
+  private addShippingAddress(): void {
+    this.paymentDetails.get('shipping.address').reset();
+    this.shippingToBilling = false;
+  }
+
+  private removeShippingAddress(): void {
+    this.paymentDetails.get('shipping.address').setValue(this.paymentDetails.get('billing_address').value);
+    this.shippingToBilling = true;
   }
 }

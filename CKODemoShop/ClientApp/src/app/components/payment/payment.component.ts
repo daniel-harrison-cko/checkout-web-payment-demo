@@ -3,8 +3,6 @@ import { FormBuilder, FormGroup, Validators, AbstractControl, FormControl } from
 import { PaymentsService } from '../../services/payments.service';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
-import { IIdealSource } from '../../interfaces/ideal-source.interface';
-import { IGiropaySource } from '../../interfaces/giropay-source.interface';
 import { HttpResponse } from '@angular/common/http';
 import { ScriptService } from '../../services/script.service';
 import { ITokenSource } from 'src/app/interfaces/token-source.interface';
@@ -14,9 +12,10 @@ import { IBank } from 'src/app/interfaces/bank.interface';
 import { ISourceData } from 'src/app/interfaces/source-data.interface';
 import { SourcesService } from 'src/app/services/sources.service';
 import { IIdSource } from 'src/app/interfaces/id-source.interface';
-import { IBoletoSource } from 'src/app/interfaces/boleto-source.interface';
 import { ISource } from 'src/app/interfaces/source.interface';
 import { MatStepper } from '@angular/material';
+import { PaymentDetailsService } from 'src/app/services/payment-details.service';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 declare var Frames: any;
 declare var google: any;
@@ -30,6 +29,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptions: Subscription[] = [];
   isLinear = true;
   order: FormGroup;
+  paymentDetails: FormGroup;
+  sourceDetails: FormGroup;
   confirmation: FormGroup;
   sepaMandateAgreement: FormControl;
   creditorIdentifier: string = 'DE36ZZZ00001690322';
@@ -39,6 +40,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   constructor(
     private _formBuilder: FormBuilder,
+    private _paymentDetailsService: PaymentDetailsService,
     private _paymentService: PaymentsService,
     private _sourcesService: SourcesService,
     private _scriptService: ScriptService,
@@ -63,7 +65,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     this.confirmation = this._formBuilder.group({
       sepaMandateAgreement: this.sepaMandateAgreement
     });
-
+    this.subscriptions.push(
+      this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
+      this.paymentDetails.valueChanges.pipe(distinctUntilChanged()).subscribe(values => console.log('PAYMENT CHANGED', values))
+    );
 
     this.order.updateValueAndValidity();
   }
@@ -169,10 +174,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   get paymentCountry(): string {
     return this.paymentMethod.get('paymentCountry').value;
-  }
-
-  get accountHolderName(): string {
-    return this.paymentMethod.get('accountHolderName').value;
   }
 
   get billingDescriptor(): string {
@@ -283,10 +284,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this._paymentService.requestPayment({
             currency: this.currency,
             amount: this.amount,
-            source: <any>{
+            source: {
               type: paymentMethod.type,
               payment_country: this.paymentCountry,
-              account_holder_name: this.accountHolderName,
+              account_holder_name: this.paymentDetails.get('customer.name').value,
               billing_descriptor: this.billingDescriptor
             }
           }).subscribe(
@@ -306,9 +307,9 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this._paymentService.requestPayment({
             currency: this.currency,
             amount: this.amount,
-            source: <IBoletoSource>{
+            source: {
               type: paymentMethod.type,
-              customer_name: this.customerName,
+              customer_name: this.paymentDetails.get('customer.name').value,
               cpf: this.cpf,
               birth_date: this.birthDate
             }
@@ -329,7 +330,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this._paymentService.requestPayment({
             currency: this.currency,
             amount: this.amount,
-            source: <IGiropaySource>{
+            source: {
               type: paymentMethod.type,
               purpose: 'CKO Demo Shop Test',
               bic: this.bank.bic
@@ -415,7 +416,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this._paymentService.requestPayment({
             currency: this.currency,
             amount: this.amount,
-            source: <IIdealSource>{
+            source: {
               type: 'ideal',
               bic: this.bank.bic,
               description: 'CKO Demo Shop Test',

@@ -1,3 +1,54 @@
+<form [formGroup]="paymentDetails">
+  <pre>{{paymentDetails.getRawValue() | json}}</pre>
+  <div class="payment-setup">
+    <div formGroupName="source">
+      <mat-radio-group class="example-radio-group" formControlName="type" required>
+        <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod.type" [disabled]="!matchProcessingCurrencies(paymentMethod.processingCurrencies)">
+          {{paymentMethod.name}}
+        </mat-radio-button>
+      </mat-radio-group>
+      <div class="payment-configurators">
+        <ng-container *ngIf="paymentDetails.value.source.type == 'card'">
+          <div class="card-container">
+            <mat-form-field form-field="number">
+              <input matInput placeholder="Card Number" formControlName="number" autocomplete="cc-number" required />
+              <mat-error *ngIf="paymentDetails.get('source.number').hasError('required')">Please enter a Credit Card number.</mat-error>
+            </mat-form-field>
+            <mat-form-field form-field="expiry_month">
+              <input matInput placeholder="MM" formControlName="expiry_month" autocomplete="cc-exp-month" required />
+              <mat-error *ngIf="paymentDetails.get('source.expiry_month').hasError('required')">Please enter the Credit Card's expiration month.</mat-error>
+            </mat-form-field>
+            <mat-form-field form-field="expiry_year">
+              <input matInput placeholder="YYYY" formControlName="expiry_year" autocomplete="cc-exp-year" required />
+              <mat-error *ngIf="paymentDetails.get('source.expiry_year').hasError('required')">Please enter the Credit Card's expiration year.</mat-error>
+            </mat-form-field>
+            <mat-form-field form-field="cvv">
+              <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
+              <mat-error *ngIf="paymentDetails.get('source.cvv').hasError('minlength') || creditCardForm.get('cvv').hasError('maxlength')">Your CVV must have 3-4 digits.</mat-error>
+            </mat-form-field>
+          </div>
+        </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'boleto'">
+          <mat-form-field form-field="customerName">
+            <input matInput placeholder="Full Name" formControlName="customerName" required />
+            <mat-error *ngIf="paymentDetails.get('source.customerName').hasError('required')">Please provide your full name.</mat-error>
+          </mat-form-field>
+          <mat-form-field form-field="cpf">
+            <input matInput placeholder="CPF" formControlName="cpf" required />
+            <mat-hint>Please provide your CPF (= Brazilian National Insurance Number).</mat-hint>
+            <mat-error *ngIf="paymentDetails.get('source.cpf').hasError('required')">Please provide your CPF.</mat-error>
+          </mat-form-field>
+          <mat-form-field form-field="birthDate">
+            <input matInput placeholder="Date of Birth" formControlName="birthDate" required />
+            <mat-error *ngIf="paymentDetails.get('source.birthDate').hasError('required')">Please provide your Date of Birth.</mat-error>
+          </mat-form-field>
+        </ng-container>
+      </div>
+    </div>
+  </div>
+</form>
+
+
 <form [formGroup]="paymentMethod">
   <div class="payment-setup">
     <mat-radio-group class="example-radio-group" formControlName="selectedPaymentMethod" required>

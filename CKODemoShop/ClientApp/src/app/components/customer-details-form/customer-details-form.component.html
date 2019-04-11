@@ -1,73 +1,97 @@
-<form [formGroup]="customerDetailsForm">
+<!-- loading template -->
+<ng-template #loading>
+  <mat-spinner [diameter]="20" strokeWidth="3"></mat-spinner>
+  <br />
+</ng-template>
+<!-- billing template -->
+<ng-template #billing>
+  <h4>Billing Details</h4>
+  <div [formGroup]="paymentDetails">
+    <div formGroupName="customer">
+      <mat-form-field form-field="name">
+        <input matInput placeholder="Recipient" formControlName="name">
+      </mat-form-field>
+    </div>
+    <div formGroupName="billing_address">
+      <mat-form-field form-field="address_line2">
+        <input matInput placeholder="Address" formControlName="address_line2">
+      </mat-form-field>
+      <mat-form-field form-field="zip">
+        <input matInput placeholder="Postcode" formControlName="zip">
+      </mat-form-field>
+      <mat-form-field form-field="city">
+        <input matInput placeholder="City" formControlName="city">
+      </mat-form-field>
+      <mat-form-field form-field="state">
+        <input matInput placeholder="Municipality" formControlName="state">
+      </mat-form-field>
+      <mat-form-field form-field="country">
+        <input matInput placeholder="Country" formControlName="country">
+      </mat-form-field>
+    </div>
+    <div formGroupName="customer">
+      <mat-form-field form-field="email">
+        <span matPrefix><mat-icon>alternate_email</mat-icon>&nbsp;</span>
+        <input matInput placeholder="Email" formControlName="email">
+      </mat-form-field>
+    </div>
+  </div>
+</ng-template>
+<!-- shipping template -->
+<ng-template #shipping>
+  <br />
+  <h4>Shipping Details</h4>
+  <div [formGroup]="paymentDetails">
+    <div formGroupName="shipping">
+      <div formGroupName="address">
+        <mat-form-field form-field="address_line1">
+          <input matInput placeholder="Recipient" formControlName="address_line1">
+        </mat-form-field>
+        <br />
+        <mat-form-field form-field="address_line2">
+          <input matInput placeholder="Address" formControlName="address_line2">
+        </mat-form-field>
+        <mat-form-field form-field="zip">
+          <input matInput placeholder="Postcode" formControlName="zip">
+        </mat-form-field>
+        <mat-form-field form-field="city">
+          <input matInput placeholder="City" formControlName="city">
+        </mat-form-field>
+        <mat-form-field form-field="state">
+          <input matInput placeholder="Municipality" formControlName="state">
+        </mat-form-field>
+        <mat-form-field form-field="country">
+          <input matInput placeholder="Country" formControlName="country">
+        </mat-form-field>
+      </div>
+    </div>
+    <div formGroupName="shipping">
+      <div formGroupName="phone">
+        <mat-form-field form-field="country_code">
+          <span matPrefix><mat-icon>phone</mat-icon>&nbsp;</span>
+          <input matInput placeholder="Country Code" formControlName="country_code">
+        </mat-form-field>
+        <mat-form-field form-field="number">
+          <input matInput placeholder="Number" formControlName="number">
+        </mat-form-field>
+      </div>
+    </div>
+  </div>
+  <br />
+  <button mat-stroked-button color="warn" (click)="removeShippingAddress()">Remove Shipping Address</button>
+</ng-template>
+<!-- shipping_to_billing template -->
+<ng-template #shipping_to_billing>
+  <br />
+  <button mat-stroked-button color="primary" (click)="addShippingAddress()">Add Shipping Address</button>
+</ng-template>
+<form *ngIf="paymentDetails; else loading">
   <div class="payment-setup">
     <div class="payment-configurators">
-      <div [formGroup]="BillingAddressForm" class="klarna-address-form">
-        <h4>Billing Information</h4>
-        <mat-form-field form-field="title">
-          <input matInput placeholder="Title" formControlName="title">
-        </mat-form-field>
-        <mat-form-field form-field="given_name">
-          <input matInput placeholder="Given Name" formControlName="given_name">
-        </mat-form-field>
-        <mat-form-field form-field="family_name">
-          <input matInput placeholder="Family Name" formControlName="family_name">
-        </mat-form-field>
-        <br />
-        <mat-form-field form-field="street_address">
-          <input matInput placeholder="Address" formControlName="street_address">
-        </mat-form-field>
-        <mat-form-field form-field="street_address2">
-          <input matInput placeholder="Still Address" formControlName="street_address2">
-        </mat-form-field>
-        <mat-form-field form-field="postal_code">
-          <input matInput placeholder="Postcode" formControlName="postal_code">
-        </mat-form-field>
-        <mat-form-field form-field="city">
-          <input matInput placeholder="City" formControlName="city">
-        </mat-form-field>
-        <mat-form-field form-field="country">
-          <input matInput placeholder="Country" formControlName="country">
-        </mat-form-field>
-        <br />
-        <mat-form-field form-field="email">
-          <input matInput placeholder="Email" formControlName="email">
-        </mat-form-field>
-      </div>
-      <div [formGroup]="ShippingAddressForm" class="klarna-address-form">
-        <h4>Shipping Information</h4>
-        <mat-form-field form-field="title">
-          <input matInput placeholder="Title" formControlName="title">
-        </mat-form-field>
-        <mat-form-field form-field="given_name">
-          <input matInput placeholder="Given Name" formControlName="given_name">
-        </mat-form-field>
-        <mat-form-field form-field="family_name">
-          <input matInput placeholder="Family Name" formControlName="family_name">
-        </mat-form-field>
-        <br />
-        <mat-form-field form-field="street_address">
-          <input matInput placeholder="Address" formControlName="street_address">
-        </mat-form-field>
-        <mat-form-field form-field="street_address2">
-          <input matInput placeholder="Still Address" formControlName="street_address2">
-        </mat-form-field>
-        <mat-form-field form-field="postal_code">
-          <input matInput placeholder="Postcode" formControlName="postal_code">
-        </mat-form-field>
-        <mat-form-field form-field="city">
-          <input matInput placeholder="City" formControlName="city">
-        </mat-form-field>
-        <mat-form-field form-field="country">
-          <input matInput placeholder="Country" formControlName="country">
-        </mat-form-field>
-        <br />
-        <mat-form-field form-field="email">
-          <input matInput placeholder="Email" formControlName="email">
-        </mat-form-field>
-        <mat-form-field form-field="phone">
-          <input matInput placeholder="Phone" formControlName="phone">
-        </mat-form-field>
-      </div>
+      <!-- billing container -->
+      <ng-container *ngTemplateOutlet="billing"></ng-container>
+      <!-- shipping container -->
+      <ng-container *ngIf="!shippingToBilling; then shipping; else shipping_to_billing"></ng-container>
     </div>
   </div>
 </form>
