@@ -199,21 +199,41 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     threeDs ? threeDsEnabledField.enable() : threeDsEnabledField.disable();
   }
 
+  private standardPaymentFlow = () => {
+    this.processing = true;
+    this._paymentService.requestPayment(this.paymentRequest).subscribe(
+      response => this.handlePaymentResponse(response),
+      error => {
+        console.warn(error);
+        this.processing = null;
+      });
+  };
+
   private invokePaymentMethod2(sourceType: string) {
     this.resetOrder();
     switch (sourceType) {
       case 'card': {
         this.autoCapture = true;
         this.threeDs = true;
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment(this.paymentRequest).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
+        this.makePayment = this.standardPaymentFlow;
+        break;
+      }
+      case 'bancontact': {
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.makePayment = this.standardPaymentFlow;
+        break;
+      }
+      case 'giropay': {
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.makePayment = this.standardPaymentFlow;
+        break;
+      }
+      case 'sofort': {
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.makePayment = this.standardPaymentFlow;
         break;
       }
       default: {
