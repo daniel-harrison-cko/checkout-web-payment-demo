@@ -11,17 +11,27 @@ export class PaymentDetailsService {
 
   // Subjects
   private paymentDetailsSource = new BehaviorSubject<FormGroup>(this.paymentDetailsTemplate);
+  private listenToValueChangesSource = new BehaviorSubject<boolean>(true);
 
   // Observables
   public paymentDetails$ = this.paymentDetailsSource.asObservable();
+  public listenToValueChanges$ = this.listenToValueChangesSource.asObservable();
 
   // Methods
   public updatePaymentDetails(paymentDetails: FormGroup) {
     this.paymentDetailsSource.next(paymentDetails);
   }
+  public resumeListeningToValueChanges() {
+    this.listenToValueChangesSource.next(true);
+  }
+  public stopListeningToValueChanges() {
+    this.listenToValueChangesSource.next(false);
+  }
 
   get paymentDetailsTemplate(): FormGroup {
     let paymentDetailsTemplate = this._formBuilder.group({
+      amount: 0,
+      currency: [null, Validators.required],
       source: this._formBuilder.group({
         type: [null, Validators.required]
       }),
