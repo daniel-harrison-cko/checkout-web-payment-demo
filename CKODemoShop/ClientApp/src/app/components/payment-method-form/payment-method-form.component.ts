@@ -109,6 +109,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   klarnaCustomerForm: FormGroup;
   sepaSourceDataForm: FormGroup;
   addressForm: FormGroup;
+  bankForm: FormGroup;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
   selectedCurrency: ICurrency = this._paymentsService.currencies[0];
@@ -123,6 +124,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   ) { }
 
   ngOnInit() {
+    this.bankForm = this._formBuilder.group({
+      bank: null,
+      bankObject: this._formBuilder.group({
+        bic: null,
+        name: null
+      })
+    });
     this.paymentMethod = this._formBuilder.group({
       selectedPaymentMethod: [null, Validators.required]
     });
@@ -210,7 +218,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       }),
       this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
-      this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.invokePaymentMethod2(source))
+      this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.invokePaymentMethod2(source)),
+      this.bankForm.get('bankObject.bic').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(bic => this.paymentDetails.get('source.bic').setValue(bic))
     );
 
     this.formReady.emit(this.paymentMethod);
@@ -226,6 +235,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
   get source(): FormGroup {
     return <FormGroup>this.paymentDetails.get('source');
+  }
+
+  get paymentMethodName(): string {
+    return this.selectedSourceType ? this.paymentMethods.find(element => element.type == this.selectedSourceType).name : '';
   }
 
   get selectedPaymentMethod(): IPaymentMethod {
@@ -285,7 +298,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   private deselectBank() {
-    let bankObject = this.bankObject || this.paymentDetails.get('source.bankObject');
+    let bankObject = this.bankObject || this.bankForm.get('bankObject');
     bankObject.reset();
   }
 
@@ -303,7 +316,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       let banks: IBank[] = [];
       response.body.countries.forEach(country => banks.push(country.issuers));
       this.banks = <IBank[]>flatten(banks);
-      let bank = <FormControl>this.bank || <FormControl>this.paymentDetails.get('source.bank');
+      let bank = <FormControl>this.bank || <FormControl>this.bankForm.get('bank');
       this.filteredBanks = bank.valueChanges.pipe(
         startWith(''),
         map(value => this._bankFilter(value))
@@ -321,7 +334,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         })
       });
       this.banks = banks;
-      let bank = <FormControl>this.bank || <FormControl>this.paymentDetails.get('source.bank');
+      let bank = <FormControl>this.bank || <FormControl>this.bankForm.get('bank');
       this.filteredBanks = bank.valueChanges.pipe(
         startWith(''),
         map(value => this._bankFilter(value))
@@ -378,10 +391,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   private onBankSelectionChanged() {
-    let bankInput: FormControl = <FormControl>this.bank || <FormControl>this.paymentDetails.get('source.bank');
+    let bankInput: FormControl = <FormControl>this.bank || <FormControl>this.bankForm.get('bank');
     if (bankInput.value) {
       let currentBank: IBank = bankInput.value;
-      let bankObject = this.bankObject || this.paymentDetails.get('source.bankObject');
+      let bankObject = this.bankObject || this.bankForm.get('bankObject');
       bankObject.setValue(currentBank);
       bankInput.setValue(`${currentBank.bic} ${currentBank.name}`);
     }    
@@ -417,10 +430,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.source.addControl('number', new FormControl('4242424242424242', Validators.required));
         this.source.addControl('expiry_month', new FormControl(12, Validators.required));
         this.source.addControl('expiry_year', new FormControl(2022, Validators.required));
-        this.source.addControl('name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }));
+        this.source.addControl('name', new FormControl(this.paymentDetails.value.customer.name));
         this.source.addControl('cvv', new FormControl('100'));
         this.source.addControl('stored', new FormControl(null));
-        this.source.addControl('billing_address', new FormControl({ value: this.paymentDetails.value.billing_address, disabled: true }));
+        this.source.addControl('billing_address', new FormControl(this.paymentDetails.value.billing_address));
         this.source.addControl('phone', new FormControl(null));
         break;
       }
@@ -428,24 +441,21 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'bancontact': {
-        this.source.addControl('payment_country', new FormControl({ value: 'DE', disabled: true }, Validators.required));
-        this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
-        this.source.addControl('billing_descriptor', new FormControl('Bancontact Test Payment'));
+        this.source.addControl('payment_country', new FormControl('DE', Validators.required));
+        this.source.addControl('account_holder_name', new FormControl(this.paymentDetails.value.customer.name, Validators.required));
+        this.source.addControl('billing_descriptor', new FormControl('Checkout.com Demo Shop'));
         break;
       }
       case 'boleto': {
         this.source.addControl('birthDate', new FormControl('1984-03-04', Validators.required));
         this.source.addControl('cpf', new FormControl('00003456789', Validators.required));
-        this.source.addControl('customerName', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
+        this.source.addControl('customerName', new FormControl(this.paymentDetails.value.customer.name, Validators.required));
         break;
       }
       case 'giropay': {
         this.source.addControl('purpose', new FormControl('Giropay Test Payment', Validators.required));
         this.source.addControl('bic', new FormControl(null, Validators.required));
-        this.source.addControl('iban', new FormControl(null));
 
-        this.source.addControl('bank', new FormControl(null, Validators.required));
-        this.source.addControl('bankObject', new FormControl(null, Validators.required));
         this.getBanks(paymentMethod);
         break;
       }
@@ -453,12 +463,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case /*'ideal'*/'lpp_9': {
-        this.source.addControl('description', new FormControl(null, Validators.required));
+        this.source.addControl('description', new FormControl('iDEAL Test Payment', Validators.required));
         this.source.addControl('bic', new FormControl(null, Validators.required));
         this.source.addControl('language', new FormControl(null));
 
-        this.source.addControl('bank', new FormControl(null, Validators.required));
-        this.source.addControl('bankObject', new FormControl(null, Validators.required));
         this.getBanksLegacy(paymentMethod);
         break;
       }
