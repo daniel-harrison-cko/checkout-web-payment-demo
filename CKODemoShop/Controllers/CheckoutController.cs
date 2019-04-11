@@ -169,7 +169,7 @@ namespace CKODemoShop.Controllers
                 {
                     client.DefaultRequestHeaders.Clear();
                     client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
-                    HttpResponseMessage result = await client.GetAsync("https://sbapi.ckotech.co/ideal-external-api/issuers");
+                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/ideal-external/issuers");
                     string content = await result.Content.ReadAsStringAsync();
                     IssuersResponse issuersResponse = JsonConvert.DeserializeObject<IssuersResponse>(content);
                     response = issuersResponse;
@@ -178,7 +178,7 @@ namespace CKODemoShop.Controllers
                 {
                     client.DefaultRequestHeaders.Clear();
                     client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
-                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/giropay/banks");
+                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/banks");
                     string content = await result.Content.ReadAsStringAsync();
                     BanksResponse banksResponse = JsonConvert.DeserializeObject<BanksResponse>(content);
                     response = banksResponse;
