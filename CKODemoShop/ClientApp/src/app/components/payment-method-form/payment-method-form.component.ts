@@ -444,6 +444,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       }
       case 'bancontact': {
         let customerNameControl = this.paymentDetails.get('customer.name');
+
         this.source.addControl('payment_country', new FormControl('DE', Validators.required));
         this.source.addControl('account_holder_name', new FormControl(customerNameControl.value, Validators.required));
         this.source.addControl('billing_descriptor', new FormControl('Checkout.com Demo Shop'));
@@ -454,9 +455,15 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'boleto': {
+        let customerNameControl = this.paymentDetails.get('customer.name');
+
         this.source.addControl('birthDate', new FormControl('1984-03-04', Validators.required));
         this.source.addControl('cpf', new FormControl('00003456789', Validators.required));
-        this.source.addControl('customerName', new FormControl(this.paymentDetails.value.customer.name, Validators.required));
+        this.source.addControl('customerName', new FormControl(customerNameControl.value, Validators.required));
+
+        this.paymentMethodSubsriptions.push(
+          customerNameControl.valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('customerName').setValue(customerName))
+        );
         break;
       }
       case 'giropay': {
