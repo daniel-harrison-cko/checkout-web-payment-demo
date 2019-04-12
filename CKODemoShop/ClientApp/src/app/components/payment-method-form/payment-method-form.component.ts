@@ -96,6 +96,7 @@ const flatten = <T = any>(arr: T[]) => {
 
 export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
+  paymentMethodSubsriptions: Subscription[] = [];
   @Output() formReady = new EventEmitter<FormGroup>();
   paymentMethods: IPaymentMethod[] = PAYMENT_METHODS;
   paymentMethod: FormGroup;
@@ -365,6 +366,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   private resetPaymentMethod2 = () => {
     this.banks = null;
     this.filteredBanks = null;
+    this.paymentMethodSubsriptions.forEach(subscription => subscription.unsubscribe());
     Object.keys(this.source.controls).forEach(key => {
       if (key != 'type') {
         this.source.removeControl(key);
@@ -441,9 +443,14 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'bancontact': {
+        let customerNameControl = this.paymentDetails.get('customer.name');
         this.source.addControl('payment_country', new FormControl('DE', Validators.required));
-        this.source.addControl('account_holder_name', new FormControl(this.paymentDetails.value.customer.name, Validators.required));
+        this.source.addControl('account_holder_name', new FormControl(customerNameControl.value, Validators.required));
         this.source.addControl('billing_descriptor', new FormControl('Checkout.com Demo Shop'));
+
+        this.paymentMethodSubsriptions.push(
+          customerNameControl.valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('account_holder_name').setValue(customerName))
+        );
         break;
       }
       case 'boleto': {

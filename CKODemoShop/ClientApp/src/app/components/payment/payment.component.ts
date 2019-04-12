@@ -69,7 +69,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     });
     this.subscriptions.push(
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
-      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
+      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges)
     );
 
     this.order.updateValueAndValidity();
@@ -78,8 +78,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {
     this.stepper.selectedIndex = 1;
     this.subscriptions.push(
-      this.paymentDetails.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(paymentDetails => { this.paymentRequest = paymentDetails; console.log(this.paymentRequest); }),
-
+      this.paymentDetails.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(paymentDetails => this.paymentRequest = paymentDetails),
       this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod)),
       this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.invokePaymentMethod2(sourceType))
     );
@@ -195,7 +194,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   set threeDs(threeDs: boolean) {
-    let threeDsEnabledField = this.paymentDetails.get('3ds.enabled');
+    let threeDsEnabledField = this.paymentDetails.get('3ds');
     threeDs ? threeDsEnabledField.enable() : threeDsEnabledField.disable();
   }
 
