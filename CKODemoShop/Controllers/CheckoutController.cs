@@ -92,10 +92,10 @@ namespace CKODemoShop.Controllers
         public string Bic { get; set; }
         public string Purpose { get; set; }
         public string Description { get; set; }
-        [JsonProperty(PropertyName = "customer_name")]
+        [JsonProperty(PropertyName = "customerName")]
         public string CustomerName { get; set; }
         public string Cpf { get; set; }
-        [JsonProperty(PropertyName = "birth_date")]
+        [JsonProperty(PropertyName = "birthDate")]
         public string BirthDate { get; set; }
         [JsonProperty(PropertyName = "authorization_token")]
         public string AuthorizationToken { get; set; }
@@ -165,7 +165,7 @@ namespace CKODemoShop.Controllers
             object response;
             try
             {
-                if (lppId == "lpp_9")
+                if (lppId == "ideal")
                 {
                     client.DefaultRequestHeaders.Clear();
                     client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
