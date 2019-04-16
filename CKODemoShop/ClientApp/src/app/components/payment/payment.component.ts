@@ -59,7 +59,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   ngAfterViewInit() {
     this.subscriptions.push(
       this.paymentDetails.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(paymentDetails => this.paymentRequest = paymentDetails),
-      this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.invokePaymentMethod(sourceType))
+      this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.routePaymentMethod(sourceType))
     );
   }
 
@@ -91,46 +91,33 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   };
 
-  private invokePaymentMethod(sourceType: string) {
+  private setupPaymentMethod(paymentFlow: Function, autoCapture?: boolean, threeDs?: boolean, paymentConfirmationRequired?: boolean) {
+    this.makePayment = paymentFlow;
+    this.autoCapture = autoCapture;
+    this.threeDs = threeDs;
+    this.paymentConfirmationRequired = paymentConfirmationRequired;
+  }
+
+  private routePaymentMethod(sourceType: string) {
     switch (sourceType) {
       case 'card': {
-        this.autoCapture = true;
-        this.threeDs = true;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow, true, true );
         break;
       }
       case 'alipay': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
       case 'bancontact': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
       case 'boleto': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
       case 'giropay': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
       case 'googlepay': {
@@ -200,27 +187,15 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       case 'ideal': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
       case 'paypal': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
       case 'poli': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
       case 'sepa': {
@@ -240,11 +215,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         break;
       }
       case 'sofort': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
-
-        this.makePayment = this.standardPaymentFlow;
+        this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
       default: {
@@ -295,7 +266,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         break;
       }
-      case 'klarna': {
+      /*case 'klarna': {
         let klarnaAuthorizeCallback = (response) => {
           this._paymentService.requestPayment({
             currency: this.paymentDetails.value.currency,
@@ -326,7 +297,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           })
         }
         break;
-      }
+      }*/
       default: {
         console.warn(`No ${paymentMethod.name} specific action was defined!`);
         this.makePayment = () => { throw new Error(`${paymentMethod.name} payment is not implemented yet!`) };
