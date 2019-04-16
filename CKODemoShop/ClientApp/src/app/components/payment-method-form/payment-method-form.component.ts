@@ -10,6 +10,7 @@ import { HttpResponse } from '@angular/common/http';
 import { IKlarnaPaymentOption } from 'src/app/interfaces/klarna-payment-option.interface';
 import { ScriptService } from 'src/app/services/script.service';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
+import { v4 as uuid } from 'uuid';
 
 declare var Klarna: any;
 const PAYMENT_METHODS: IPaymentMethod[] = [
@@ -50,7 +51,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   },
   {
     name: 'iDEAL',
-    type: 'lpp_9',
+    type: 'ideal',
     processingCurrencies: ['EUR']
   },
   {
@@ -101,7 +102,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   paymentMethods: IPaymentMethod[] = PAYMENT_METHODS;
   paymentMethod: FormGroup;
   paymentDetails: FormGroup;
+  customerFullName: FormGroup;
   listenToValueChanges: boolean;
+  paymentMethodRequiresAdditionalInformation: boolean;
   selectedSourceType: string;
   klarnaPaymentOptions: IKlarnaPaymentOption[];
   creditCardForm: FormGroup;
@@ -114,7 +117,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
   selectedCurrency: ICurrency = this._paymentsService.currencies[0];
-  klarnaProductColumns: string[] =['name', 'quantity', 'unit_price', 'total_amount'];
+  klarnaProductColumns: string[] = ['name', 'quantity', 'unit_price', 'total_amount'];
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -219,6 +222,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       }),
       this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
+      this._paymentDetailsService.customerFullName$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customerFullName = customerFullName),
       this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.invokePaymentMethod2(source)),
       this.bankForm.get('bankObject.bic').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(bic => this.paymentDetails.get('source.bic').setValue(bic))
     );
@@ -231,7 +235,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   private matchProcessingCurrencies(processingCurrencies: string[]): boolean {
-    return processingCurrencies.length == 0 ? true : processingCurrencies.includes(this.selectedCurrency.iso4217);
+    return processingCurrencies.length == 0 ? true : processingCurrencies.includes(this.paymentDetails.get('currency').value);
   }
 
   get source(): FormGroup {
@@ -364,6 +368,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   get klarnaGrandTotal() { return (this.klarnaForm.get('products').value as []).map(this.klarnaProductTotal).reduce(this.klarnaProductsTotal) };
 
   private resetPaymentMethod2 = () => {
+    this.paymentMethodRequiresAdditionalInformation = null;
     this.banks = null;
     this.filteredBanks = null;
     this.paymentMethodSubsriptions.forEach(subscription => subscription.unsubscribe());
@@ -429,6 +434,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this.resetPaymentMethod2();
     switch (paymentMethod.type) {
       case 'card': {
+        this.paymentMethodRequiresAdditionalInformation = true;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         this.source.addControl('number', new FormControl('4242424242424242', Validators.required));
         this.source.addControl('expiry_month', new FormControl(12, Validators.required));
         this.source.addControl('expiry_year', new FormControl(2022, Validators.required));
@@ -440,43 +448,59 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'alipay': {
+        this.paymentMethodRequiresAdditionalInformation = false;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         break;
       }
       case 'bancontact': {
-        let customerNameControl = this.paymentDetails.get('customer.name');
+        this.paymentMethodRequiresAdditionalInformation = true;
+        this._paymentDetailsService.requiresConfirmationStep = false;
 
         this.source.addControl('payment_country', new FormControl('DE', Validators.required));
-        this.source.addControl('account_holder_name', new FormControl(customerNameControl.value, Validators.required));
+        this.source.addControl('account_holder_name', new FormControl(this.paymentDetails.get('customer.name').value, Validators.required));
         this.source.addControl('billing_descriptor', new FormControl('Checkout.com Demo Shop'));
 
         this.paymentMethodSubsriptions.push(
-          customerNameControl.valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('account_holder_name').setValue(customerName))
+          this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('account_holder_name').setValue(customerName)),
+          this.source.get('account_holder_name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.paymentDetails.get('customer.name').setValue(customerName))
         );
         break;
       }
       case 'boleto': {
-        let customerNameControl = this.paymentDetails.get('customer.name');
+        this.paymentMethodRequiresAdditionalInformation = true;
+        this._paymentDetailsService.requiresConfirmationStep = false;
 
-        this.source.addControl('birthDate', new FormControl('1984-03-04', Validators.required));
+        this.source.addControl('birthDate', new FormControl('1939-02-19', Validators.required));
         this.source.addControl('cpf', new FormControl('00003456789', Validators.required));
-        this.source.addControl('customerName', new FormControl(customerNameControl.value, Validators.required));
+        this.source.addControl('customerName', new FormControl(this.paymentDetails.get('customer.name').value, Validators.required));
 
         this.paymentMethodSubsriptions.push(
-          customerNameControl.valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('customerName').setValue(customerName))
+          this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('customerName').setValue(customerName)),
+          this.source.get('customerName').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.paymentDetails.get('customer.name').setValue(customerName))
         );
         break;
       }
       case 'giropay': {
+        this.paymentMethodRequiresAdditionalInformation = true;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         this.source.addControl('purpose', new FormControl('Giropay Test Payment', Validators.required));
-        this.source.addControl('bic', new FormControl(null, Validators.required));
+        this.source.addControl('bic', new FormControl(null));
 
         this.getBanks(paymentMethod);
         break;
       }
       case 'googlepay': {
+        this.paymentMethodRequiresAdditionalInformation = false;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         break;
       }
-      case /*'ideal'*/'lpp_9': {
+      case 'ideal': {
+        this.paymentMethodRequiresAdditionalInformation = true;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         this.source.addControl('description', new FormControl('iDEAL Test Payment', Validators.required));
         this.source.addControl('bic', new FormControl(null, Validators.required));
         this.source.addControl('language', new FormControl(null));
@@ -485,6 +509,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'klarna': {
+        this.paymentMethodRequiresAdditionalInformation = true;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         this.source.addControl('authorization_token', new FormControl(null, Validators.required));
         this.source.addControl('locale', new FormControl(null, Validators.required));
         this.source.addControl('purchase_country', new FormControl(null, Validators.required));
@@ -501,20 +528,70 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         break;
       }
       case 'paypal': {
+        this.paymentMethodRequiresAdditionalInformation = false;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         break;
       }
       case 'poli': {
+        this.paymentMethodRequiresAdditionalInformation = false;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         break;
       }
       case 'sepa': {
-        this.source.addControl('reference', new FormControl(null));
-        this.source.addControl('billing_address', new FormControl(null, Validators.required));
-        this.source.addControl('phone', new FormControl(null));
-        this.source.addControl('customer', new FormControl(null));
-        this.source.addControl('source_data', this.sepaSourceDataForm);
+        this.paymentMethodRequiresAdditionalInformation = true;
+        this._paymentDetailsService.requiresConfirmationStep = true;
+
+        this.source.addControl('reference', new FormControl(`cko_demo_${uuid()}`));
+        this.source.addControl(
+          'billing_address',
+          this._formBuilder.group({
+            address_line1: null,
+            address_line2: null,
+            city: null,
+            state: null,
+            zip: null,
+            country: null
+          })
+        );
+        this.source.addControl(
+          'phone',
+          this._formBuilder.group({
+            country_code: null,
+            number: null
+          })
+        );
+        this.source.addControl('customer', new FormControl(this.paymentDetails.get('customer').value));
+        this.source.addControl(
+          'source_data',
+          this._formBuilder.group({
+            first_name: ['Bruce', Validators.required],
+            last_name: ['Wayne', Validators.required],
+            account_iban: ['DE25100100101234567893', Validators.required],
+            // PBNKDEFFXXX is the required value for bic in Sandbox
+            bic: ['PBNKDEFFXXX', Validators.required],
+            billing_descriptor: ['CKO Demo Shop', Validators.required],
+            mandate_type: ['single', Validators.required]
+          })
+        );
+
+        this.source.get('billing_address').setValue(this.paymentDetails.get('billing_address').value);
+
+        this.paymentMethodSubsriptions.push(
+          this.paymentDetails.get('customer').valueChanges.pipe(distinctUntilChanged()).subscribe(customer => this.source.get('customer').setValue(customer)),
+          this.customerFullName.valueChanges.pipe(distinctUntilChanged()).subscribe(customerFullName => {
+            this.source.get('source_data.first_name').setValue(customerFullName.given_name);
+            this.source.get('source_data.last_name').setValue(customerFullName.family_name);
+          }),
+          this.paymentDetails.get('billing_address').valueChanges.pipe(distinctUntilChanged()).subscribe(billingAddress => this.source.get('billing_address').setValue(billingAddress))
+        );
         break;
       }
       case 'sofort': {
+        this.paymentMethodRequiresAdditionalInformation = false;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
         break;
       }
       default: {
@@ -531,58 +608,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       case 'cko-frames': {
         break;
       }
-      case 'card': {
-        this.paymentMethod.registerControl('card', this.creditCardForm);
-        break;
-      }
-      case 'alipay': {
-        break;
-      }
-      case 'bancontact': {
-        this.paymentMethod.registerControl('paymentCountry', new FormControl('DE', Validators.required));
-        this.paymentMethod.registerControl('accountHolderName', new FormControl('Bruce Wayne', Validators.required));
-        this.paymentMethod.registerControl('billingDescriptor', new FormControl(null));
-        break;
-      }
-      case 'boleto': {
-        this.paymentMethod.registerControl('customerName', new FormControl('Sarah Mitchell', Validators.required));
-        this.paymentMethod.registerControl('cpf', new FormControl('00003456789', Validators.required));
-        this.paymentMethod.registerControl('birthDate', new FormControl('1984-03-04', Validators.required));
-        break;
-      }
-      case 'giropay': {
-        this.paymentMethod.registerControl('bank', new FormControl(null, Validators.required));
-        this.paymentMethod.registerControl('bankObject', new FormControl(null, Validators.required));
-        this.getBanks(paymentMethod);
-        break;
-      }
-      case 'googlepay': {
-        break;
-      }
       case 'klarna': {
         this.paymentMethod.registerControl('klarnaSession', this.klarnaForm);
         this.paymentMethod.registerControl('klarnaPaymentOption', new FormControl(null, Validators.required));
         this.requestKlarnaSession();
-      }
-      case 'paypal': {
-        break;
-      }
-      case 'poli': {
-        break;
-      }
-      case 'lpp_9': {
-        this.paymentMethod.registerControl('bank', new FormControl(null, Validators.required));
-        this.paymentMethod.registerControl('bankObject', new FormControl(null, Validators.required));
-        this.getBanksLegacy(paymentMethod);
-        break;
-      }
-      case 'sepa': {
-        this.paymentMethod.registerControl('mandate', this.sepaSourceDataForm);
-        this.paymentMethod.registerControl('address', this.addressForm);
-        break;
-      }
-      case 'sofort': {
-        break;
       }
       default: {
         throw new Error(`Handling of Payment Method type ${paymentMethod.type} is not implemented!`);

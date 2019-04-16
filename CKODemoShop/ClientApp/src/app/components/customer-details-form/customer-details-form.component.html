@@ -7,9 +7,12 @@
 <ng-template #billing>
   <h4>Billing Details</h4>
   <div [formGroup]="paymentDetails">
-    <div formGroupName="customer">
-      <mat-form-field form-field="name">
-        <input matInput placeholder="Recipient" formControlName="name">
+    <div [formGroup]="customerFullName">
+      <mat-form-field form-field="given_name">
+        <input matInput placeholder="Given Name" formControlName="given_name">
+      </mat-form-field>
+      <mat-form-field form-field="family_name">
+        <input matInput placeholder="Family Name" formControlName="family_name">
       </mat-form-field>
     </div>
     <div formGroupName="billing_address">
@@ -31,7 +34,6 @@
     </div>
     <div formGroupName="customer">
       <mat-form-field form-field="email">
-        <span matPrefix><mat-icon>alternate_email</mat-icon>&nbsp;</span>
         <input matInput placeholder="Email" formControlName="email">
       </mat-form-field>
     </div>
@@ -68,7 +70,7 @@
     <div formGroupName="shipping">
       <div formGroupName="phone">
         <mat-form-field form-field="country_code">
-          <span matPrefix><mat-icon>phone</mat-icon>&nbsp;</span>
+          <span matPrefix>Phone&nbsp;</span>
           <input matInput placeholder="Country Code" formControlName="country_code">
         </mat-form-field>
         <mat-form-field form-field="number">
@@ -78,12 +80,12 @@
     </div>
   </div>
   <br />
-  <button mat-stroked-button color="warn" (click)="removeShippingAddress()">Remove Shipping Address</button>
+  <button mat-stroked-button color="warn" (click)="removeShippingAddress()">Remove Shipping Details</button>
 </ng-template>
 <!-- shipping_to_billing template -->
 <ng-template #shipping_to_billing>
   <br />
-  <button mat-stroked-button color="primary" (click)="addShippingAddress()">Add Shipping Address</button>
+  <button mat-stroked-button color="primary" (click)="addShippingAddress()">Add Shipping Details</button>
 </ng-template>
 <form *ngIf="paymentDetails; else loading">
   <div class="payment-setup">

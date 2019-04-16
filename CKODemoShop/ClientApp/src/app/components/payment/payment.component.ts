@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, NgZone, AfterViewInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, AbstractControl, FormControl } from '@angular/forms';
+import { Component, OnInit, OnDestroy, NgZone, AfterViewInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { PaymentsService } from '../../services/payments.service';
 import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
@@ -8,12 +8,9 @@ import { ScriptService } from '../../services/script.service';
 import { ITokenSource } from 'src/app/interfaces/token-source.interface';
 import { Router } from '@angular/router';
 import { IPayment } from 'src/app/interfaces/payment.interface';
-import { IBank } from 'src/app/interfaces/bank.interface';
-import { ISourceData } from 'src/app/interfaces/source-data.interface';
 import { SourcesService } from 'src/app/services/sources.service';
 import { IIdSource } from 'src/app/interfaces/id-source.interface';
 import { ISource } from 'src/app/interfaces/source.interface';
-import { MatStepper } from '@angular/material';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 
@@ -28,17 +25,15 @@ declare var Klarna: any;
 export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptions: Subscription[] = [];
   isLinear = true;
-  order: FormGroup;
   paymentRequest: any;
   paymentDetails: FormGroup;
   listenToValueChanges: boolean;
+  requiresConfirmationStep: boolean;
   sourceDetails: FormGroup;
-  confirmation: FormGroup;
-  sepaMandateAgreement: FormControl;
+  paymentConfirmation: FormGroup;
   creditorIdentifier: string = 'DE36ZZZ00001690322';
   processing: boolean;
   makePayment: Function;
-  @ViewChild('stepper') stepper: MatStepper;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -50,142 +45,26 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     private _ngZone: NgZone
   ) { }
 
-  formInitialized(name: string, form: FormGroup) {
-    this.order.setControl(name, form);
-  }
-
-  controlInitialized(name: string, control: FormControl) {
-    this.order.setControl(name, control);
-  }
-
-  ngOnInit() {    
-    this.order = this._formBuilder.group({
-      product: null,
-      paymentMethod: null
-    });
-    this.sepaMandateAgreement = this._formBuilder.control(null, Validators.required);
-    this.confirmation = this._formBuilder.group({
-      sepaMandateAgreement: this.sepaMandateAgreement
+  ngOnInit() {
+    this.paymentConfirmation = this._formBuilder.group({
+      approved: [false, Validators.requiredTrue]
     });
     this.subscriptions.push(
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
-      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges)
+      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
+      this._paymentDetailsService.requiresConfirmationStep$.subscribe(requiresConfirmationStep => this.requiresConfirmationStep = requiresConfirmationStep)
     );
-
-    this.order.updateValueAndValidity();
   }
 
   ngAfterViewInit() {
-    this.stepper.selectedIndex = 1;
     this.subscriptions.push(
       this.paymentDetails.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(paymentDetails => this.paymentRequest = paymentDetails),
-      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(selectedPaymentMethod => this.invokePaymentMethod(selectedPaymentMethod)),
-      this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.invokePaymentMethod2(sourceType))
+      this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.invokePaymentMethod(sourceType))
     );
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
-  }
-
-  get product(): AbstractControl {
-    return this.order.get('product');
-  }
-
-  get autoCaptureControl(): AbstractControl {
-    return this.order.get('paymentConfiguration.autoCapture');
-  }
-
-  get autoCapture(): boolean {
-    return this.autoCaptureControl.value;
-  }
-
-  get threeDsControl(): AbstractControl {
-    return this.order.get('paymentConfiguration.threeDs');
-  }
-
-  get threeDs(): boolean {
-    return this.threeDsControl.value;
-  }
-
-  get paymentMethod(): AbstractControl {
-    return this.order.get('paymentMethod');
-  }
-
-  get mandate(): AbstractControl {
-    return this.paymentMethod.get('mandate');
-  }
-
-  get klarnaSession(): AbstractControl {
-    return this.paymentMethod.get('klarnaSession');
-  }
-
-  get selectedPaymentMethod(): IPaymentMethod {
-    return this.paymentMethod.get('selectedPaymentMethod').value;
-  }
-
-  get card(): string {
-    return this.paymentMethod.get('card').value;
-  }
-
-  get bank(): IBank {
-    return this.paymentMethod.get('bankObject').value;
-  };
-
-  get amountControl(): AbstractControl {
-    return this.product.get('amount');
-  };
-
-  get amount(): number {
-    return this.amountControl.value;
-  };
-
-  get currency(): string {
-    return this.product.get('currency').value;
-  }
-
-  get accountHolder(): string {
-    return this.mandate.get('account_holder').value;
-  }
-
-  get iban(): string {
-    return this.mandate.get('account_iban').value;
-  }
-
-  get bic(): string {
-    return this.mandate.get('bic').value;
-  }
-
-  get mandateType(): string {
-    return this.mandate.get('mandate_type').value;
-  }
-
-  get address(): string {
-    return this.paymentMethod.get('address').value;
-  }
-
-  get customerName(): string {
-    return this.paymentMethod.get('customerName').value;
-  }
-
-  get cpf(): string {
-    return this.paymentMethod.get('cpf').value;
-  }
-
-  get birthDate(): string {
-    return this.paymentMethod.get('birthDate').value;
-  }
-
-  get paymentCountry(): string {
-    return this.paymentMethod.get('paymentCountry').value;
-  }
-
-  get billingDescriptor(): string {
-    return this.paymentMethod.get('billingDescriptor').value;
-  }
-
-  private resetOrder = () => {
-    this.order.removeControl('confirmation');
   }
 
   set autoCapture(autoCapture: boolean) {
@@ -198,6 +77,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     threeDs ? threeDsEnabledField.enable() : threeDsEnabledField.disable();
   }
 
+  set paymentConfirmationRequired(paymentConfirmationRequired: boolean) {
+    paymentConfirmationRequired ? this.paymentConfirmation.enable() : this.paymentConfirmation.disable();
+  }
+
   private standardPaymentFlow = () => {
     this.processing = true;
     this._paymentService.requestPayment(this.paymentRequest).subscribe(
@@ -208,204 +91,53 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   };
 
-  private invokePaymentMethod2(sourceType: string) {
-    this.resetOrder();
+  private invokePaymentMethod(sourceType: string) {
     switch (sourceType) {
       case 'card': {
         this.autoCapture = true;
         this.threeDs = true;
-        this.makePayment = this.standardPaymentFlow;
-        break;
-      }
-      case 'bancontact': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.makePayment = this.standardPaymentFlow;
-        break;
-      }
-      case 'giropay': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.makePayment = this.standardPaymentFlow;
-        break;
-      }
-      case 'sofort': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.makePayment = this.standardPaymentFlow;
-        break;
-      }
-      default: {
-        console.warn(`No ${sourceType} specific action was defined!`);
-        this.makePayment = () => { throw new Error(`${sourceType} payment is not implemented yet!`) };
-        break;
-      }
-    }
-  }
+        this.paymentConfirmationRequired = false;
 
-  private invokePaymentMethod(paymentMethod: IPaymentMethod) {
-    this.resetOrder();
-    switch (paymentMethod.type) {
-      case 'cko-frames': {
-        this.autoCaptureControl.enable();
-        this.threeDsControl.enable();
-        this._scriptService.load('cko-frames')
-          .then(data => {
-            let cardTokenisedCallback = (event) => {
-              this._paymentService.requestPayment({
-                currency: this.currency,
-                amount: this.amount,
-                source: <ITokenSource>{
-                  type: 'token',
-                  token: event.data.cardToken
-                },
-                capture: this.autoCapture,
-                '3ds': {
-                  enabled: this.threeDs
-                }
-              }).subscribe(
-                response => this.handlePaymentResponse(response),
-                error => {
-                  console.warn(error);
-                  this.processing = null;
-                });
-            };
-            Frames.init({
-              publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
-              containerSelector: '.cko-container',
-              cardTokenised: function (event) {
-                cardTokenisedCallback(event);
-              },
-              cardTokenisationFailed: function (event) {
-                // catch the error
-              }
-            });
-          })
-          .catch(error => console.log(error));
-        this.makePayment = () => {
-          this.processing = true;
-          Frames.submitCard();
-        };
-        break;
-      }
-      case 'card': {
-        this.autoCaptureControl.enable();
-        this.threeDsControl.enable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type: 'card',
-              number: this.card["number"],
-              expiry_month: Number((<string>this.card["expiration"]).slice(0, 2)),
-              expiry_year: Number((<string>this.card["expiration"]).slice(2))
-            },
-            capture: this.autoCapture,
-            '3ds': {
-              enabled: this.threeDs
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
+        this.makePayment = this.standardPaymentFlow;
         break;
       }
       case 'alipay': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type: paymentMethod.type
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
+        this.makePayment = this.standardPaymentFlow;
         break;
       }
       case 'bancontact': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type: paymentMethod.type,
-              payment_country: this.paymentCountry,
-              account_holder_name: this.paymentDetails.get('customer.name').value,
-              billing_descriptor: this.billingDescriptor
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
+        this.makePayment = this.standardPaymentFlow;
         break;
       }
       case 'boleto': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type: paymentMethod.type,
-              customer_name: this.paymentDetails.get('customer.name').value,
-              cpf: this.cpf,
-              birth_date: this.birthDate
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
+        this.makePayment = this.standardPaymentFlow;
         break;
       }
       case 'giropay': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type: paymentMethod.type,
-              purpose: 'CKO Demo Shop Test',
-              bic: this.bank.bic
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
+        this.makePayment = this.standardPaymentFlow;
         break;
       }
       case 'googlepay': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
         let googleClient;
         let allowedPaymentMethods = ['CARD', 'TOKENIZED_CARD'];
         this._scriptService.load('googlepay')
@@ -415,7 +147,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.processing = true;
                 let processPayment = (paymentData) => {
                   this._paymentService.requestToken({
-                    wallet_type: paymentMethod.type,
+                    wallet_type: this.paymentDetails.value.source.type,
                     token_data: JSON.parse(paymentData.paymentMethodToken.token)
                   }).subscribe(
                     response => this.handleSourceResponse(response),
@@ -438,9 +170,9 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                     allowedCardNetworks: ['MASTERCARD', 'VISA']
                   },
                   transactionInfo: {
-                    currencyCode: this.currency,
+                    currencyCode: this.paymentDetails.value.currency,
                     totalPriceStatus: 'FINAL',
-                    totalPrice: this.amount
+                    totalPrice: this.paymentDetails.value.amount
                   }
                 };
 
@@ -467,21 +199,39 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           });
         break;
       }
-      case 'lpp_9': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
+      case 'ideal': {
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
+        this.makePayment = this.standardPaymentFlow;
+        break;
+      }
+      case 'paypal': {
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
+        this.makePayment = this.standardPaymentFlow;
+        break;
+      }
+      case 'poli': {
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
+        this.makePayment = this.standardPaymentFlow;
+        break;
+      }
+      case 'sepa': {
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = true;
+
         this.makePayment = () => {
           this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type: 'ideal',
-              bic: this.bank.bic,
-              description: 'CKO Demo Shop Test',
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
+          this._sourcesService.requestSource(this.paymentDetails.value.source).subscribe(
+            response => this.handleSourceResponse(response),
             error => {
               console.warn(error);
               this.processing = null;
@@ -489,13 +239,67 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         break;
       }
+      case 'sofort': {
+        this.autoCapture = false;
+        this.threeDs = false;
+        this.paymentConfirmationRequired = false;
+
+        this.makePayment = this.standardPaymentFlow;
+        break;
+      }
+      default: {
+        console.warn(`No ${sourceType} specific action was defined!`);
+        this.makePayment = () => { throw new Error(`${sourceType} payment is not implemented yet!`) };
+        break;
+      }
+    }
+  }
+
+  private LEGACYinvokePaymentMethod(paymentMethod: IPaymentMethod) {
+    switch (paymentMethod.type) {
+      case 'cko-frames': {
+        this._scriptService.load('cko-frames')
+          .then(data => {
+            let cardTokenisedCallback = (event) => {
+              this._paymentService.requestPayment({
+                currency: this.paymentDetails.value.currency,
+                amount: this.paymentDetails.value.amount,
+                source: <ITokenSource>{
+                  type: 'token',
+                  token: event.data.cardToken
+                },
+                capture: this.paymentDetails.value.capture,
+                '3ds': this.paymentDetails.value['3ds']
+              }).subscribe(
+                response => this.handlePaymentResponse(response),
+                error => {
+                  console.warn(error);
+                  this.processing = null;
+                });
+            };
+            Frames.init({
+              publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
+              containerSelector: '.cko-container',
+              cardTokenised: function (event) {
+                cardTokenisedCallback(event);
+              },
+              cardTokenisationFailed: function (event) {
+                // catch the error
+              }
+            });
+          })
+          .catch(error => console.log(error));
+        this.makePayment = () => {
+          this.processing = true;
+          Frames.submitCard();
+        };
+        break;
+      }
       case 'klarna': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
         let klarnaAuthorizeCallback = (response) => {
           this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
+            currency: this.paymentDetails.value.currency,
+            amount: this.paymentDetails.value.amount,
             source: {
               type: paymentMethod.type,
               authorization_token: response.authorization_token,
@@ -521,86 +325,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             klarnaAuthorizeCallback(response);
           })
         }
-        break;
-      }
-      case 'paypal': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type : paymentMethod.type
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        }
-        break;
-      }
-      case 'poli': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type: paymentMethod.type
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
-        break;
-      }
-      case 'sepa': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.sepaMandateAgreement.setValue(null);
-        this.formInitialized('confirmation', this.confirmation);
-        this.makePayment = () => {
-          this.processing = true;
-          this._sourcesService.requestSource({
-            type: paymentMethod.type,
-            billing_address: this.address,
-            source_data: <ISourceData>this.mandate.value
-          }).subscribe(
-            response => this.handleSourceResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
-        break;
-      }
-      case 'sofort': {
-        this.autoCaptureControl.disable();
-        this.threeDsControl.disable();
-        this.makePayment = () => {
-          this.processing = true;
-          this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
-            source: {
-              type: paymentMethod.type
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
         break;
       }
       default: {
@@ -636,8 +360,8 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       switch (response.status) {
         case 201: {
           this._paymentService.requestPayment({
-            currency: this.currency,
-            amount: this.amount,
+            currency: this.paymentDetails.value.currency,
+            amount: this.paymentDetails.value.amount,
             source: source
           }).subscribe(
             response => this.handlePaymentResponse(response),
@@ -648,7 +372,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           break;
         }
         default: {
-          this.order.get('paymentMethod').reset();
           this.processing = null;
           throw new Error(`Handling of response status ${response.status} is not implemented!`);
         }
@@ -675,7 +398,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           break;
         }
         default: {
-          this.order.get('paymentMethod').reset();
           this.processing = null;
           throw new Error(`Handling of response status ${response.status} is not implemented!`);
         }

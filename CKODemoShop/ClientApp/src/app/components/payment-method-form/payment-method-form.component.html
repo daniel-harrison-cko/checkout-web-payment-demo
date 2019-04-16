@@ -5,7 +5,7 @@
         <span title="{{paymentMethod.processingCurrencies}}">{{paymentMethod.name}}</span>
       </mat-radio-button>
     </mat-radio-group>
-    <mat-card>
+    <mat-card *ngIf="paymentMethodRequiresAdditionalInformation">
       <mat-card-header>
         <mat-card-title>{{paymentMethodName}}</mat-card-title>
         <mat-card-subtitle>Payment Information</mat-card-subtitle>
@@ -13,11 +13,13 @@
       <mat-card-content>
         <div class="payment-configurators">
           <ng-container *ngIf="paymentDetails.value.source.type == 'card'">
-            <div class="card-container">
+            <div class="row">
               <mat-form-field form-field="card_number">
                 <input matInput placeholder="Card Number" formControlName="number" autocomplete="cc-number" required />
                 <mat-error *ngIf="paymentDetails.get('source.number').hasError('required')">Please enter a Credit Card number</mat-error>
               </mat-form-field>
+            </div>
+            <div class="row">
               <mat-form-field form-field="card_expiry_month">
                 <input matInput placeholder="Expiry Month" formControlName="expiry_month" autocomplete="cc-exp-month" required />
                 <mat-hint>(MM)</mat-hint>
@@ -32,33 +34,62 @@
                 <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
                 <mat-error *ngIf="paymentDetails.get('source.cvv').hasError('minlength') || creditCardForm.get('cvv').hasError('maxlength')">Your CVV must have 3-4 digits</mat-error>
               </mat-form-field>
-            </div>
+            </div>            
           </ng-container>
           <ng-container *ngIf="paymentDetails.value.source.type == 'bancontact'">
-            <span>Account Holder Name as per Billing Information: {{paymentDetails.value.source.account_holder_name}}</span>
-            <mat-form-field form-field="bancontact_billing_descriptor">
-              <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />
-            </mat-form-field>
+            <div [formGroup]="customerFullName" class="row">
+              <mat-form-field form-field="customer_full_name_given_name">
+                <input matInput placeholder="Given Name" formControlName="given_name" required />
+              </mat-form-field>
+              <mat-form-field form-field="customer_full_name_family_name">
+                <input matInput placeholder="Family Name" formControlName="family_name" required />
+              </mat-form-field>
+            </div>
+            <div class="row">
+              <mat-form-field form-field="bancontact_billing_descriptor">
+                <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />
+              </mat-form-field>
+            </div>            
           </ng-container>
           <ng-container *ngIf="paymentDetails.value.source.type == 'boleto'">
-            <mat-form-field form-field="boleto_customerName">
-              <input matInput placeholder="Full Name" formControlName="customerName" required />
-              <mat-hint>Same as name in Billing Information</mat-hint>
-            </mat-form-field>
-            <mat-form-field form-field="boleto_cpf">
-              <input matInput placeholder="CPF" formControlName="cpf" required />
-              <mat-hint>Please provide your CPF (= Brazilian National Insurance Number)</mat-hint>
-              <mat-error *ngIf="paymentDetails.get('source.cpf').hasError('required')">Please provide your CPF</mat-error>
-            </mat-form-field>
-            <mat-form-field form-field="boleto_birthDate">
-              <input matInput placeholder="Date of Birth" formControlName="birthDate" required />
-              <mat-hint>(YYYY-MM-DD)</mat-hint>
-              <mat-error *ngIf="paymentDetails.get('source.birthDate').hasError('required')">Please provide your Date of Birth</mat-error>
-            </mat-form-field>
+            <div [formGroup]="customerFullName" class="row">
+              <mat-form-field form-field="customer_full_name_given_name">
+                <input matInput placeholder="Given Name" formControlName="given_name" required />
+              </mat-form-field>
+              <mat-form-field form-field="customer_full_name_family_name">
+                <input matInput placeholder="Family Name" formControlName="family_name" required />
+              </mat-form-field>
+            </div>
+            <div class="row">
+              <mat-form-field form-field="boleto_cpf">
+                <input matInput placeholder="CPF" formControlName="cpf" required />
+                <mat-hint>Please provide your CPF (= Brazilian National Insurance Number)</mat-hint>
+                <mat-error *ngIf="paymentDetails.get('source.cpf').hasError('required')">Please provide your CPF</mat-error>
+              </mat-form-field>
+            </div>
+            <div class="row">
+              <mat-form-field form-field="boleto_birthDate">
+                <input matInput placeholder="Date of Birth" formControlName="birthDate" required />
+                <mat-hint>(YYYY-MM-DD)</mat-hint>
+                <mat-error *ngIf="paymentDetails.get('source.birthDate').hasError('required')">Please provide your Date of Birth</mat-error>
+              </mat-form-field>
+            </div>
           </ng-container>
           <ng-container *ngIf="paymentDetails.value.source.type == 'giropay'" [formGroup]="bankForm">
             <mat-form-field class="wide">
-              <input type="text" placeholder="Select a bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()" required>
+              <input type="text" placeholder="Your bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()">
+              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
+                <mat-option>--</mat-option>
+                <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+                  <span class="monospace">{{bank.bic}}</span> {{bank.name}}
+                </mat-option>
+              </mat-autocomplete>
+              <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list</mat-hint>
+            </mat-form-field>
+          </ng-container>
+          <ng-container *ngIf="paymentDetails.value.source.type == 'ideal'" [formGroup]="bankForm">
+            <mat-form-field class="wide">
+              <input type="text" placeholder="Your bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()" required>
               <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
                 <mat-option>--</mat-option>
                 <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
@@ -69,18 +100,49 @@
               <mat-error *ngIf="bankForm.get('bank').hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment</mat-error>
             </mat-form-field>
           </ng-container>
-          <ng-container *ngIf="paymentDetails.value.source.type == 'lpp_9'" [formGroup]="bankForm">
-            <mat-form-field class="wide">
-              <input type="text" placeholder="Select a bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()" required>
-              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
-                <mat-option>--</mat-option>
-                <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
-                  <span class="monospace">{{bank.bic}}</span> {{bank.name}}
-                </mat-option>
-              </mat-autocomplete>
-              <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list</mat-hint>
-              <mat-error *ngIf="bankForm.get('bank').hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment</mat-error>
-            </mat-form-field>
+          <ng-container *ngIf="paymentDetails.value.source.type == 'sepa'">
+            <div [formGroup]="customerFullName" class="row">
+              <mat-form-field form-field="customer_full_name_given_name">
+                <input matInput placeholder="Given Name" formControlName="given_name" required />
+              </mat-form-field>
+              <mat-form-field form-field="customer_full_name_family_name">
+                <input matInput placeholder="Family Name" formControlName="family_name" required />
+              </mat-form-field>
+            </div>
+            <br />
+            <div formGroupName="source_data" class="row">
+              <mat-form-field form-field="sepa_source_data_account_iban">
+                <input matInput placeholder="IBAN" formControlName="account_iban" />
+                <mat-hint>BIC: {{paymentDetails.get('source.source_data.bic').value}} (must be this for Sandbox)</mat-hint>
+              </mat-form-field>
+            </div>
+            <div formGroupName="phone" class="row">
+              <mat-form-field form-field="sepa_phone_country_code">
+                <span matPrefix><mat-icon>phone</mat-icon>&nbsp;</span>
+                <input matInput placeholder="Country Code" formControlName="country_code">
+              </mat-form-field>
+              <mat-form-field form-field="sepa_phone_number">
+                <input matInput placeholder="Number" formControlName="number">
+              </mat-form-field>
+            </div>
+            <div formGroupName="source_data">
+              <div class="row">
+                <mat-form-field form-field="sepa_source_data_billing_descriptor">
+                  <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />
+                </mat-form-field>
+              </div>
+              <div class="row">
+                <mat-radio-group radio-group="mandate_type" class="example-radio-group" formControlName="mandate_type" required>
+                  <label>Mandate Type</label>
+                  <mat-radio-button class="example-radio-button" value="single">
+                    single
+                  </mat-radio-button>
+                  <mat-radio-button class="example-radio-button" value="recurring">
+                    recurring
+                  </mat-radio-button>
+                </mat-radio-group>
+              </div>              
+            </div>
           </ng-container>
         </div>
       </mat-card-content>      

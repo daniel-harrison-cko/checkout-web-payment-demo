@@ -17,6 +17,10 @@ $padding: $margin;
   margin-top: $margin;
 }
 
+.mat-card-header-text {
+  margin: 0 !important;
+}
+
 .cko-container {
   flex: 1 1 auto;
 }
@@ -338,12 +342,16 @@ app-payment-component {
     justify-content: space-between;
 
     .payment-configurators {
-      display: inline-flex;
+      display: flex;
       flex: 1 1 auto;
       padding-bottom: $padding;
-      flex-direction: column;
       flex-wrap: wrap;
       justify-content: inherit;
+
+      .row {
+        flex: 1 0 100%;
+        justify-content: flex-start;
+      }
 
       mat-form-field.wide {
         width: 100%;
@@ -372,15 +380,11 @@ app-payment-component {
         min-width: 300px;
       }
 
-      [form-field="card_number"], [form-field="credit-card"], [form-field="account_holder"], [radio-group="mandate_type"] {
+      [form-field="iban"], [form-field="card_number"], [form-field="credit-card"], [form-field="account_holder"], [radio-group="mandate_type"] {
         flex: 1 0 100%;
       }
 
-      [form-field="card_expiry_month"], [form-field="card_expiry_year"], [form-field="card_cvv"] {
-        flex: 1 0 auto;
-      }
-
-      [form-field="iban"] {
+      [form-field="customer_full_name_given_name"], [form-field="customer_full_name_family_name"], [form-field="card_number"], [form-field="card_expiry_month"], [form-field="card_expiry_year"], [form-field="card_cvv"] {
         flex: 1 0 auto;
       }
 
