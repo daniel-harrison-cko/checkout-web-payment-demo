@@ -7,7 +7,7 @@
 <ng-template #billing>
   <h4>Billing Details</h4>
   <div [formGroup]="paymentDetails">
-    <div [formGroup]="customerFullName">
+    <div [formGroup]="customer">
       <mat-form-field form-field="given_name">
         <input matInput placeholder="Given Name" formControlName="given_name">
       </mat-form-field>

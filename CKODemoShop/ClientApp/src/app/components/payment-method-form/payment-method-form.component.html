@@ -12,6 +12,9 @@
       </mat-card-header>
       <mat-card-content>
         <div class="payment-configurators">
+          <ng-container *ngIf="paymentDetails.value.source.type == 'cko-frames'">
+            <div class="cko-container"></div>
+          </ng-container>
           <ng-container *ngIf="paymentDetails.value.source.type == 'card'">
             <div class="row">
               <mat-form-field form-field="card_number">

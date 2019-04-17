@@ -13,7 +13,6 @@ import { IIdSource } from 'src/app/interfaces/id-source.interface';
 import { ISource } from 'src/app/interfaces/source.interface';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
-import { async } from '@angular/core/testing';
 
 declare var Frames: any;
 declare var google: any;
@@ -93,15 +92,13 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   };
 
   private klarnaPaymentFlow = async () => {
-    let klarnaPaymentsAuthorize = async () => new Promise<any>(resolve => {
+    let klarnaPaymentsAuthorize = async (data: any = {}) => new Promise<any>(resolve => {
       Klarna.Payments.authorize(
         {
           instance_id: 'klarna-payments-instance',
           auto_finalize: true
         },
-        {
-
-        },
+        data,
         function (response) {
           resolve(response);
         }
@@ -123,183 +120,168 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   private routePaymentMethod(sourceType: string) {
-    switch (sourceType) {
-      case 'card': {
-        this.setupPaymentMethod(this.standardPaymentFlow, true, true );
-        break;
-      }
-      case 'alipay': {
-        this.setupPaymentMethod(this.standardPaymentFlow);
-        break;
-      }
-      case 'bancontact': {
-        this.setupPaymentMethod(this.standardPaymentFlow);
-        break;
-      }
-      case 'boleto': {
-        this.setupPaymentMethod(this.standardPaymentFlow);
-        break;
-      }
-      case 'giropay': {
-        this.setupPaymentMethod(this.standardPaymentFlow);
-        break;
-      }
-      case 'googlepay': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = false;
+    try {
+      switch (sourceType) {
+        case 'cko-frames': {
+          this.paymentDetails.get('capture').setValue(true);
+          this.setupPaymentMethod(() => { this.processing = true; Frames.submitCard(); }, true, true);
 
-        let googleClient;
-        let allowedPaymentMethods = ['CARD', 'TOKENIZED_CARD'];
-        this._scriptService.load('googlepay')
-          .then(data => {
-            let isReadyToPayCallback = () => {
-              this.makePayment = () => {
-                this.processing = true;
-                let processPayment = (paymentData) => {
-                  this._paymentService.requestToken({
-                    wallet_type: this.paymentDetails.value.source.type,
-                    token_data: JSON.parse(paymentData.paymentMethodToken.token)
-                  }).subscribe(
-                    response => this.handleSourceResponse(response),
-                    error => {
-                      console.warn(error);
-                      this.processing = null;
+          let initializeCkoFrames = async () => {
+            let loadedScripts = await this._scriptService.load('cko-frames');
+            if (loadedScripts.every(script => script.loaded)) {
+              let cardTokenisedCallback = (event) => {
+                this.paymentRequest.source.type = 'token';
+                this.paymentRequest.source.token = event.data.cardToken;
+                this.standardPaymentFlow();
+              };
+              Frames.init({
+                publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
+                containerSelector: '.cko-container',
+                cardTokenised: function (event) {
+                  cardTokenisedCallback(event);
+                },
+                cardTokenisationFailed: function (event) {
+                  // catch the error
+                }
+              });
+            }
+          }
+
+          initializeCkoFrames();
+
+          break;
+        }
+        case 'card': {
+          this.paymentDetails.get('capture').setValue(true);
+          this.setupPaymentMethod(this.standardPaymentFlow, true, true);
+          break;
+        }
+        case 'alipay': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        case 'bancontact': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        case 'boleto': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        case 'giropay': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        case 'googlepay': {
+          this.autoCapture = false;
+          this.threeDs = false;
+          this.paymentConfirmationRequired = false;
+
+          let googleClient;
+          let allowedPaymentMethods = ['CARD', 'TOKENIZED_CARD'];
+          this._scriptService.load('googlepay')
+            .then(data => {
+              let isReadyToPayCallback = () => {
+                this.makePayment = () => {
+                  this.processing = true;
+                  let processPayment = (paymentData) => {
+                    this._paymentService.requestToken({
+                      wallet_type: this.paymentDetails.value.source.type,
+                      token_data: JSON.parse(paymentData.paymentMethodToken.token)
+                    }).subscribe(
+                      response => this.handleSourceResponse(response),
+                      error => {
+                        console.warn(error);
+                        this.processing = null;
+                      });
+                  };
+                  let paymentDataRequest = {
+                    merchantId: '01234567890123456789',
+                    paymentMethodTokenizationParameters: {
+                      tokenizationType: 'PAYMENT_GATEWAY',
+                      parameters: {
+                        'gateway': 'checkoutltd',
+                        'gatewayMerchantId': 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7'
+                      }
+                    },
+                    allowedPaymentMethods: allowedPaymentMethods,
+                    cardRequirements: {
+                      allowedCardNetworks: ['MASTERCARD', 'VISA']
+                    },
+                    transactionInfo: {
+                      currencyCode: this.paymentDetails.value.currency,
+                      totalPriceStatus: 'FINAL',
+                      totalPrice: this.paymentDetails.value.amount
+                    }
+                  };
+
+                  googleClient.loadPaymentData(paymentDataRequest)
+                    .then(paymentData => processPayment(paymentData))
+                    .catch(error => {
+                      console.error(error);
+                      this.processing = false;
                     });
                 };
-                let paymentDataRequest = {
-                  merchantId: '01234567890123456789',
-                  paymentMethodTokenizationParameters: {
-                    tokenizationType: 'PAYMENT_GATEWAY',
-                    parameters: {
-                      'gateway': 'checkoutltd',
-                      'gatewayMerchantId': 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7'
-                    }
-                  },
-                  allowedPaymentMethods: allowedPaymentMethods,
-                  cardRequirements: {
-                    allowedCardNetworks: ['MASTERCARD', 'VISA']
-                  },
-                  transactionInfo: {
-                    currencyCode: this.paymentDetails.value.currency,
-                    totalPriceStatus: 'FINAL',
-                    totalPrice: this.paymentDetails.value.amount
-                  }
-                };
-
-                googleClient.loadPaymentData(paymentDataRequest)
-                  .then(paymentData => processPayment(paymentData))
-                  .catch(error => {
-                    console.error(error);
-                    this.processing = false;
-                  });
               };
-            };
-            googleClient = new google.payments.api.PaymentsClient({
-              environment: 'TEST'
-            });
-            googleClient.isReadyToPay({
-              allowedPaymentMethods: allowedPaymentMethods
-            })
-              .then(response => {
-                if (response.result) {
-                  isReadyToPayCallback();
-                }
+              googleClient = new google.payments.api.PaymentsClient({
+                environment: 'TEST'
+              });
+              googleClient.isReadyToPay({
+                allowedPaymentMethods: allowedPaymentMethods
               })
-              .catch(error => console.error(error));
-          });
-        break;
-      }
-      case 'ideal': {
-        this.setupPaymentMethod(this.standardPaymentFlow);
-        break;
-      }
-      case 'klarna': {
-        this.paymentDetails.get('capture').setValue(false);
-        this.setupPaymentMethod(this.klarnaPaymentFlow);
-        break;
-      }
-      case 'paypal': {
-        this.setupPaymentMethod(this.standardPaymentFlow);
-        break;
-      }
-      case 'poli': {
-        this.setupPaymentMethod(this.standardPaymentFlow);
-        break;
-      }
-      case 'sepa': {
-        this.autoCapture = false;
-        this.threeDs = false;
-        this.paymentConfirmationRequired = true;
-
-        this.makePayment = () => {
-          this.processing = true;
-          this._sourcesService.requestSource(this.paymentDetails.value.source).subscribe(
-            response => this.handleSourceResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
+                .then(response => {
+                  if (response.result) {
+                    isReadyToPayCallback();
+                  }
+                })
+                .catch(error => console.error(error));
             });
-        };
-        break;
-      }
-      case 'sofort': {
-        this.setupPaymentMethod(this.standardPaymentFlow);
-        break;
-      }
-      default: {
-        console.warn(`No ${sourceType} specific action was defined!`);
-        this.makePayment = () => { throw new Error(`${sourceType} payment is not implemented yet!`) };
-        break;
-      }
-    }
-  }
+          break;
+        }
+        case 'ideal': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        case 'klarna': {
+          this.paymentDetails.get('capture').setValue(false);
+          this.setupPaymentMethod(this.klarnaPaymentFlow);
+          break;
+        }
+        case 'paypal': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        case 'poli': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        case 'sepa': {
+          this.autoCapture = false;
+          this.threeDs = false;
+          this.paymentConfirmationRequired = true;
 
-  private LEGACYinvokePaymentMethod(paymentMethod: IPaymentMethod) {
-    switch (paymentMethod.type) {
-      case 'cko-frames': {
-        this._scriptService.load('cko-frames')
-          .then(data => {
-            let cardTokenisedCallback = (event) => {
-              this._paymentService.requestPayment({
-                currency: this.paymentDetails.value.currency,
-                amount: this.paymentDetails.value.amount,
-                source: <ITokenSource>{
-                  type: 'token',
-                  token: event.data.cardToken
-                },
-                capture: this.paymentDetails.value.capture,
-                '3ds': this.paymentDetails.value['3ds']
-              }).subscribe(
-                response => this.handlePaymentResponse(response),
-                error => {
-                  console.warn(error);
-                  this.processing = null;
-                });
-            };
-            Frames.init({
-              publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
-              containerSelector: '.cko-container',
-              cardTokenised: function (event) {
-                cardTokenisedCallback(event);
-              },
-              cardTokenisationFailed: function (event) {
-                // catch the error
-              }
-            });
-          })
-          .catch(error => console.log(error));
-        this.makePayment = () => {
-          this.processing = true;
-          Frames.submitCard();
-        };
-        break;
+          this.makePayment = () => {
+            this.processing = true;
+            this._sourcesService.requestSource(this.paymentDetails.value.source).subscribe(
+              response => this.handleSourceResponse(response),
+              error => {
+                console.warn(error);
+                this.processing = null;
+              });
+          };
+          break;
+        }
+        case 'sofort': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        default: {
+          this.makePayment = () => { throw new Error(`${sourceType} payment is not implemented yet!`) };
+          throw new Error(`No ${sourceType} specific action was defined!`);
+        }
       }
-      default: {
-        console.warn(`No ${paymentMethod.name} specific action was defined!`);
-        this.makePayment = () => { throw new Error(`${paymentMethod.name} payment is not implemented yet!`) };
-        break;
-      }
+    } catch (e) {
+      console.warn(e);
     }
   }
 
