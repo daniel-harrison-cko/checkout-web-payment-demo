@@ -24,13 +24,13 @@ export class PaymentDetailsService {
 
   // Subjects
   private paymentDetailsSource = new BehaviorSubject<FormGroup>(this.paymentDetailsTemplate);
-  private customerFullNameSource = new BehaviorSubject<FormGroup>(this.customerFullNameTemplate);
+  private customerSource = new BehaviorSubject<FormGroup>(this.customerTemplate);
   private listenToValueChangesSource = new BehaviorSubject<boolean>(true);
   private requiresConfirmationStepSource = new BehaviorSubject<boolean>(false);
 
   // Observables
   public paymentDetails$ = this.paymentDetailsSource.asObservable();
-  public customerFullName$ = this.customerFullNameSource.asObservable();
+  public customer$ = this.customerSource.asObservable();
   public listenToValueChanges$ = this.listenToValueChangesSource.asObservable();
   public requiresConfirmationStep$ = this.requiresConfirmationStepSource.asObservable();
 
@@ -38,8 +38,8 @@ export class PaymentDetailsService {
   public updatePaymentDetails(paymentDetails: FormGroup) {
     this.paymentDetailsSource.next(paymentDetails);
   }
-  public updateCustomerFullName(customerFullName: FormGroup) {
-    this.customerFullNameSource.next(customerFullName);
+  public updateCustomer(customerFullName: FormGroup) {
+    this.customerSource.next(customerFullName);
   }
   set requiresConfirmationStep(isRequired: boolean) {
     this.requiresConfirmationStepSource.next(isRequired);
@@ -55,10 +55,15 @@ export class PaymentDetailsService {
     return CURRENCIES;
   }
 
-  get customerFullNameTemplate(): FormGroup {
+  get customerTemplate(): FormGroup {
     return this._formBuilder.group({
+      title: ['Mr'],
       given_name: ['Bruce', Validators.required],
-      family_name: ['Wayne', Validators.required]
+      family_name: ['Wayne', Validators.required],
+      phone: this._formBuilder.group({
+        country_code: '0',
+        number: '1895808221'
+      })
     });
   }
 

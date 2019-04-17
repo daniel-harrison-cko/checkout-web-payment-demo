@@ -1,13 +1,11 @@
-import { Component, Output, OnInit, EventEmitter, OnDestroy, NgZone } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, AbstractControl, FormControl, FormArray } from '@angular/forms';
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
 import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Observable, Subscription } from 'rxjs';
 import { PaymentsService } from 'src/app/services/payments.service';
 import { startWith, map, distinctUntilChanged, debounceTime, filter } from 'rxjs/operators';
-import { ICurrency } from 'src/app/interfaces/currency.interface';
 import { HttpResponse } from '@angular/common/http';
-import { IKlarnaPaymentOption } from 'src/app/interfaces/klarna-payment-option.interface';
 import { ScriptService } from 'src/app/services/script.service';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { v4 as uuid } from 'uuid';
@@ -57,7 +55,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'Klarna',
     type: 'klarna',
-    processingCurrencies: ['EUR', 'NOK', 'SEK']
+    processingCurrencies: ['EUR', 'DKK', 'GBP', 'NOK', 'SEK']
   },
   {
     name: 'PayPal',
@@ -96,34 +94,29 @@ const flatten = <T = any>(arr: T[]) => {
 })
 
 export class PaymentMethodFormComponent implements OnInit, OnDestroy {
+  titles = ['Mr', 'Ms'];
   subscriptions: Subscription[] = [];
   paymentMethodSubsriptions: Subscription[] = [];
-  @Output() formReady = new EventEmitter<FormGroup>();
-  paymentMethods: IPaymentMethod[] = PAYMENT_METHODS;
-  paymentMethod: FormGroup;
   paymentDetails: FormGroup;
-  customerFullName: FormGroup;
+  customer: FormGroup;
   listenToValueChanges: boolean;
   paymentMethodRequiresAdditionalInformation: boolean;
   selectedSourceType: string;
-  klarnaPaymentOptions: IKlarnaPaymentOption[];
   creditCardForm: FormGroup;
-  klarnaForm: FormGroup;
-  klarnaBillingAddressForm: FormGroup;
-  klarnaCustomerForm: FormGroup;
+  klarnaCreditSession: FormGroup;
+  klarnaCreditSessionResponse: FormGroup = this._formBuilder.group({});
   sepaSourceDataForm: FormGroup;
   addressForm: FormGroup;
   bankForm: FormGroup;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
-  selectedCurrency: ICurrency = this._paymentsService.currencies[0];
-  klarnaProductColumns: string[] = ['name', 'quantity', 'unit_price', 'total_amount'];
+
+  private paymentMethods = PAYMENT_METHODS;
 
   constructor(
     private _formBuilder: FormBuilder,
     private _paymentsService: PaymentsService,
     private _scriptService: ScriptService,
-    private _ngZone: NgZone,
     private _paymentDetailsService: PaymentDetailsService
   ) { }
 
@@ -134,56 +127,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         bic: null,
         name: null
       })
-    });
-    this.paymentMethod = this._formBuilder.group({
-      selectedPaymentMethod: [null, Validators.required]
-    });
-    this.klarnaCustomerForm = this._formBuilder.group({
-      date_of_birth: ['1990-01-01']
-    });
-    this.klarnaBillingAddressForm = this._formBuilder.group({
-      given_name: ['Philippe'],
-      family_name: ['Leonhardt'],
-      email: ['philippe.leonhardt@checkout.com'],
-      title: ['Mr'],
-      street_address: ['Rudi-Dutschke-Str. 26'],
-      street_address2: [''],
-      postal_code: ['10969'],
-      city: ['Berlin'],
-      phone: ['0123456789'],
-      country: ['DE']
-    });
-    this.klarnaForm = this._formBuilder.group({
-      purchase_country: ['DE', Validators.required],
-      currency: [this.selectedCurrency.iso4217, Validators.required],
-      locale: ['de-de', Validators.required],
-      amount: [null, Validators.required],
-      tax_amount: [1, Validators.required],
-      products: this._formBuilder.array([
-        this._formBuilder.group({
-          name: ['Smoke Pellet', Validators.required],
-          quantity: [1, Validators.required],
-          unit_price: [null, Validators.required],
-          tax_rate: [1, Validators.required],
-          total_amount: [null, Validators.required],
-          total_tax_amount: [1, Validators.required],
-        }),
-        this._formBuilder.group({
-          name: ['Flashbang', Validators.required],
-          quantity: [1, Validators.required],
-          unit_price: [null, Validators.required],
-          tax_rate: [1, Validators.required],
-          total_amount: [null, Validators.required],
-          total_tax_amount: [1, Validators.required]
-        })
-      ]),
-      billing_address: this.klarnaBillingAddressForm,
-      customer: this.klarnaCustomerForm
-    });
-    this.creditCardForm = this._formBuilder.group({
-      number: ['4242424242424242', Validators.required],
-      expiration: ['122022', Validators.required],
-      cvv: ['100', [Validators.minLength(3), Validators.maxLength(4)]]
     });
     this.sepaSourceDataForm = this._formBuilder.group({
       account_holder: ['Bruce Wayne', Validators.required],
@@ -205,29 +148,12 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     });
     
     this.subscriptions.push(
-      this.paymentMethod.get('selectedPaymentMethod').valueChanges.subscribe(paymentMethod => this.invokePaymentMethod(paymentMethod)),
-      this._paymentsService.amount$.subscribe(amount => {
-        this.klarnaForm.get('amount').setValue(amount);
-        this.klarnaProductsPriceUpdate(amount);
-      }),
-      this._paymentsService.currency$.subscribe(currency => {
-        this.selectedCurrency = currency;
-        this.klarnaForm.get('currency').setValue(this.selectedCurrency.iso4217);
-      }),
-      this.klarnaForm.get('amount').valueChanges.pipe(distinctUntilChanged()).subscribe(amount => this.klarnaProductsPriceUpdate(amount)),
-      this.klarnaForm.get('locale').valueChanges.pipe(debounceTime(2000), distinctUntilChanged()).subscribe(_ => {
-        this.klarnaPaymentOption.reset();
-        document.querySelector('#klarna-container').innerHTML = "";
-        this.requestKlarnaSession();
-      }),
       this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
-      this._paymentDetailsService.customerFullName$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customerFullName = customerFullName),
-      this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.invokePaymentMethod2(source)),
+      this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customer = customerFullName),
+      this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.routePaymentMethod(source)),
       this.bankForm.get('bankObject.bic').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(bic => this.paymentDetails.get('source.bic').setValue(bic))
     );
-
-    this.formReady.emit(this.paymentMethod);
   }
 
   ngOnDestroy() {
@@ -243,67 +169,11 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   get paymentMethodName(): string {
-    return this.selectedSourceType ? this.paymentMethods.find(element => element.type == this.selectedSourceType).name : '';
-  }
-
-  get selectedPaymentMethod(): IPaymentMethod {
-    return this.paymentMethod.get('selectedPaymentMethod').value;
-  }
-
-  get bank(): AbstractControl {
-    return this.paymentMethod.get('bank');
-  }
-
-  get customerName(): AbstractControl {
-    return this.paymentMethod.get('customerName');
-  }
-
-  get cpf(): AbstractControl {
-    return this.paymentMethod.get('cpf');
-  }
-
-  get birthDate(): AbstractControl {
-    return this.paymentMethod.get('birthDate');
-  }
-
-  get bankObject(): AbstractControl {
-    return this.paymentMethod.get('bankObject');
-  }
-
-  get card(): AbstractControl {
-    return this.paymentMethod.get('card');
-  }
-
-  get mandate(): AbstractControl {
-    return this.paymentMethod.get('mandate');
-  }
-
-  get address(): AbstractControl {
-    return this.paymentMethod.get('address');
-  }
-
-  get klarnaSession(): AbstractControl {
-    return this.paymentMethod.get('klarnaSession');
-  }
-
-  get klarnaPaymentOption(): AbstractControl {
-    return this.paymentMethod.get('klarnaPaymentOption');
-  }
-
-  get paymentCountry(): AbstractControl {
-    return this.paymentMethod.get('paymentCountry');
-  }
-
-  get accountHolderName(): AbstractControl {
-    return this.paymentMethod.get('accountHolderName');
-  }
-
-  get billingDescriptor(): AbstractControl {
-    return this.paymentMethod.get('billingDescriptor');
+    return this.paymentDetails.value.source.type ? PAYMENT_METHODS.find(element => element.type == this.paymentDetails.value.source.type).name : '';
   }
 
   private deselectBank() {
-    let bankObject = this.bankObject || this.bankForm.get('bankObject');
+    let bankObject = this.bankForm.get('bankObject');
     bankObject.reset();
   }
 
@@ -321,7 +191,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       let banks: IBank[] = [];
       response.body.countries.forEach(country => banks.push(country.issuers));
       this.banks = <IBank[]>flatten(banks);
-      let bank = <FormControl>this.bank || <FormControl>this.bankForm.get('bank');
+      let bank = <FormControl>this.bankForm.get('bank');
       this.filteredBanks = bank.valueChanges.pipe(
         startWith(''),
         map(value => this._bankFilter(value))
@@ -339,7 +209,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         })
       });
       this.banks = banks;
-      let bank = <FormControl>this.bank || <FormControl>this.bankForm.get('bank');
+      let bank = <FormControl>this.bankForm.get('bank');
       this.filteredBanks = bank.valueChanges.pipe(
         startWith(''),
         map(value => this._bankFilter(value))
@@ -347,27 +217,21 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     });
   }
 
-  handleKlarnaSession(response: HttpResponse<any>) {
-    this.klarnaPaymentOptions = response.body.payment_method_categories;
-    this._scriptService.load('klarna')
-      .then(_ => {
-        Klarna.Payments.init({
-          client_token: response.body.client_token
-        });
-      });
+  private arrayIsNotEmpty(array: []) {
+    return array ? array.length > 0 : false;
   }
 
-  private klarnaProductTotal = (product) => product.total_amount;
-  private klarnaProductsTotal = (prev, next) => (prev + next);
-  private klarnaProductsPriceUpdate(amount: number) {
-    (this.klarnaForm.get('products') as FormArray).controls[0].get('unit_price').setValue(Math.round(amount * 0.25));
-    (this.klarnaForm.get('products') as FormArray).controls[0].get('total_amount').setValue(Math.round(amount * 0.25));
-    (this.klarnaForm.get('products') as FormArray).controls[1].get('unit_price').setValue(Math.round(amount * 0.75));
-    (this.klarnaForm.get('products') as FormArray).controls[1].get('total_amount').setValue(Math.round(amount * 0.75));
-  };
-  get klarnaGrandTotal() { return (this.klarnaForm.get('products').value as []).map(this.klarnaProductTotal).reduce(this.klarnaProductsTotal) };
+  private onBankSelectionChanged() {
+    let bankInput: FormControl = <FormControl>this.bankForm.get('bank');
+    if (bankInput.value) {
+      let currentBank: IBank = bankInput.value;
+      let bankObject = this.bankForm.get('bankObject');
+      bankObject.setValue(currentBank);
+      bankInput.setValue(`${currentBank.bic} ${currentBank.name}`);
+    }    
+  }
 
-  private resetPaymentMethod2 = () => {
+  private resetPaymentMethod = () => {
     this.paymentMethodRequiresAdditionalInformation = null;
     this.banks = null;
     this.filteredBanks = null;
@@ -379,69 +243,26 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     });
   }
 
-  private resetPaymentMethod = () => {
-    this.banks = null;
-    this.filteredBanks = null;
-    if (this.bank) { this.paymentMethod.removeControl('bank') };
-    if (this.bankObject) { this.paymentMethod.removeControl('bankObject') };
-    if (this.card) { this.paymentMethod.removeControl('card') };
-    if (this.mandate) { this.paymentMethod.removeControl('mandate') };
-    if (this.address) { this.paymentMethod.removeControl('address') };
-    if (this.customerName) { this.paymentMethod.removeControl('customerName') };
-    if (this.cpf) { this.paymentMethod.removeControl('cpf') };
-    if (this.birthDate) { this.paymentMethod.removeControl('birthDate') };
-    if (this.klarnaSession) { this.paymentMethod.removeControl('klarnaSession') };
-    if (this.klarnaPaymentOption) { this.paymentMethod.removeControl('klarnaPaymentOption') };
-    if (this.paymentCountry) { this.paymentMethod.removeControl('paymentCountry') };
-    if (this.accountHolderName) { this.paymentMethod.removeControl('accountHolderName') };
-    if (this.billingDescriptor) { this.paymentMethod.removeControl('billingDescriptor') };
-  }
-
-  private onBankSelectionChanged() {
-    let bankInput: FormControl = <FormControl>this.bank || <FormControl>this.bankForm.get('bank');
-    if (bankInput.value) {
-      let currentBank: IBank = bankInput.value;
-      let bankObject = this.bankObject || this.bankForm.get('bankObject');
-      bankObject.setValue(currentBank);
-      bankInput.setValue(`${currentBank.bic} ${currentBank.name}`);
-    }    
-  }
-
-  private requestKlarnaSession() {
-    this._paymentsService.requestKlarnaSession(this.klarnaForm.value).subscribe(response => this.handleKlarnaSession(response));
-  }
-
-  private loadKlarnaWidget(paymentMethodCategories: string[], billingAddress: any = this.klarnaBillingAddressForm.value, customer: any = this.klarnaCustomerForm.value) {
-    document.querySelector('#klarna-container').innerHTML = "";
-    let klarnaLoadCallback = (response) => {
-      this._ngZone.run(() => { });
-    };
-    Klarna.Payments.load({
-      container: '#klarna-container',
-      payment_method_categories: paymentMethodCategories,
-      instance_id: 'cko-demo-klarna-instance'
-    }, {
-        billing_address: billingAddress,
-        customer: customer
-    }, function (response) {
-        klarnaLoadCallback(response);
-    })
-  }
-
-  invokePaymentMethod2(paymentMethod: IPaymentMethod) {
-    if (paymentMethod.type == this.selectedSourceType) return;
+  private routePaymentMethod(paymentMethod: IPaymentMethod) {
+    if (paymentMethod.type == this.paymentDetails.value.source.type) return;
     this._paymentDetailsService.stopListeningToValueChanges();
-    this.resetPaymentMethod2();
+    this.resetPaymentMethod();
     switch (paymentMethod.type) {
+      case 'cko-frames': {
+        this.paymentMethodRequiresAdditionalInformation = true;
+        this._paymentDetailsService.requiresConfirmationStep = false;
+
+        break;
+      }
       case 'card': {
         this.paymentMethodRequiresAdditionalInformation = true;
         this._paymentDetailsService.requiresConfirmationStep = false;
 
         this.source.addControl('number', new FormControl('4242424242424242', Validators.required));
-        this.source.addControl('expiry_month', new FormControl(12, Validators.required));
+        this.source.addControl('expiry_month', new FormControl(12, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])));
         this.source.addControl('expiry_year', new FormControl(2022, Validators.required));
         this.source.addControl('name', new FormControl(this.paymentDetails.value.customer.name));
-        this.source.addControl('cvv', new FormControl('100'));
+        this.source.addControl('cvv', new FormControl('100', Validators.compose([Validators.minLength(3), Validators.maxLength(4)])));
         this.source.addControl('stored', new FormControl(null));
         this.source.addControl('billing_address', new FormControl(this.paymentDetails.value.billing_address));
         this.source.addControl('phone', new FormControl(null));
@@ -512,19 +333,139 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.paymentMethodRequiresAdditionalInformation = true;
         this._paymentDetailsService.requiresConfirmationStep = false;
 
-        this.source.addControl('authorization_token', new FormControl(null, Validators.required));
-        this.source.addControl('locale', new FormControl(null, Validators.required));
-        this.source.addControl('purchase_country', new FormControl(null, Validators.required));
-        // this.source.addControl('auto_capture', new FormControl(null, Validators.required));
-        this.source.addControl('billing_address', new FormControl(null, Validators.required));
-        this.source.addControl('shipping_address', new FormControl(null));
-        this.source.addControl('tax_amount', new FormControl(null, Validators.required));
-        this.source.addControl('products', new FormControl(null, Validators.required));
-        this.source.addControl('customer', new FormControl(null));
-        this.source.addControl('merchant_reference1', new FormControl(null));
-        this.source.addControl('merchant_reference2', new FormControl(null));
-        this.source.addControl('merchant_data', new FormControl(null));
-        this.source.addControl('attachment', new FormControl(null));
+        let requestKlarnaCreditSession = () => this._paymentsService.requestKlarnaSession(this.klarnaCreditSession.value).subscribe(klarnaCreditSessionResponse => handleKlarnaCreditSessionResponse(klarnaCreditSessionResponse));
+        let handleKlarnaCreditSessionResponse = async (klarnaCreditSessionResponse: HttpResponse<any>) => {
+          if (klarnaCreditSessionResponse.ok) {
+            this.klarnaCreditSessionResponse.addControl('selected_payment_method_category', new FormControl(null, Validators.required));
+            this.klarnaCreditSessionResponse.addControl(
+              'credit_session_response',
+              this._formBuilder.group({
+                session_id: [null, Validators.required],
+                client_token: [null, Validators.required],
+                payment_method_categories: [null, Validators.required]
+              })              
+            );
+            this.klarnaCreditSessionResponse.get('credit_session_response').patchValue(klarnaCreditSessionResponse.body);
+            if (document.querySelector('#klarna-container')) {
+              document.querySelector('#klarna-container').innerHTML = '';
+            }
+            if (this.arrayIsNotEmpty(klarnaCreditSessionResponse.body.payment_method_categories)) {
+              this.klarnaCreditSessionResponse.get('selected_payment_method_category').setValue(klarnaCreditSessionResponse.body.payment_method_categories[0].identifier);
+              await this._scriptService.load('klarna');
+              await klarnaPaymentsInit(klarnaCreditSessionResponse.body.client_token);
+              await klarnaPaymentsLoad();
+              this.paymentMethodSubsriptions.push(
+                this.paymentDetails.get('billing_address').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(_ => klarnaPaymentsLoad()),
+                this.customer.valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(_ => klarnaPaymentsLoad())
+              );
+            }
+
+            this.paymentMethodSubsriptions.push(
+              this.klarnaCreditSessionResponse.get('selected_payment_method_category').valueChanges.pipe(distinctUntilChanged(), debounceTime(500)).subscribe(_ => klarnaPaymentsLoad())
+            );
+          }
+        };
+        let klarnaPaymentsInit = async (client_token: string) => new Promise<any>(resolve => {
+          this.source.addControl('locale', new FormControl(null, Validators.required));
+          this.source.addControl('purchase_country', new FormControl(null, Validators.required));
+          this.source.addControl('tax_amount', new FormControl(null, Validators.required));
+          this.source.addControl('billing_address', new FormControl(null, Validators.required));
+          this.source.addControl('shipping_address', new FormControl(null));
+          this.source.addControl('customer', new FormControl(null));
+          this.source.addControl('products', new FormControl(null, Validators.required));
+          Klarna.Payments.init(
+            {
+              client_token: client_token
+            }
+          )
+            .then(resolve());
+        });
+        let klarnaPaymentsLoad = async (data: any = {}) => new Promise<any>(resolve => {
+          let paymentDetails = this.paymentDetails;
+          let customer = this.customer.value;
+          let source = this.source;
+          let klarnaCreditSession = this.klarnaCreditSession;
+          let billingAddress = paymentDetails.get('billing_address').value;
+          let billing_address = {
+            given_name: customer.given_name,
+            family_name: customer.family_name,
+            email: paymentDetails.get('customer.email').value,
+            title: customer.title,
+            street_address: billingAddress.address_line1,
+            street_address2: billingAddress.address_line2,
+            postal_code: billingAddress.zip,
+            city: billingAddress.city,
+            phone: `${customer.phone.country_code}${customer.phone.number}`,
+            country: billingAddress.country
+          };
+          data = {
+            purchase_country: klarnaCreditSession.value.purchase_country,
+            purchase_currency: paymentDetails.get('currency').value,
+            locale: 'en-gb',
+            billing_address: billing_address,
+            shipping_address: null,
+            order_amount: paymentDetails.get('amount').value,
+            order_tax_amount: 0,
+            order_lines: klarnaCreditSession.value.products,
+            customer: null
+          }
+          Klarna.Payments.load(
+            {
+              container: '#klarna-container',
+              payment_method_categories: [this.klarnaCreditSessionResponse.value.selected_payment_method_category],
+              instance_id: 'klarna-payments-instance'
+            },
+            data,
+            function (response) {
+              source.patchValue({
+                locale: data.locale,
+                purchase_country: data.purchase_country,
+                tax_amount: data.order_tax_amount,
+                billing_address: data.billing_address,
+                shipping_address: data.shipping_address,
+                customer: data.customer,
+                products: data.order_lines
+              });
+              resolve(response);
+            }
+          )
+        });
+
+        this.klarnaCreditSession = this._formBuilder.group({});
+        this.klarnaCreditSession.addControl('purchase_country', new FormControl(this.paymentDetails.value.billing_address.country, Validators.required));
+        this.klarnaCreditSession.addControl('currency', new FormControl(this.paymentDetails.value.currency, Validators.required));
+        this.klarnaCreditSession.addControl('locale', new FormControl('en-gb', Validators.required));
+        this.klarnaCreditSession.addControl('amount', new FormControl(this.paymentDetails.value.amount, Validators.required));
+        this.klarnaCreditSession.addControl('tax_amount', new FormControl(0, Validators.required));
+        this.klarnaCreditSession.addControl(
+          'products',
+          this._formBuilder.array([
+            this._formBuilder.group({
+              name: ['CKO Demo Purchase Item', Validators.required],
+              quantity: [1, Validators.required],
+              unit_price: [this.paymentDetails.value.amount, Validators.required],
+              tax_rate: [0, Validators.required],
+              total_amount: [this.paymentDetails.value.amount, Validators.required],
+              total_tax_amount: [0, Validators.required],
+            })
+          ])
+        );
+
+        this.paymentMethodSubsriptions.push(
+          this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(purchaseCountry => this.klarnaCreditSession.get('purchase_country').setValue(purchaseCountry)),
+          this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => this.klarnaCreditSession.get('currency').setValue(currency)),
+          this.paymentDetails.get('amount').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(amount => this.klarnaCreditSession.patchValue({ amount: amount, products: [{unit_price: amount, total_amount: amount}]})),
+          this.klarnaCreditSession.valueChanges.pipe(distinctUntilChanged(), filter(_ => Klarna)).subscribe(klarnaCreditSession => klarnaPaymentsLoad({
+            purchase_country: klarnaCreditSession.purchase_country,
+            purchase_currency: klarnaCreditSession.currency,
+            locale: 'en-gb',
+            order_amount: klarnaCreditSession.amount,
+            order_tax_amount: 0,
+            order_lines: klarnaCreditSession.products
+          }))
+        );
+        requestKlarnaCreditSession();
+
         break;
       }
       case 'paypal': {
@@ -580,7 +521,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
         this.paymentMethodSubsriptions.push(
           this.paymentDetails.get('customer').valueChanges.pipe(distinctUntilChanged()).subscribe(customer => this.source.get('customer').setValue(customer)),
-          this.customerFullName.valueChanges.pipe(distinctUntilChanged()).subscribe(customerFullName => {
+          this.customer.valueChanges.pipe(distinctUntilChanged()).subscribe(customerFullName => {
             this.source.get('source_data.first_name').setValue(customerFullName.given_name);
             this.source.get('source_data.last_name').setValue(customerFullName.family_name);
           }),
@@ -599,23 +540,5 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       }
     }
     this._paymentDetailsService.resumeListeningToValueChanges();
-    this.selectedSourceType = paymentMethod.type;
-  }
-
-  invokePaymentMethod(paymentMethod: IPaymentMethod) {
-    this.resetPaymentMethod();
-    switch (paymentMethod.type) { 
-      case 'cko-frames': {
-        break;
-      }
-      case 'klarna': {
-        this.paymentMethod.registerControl('klarnaSession', this.klarnaForm);
-        this.paymentMethod.registerControl('klarnaPaymentOption', new FormControl(null, Validators.required));
-        this.requestKlarnaSession();
-      }
-      default: {
-        throw new Error(`Handling of Payment Method type ${paymentMethod.type} is not implemented!`);
-      }
-    }
   }
 }

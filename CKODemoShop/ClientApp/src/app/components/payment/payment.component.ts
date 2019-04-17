@@ -13,6 +13,7 @@ import { IIdSource } from 'src/app/interfaces/id-source.interface';
 import { ISource } from 'src/app/interfaces/source.interface';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
+import { async } from '@angular/core/testing';
 
 declare var Frames: any;
 declare var google: any;
@@ -91,8 +92,31 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       });
   };
 
-  private setupPaymentMethod(paymentFlow: Function, autoCapture?: boolean, threeDs?: boolean, paymentConfirmationRequired?: boolean) {
-    this.makePayment = paymentFlow;
+  private klarnaPaymentFlow = async () => {
+    let klarnaPaymentsAuthorize = async () => new Promise<any>(resolve => {
+      Klarna.Payments.authorize(
+        {
+          instance_id: 'klarna-payments-instance',
+          auto_finalize: true
+        },
+        {
+
+        },
+        function (response) {
+          resolve(response);
+        }
+      )
+    });
+    this.processing = true;
+    let klarnaPaymentsAuthorizeResponse = await klarnaPaymentsAuthorize();
+    if (klarnaPaymentsAuthorizeResponse.approved) {
+      (this.paymentDetails.get('source') as FormGroup).addControl('authorization_token', new FormControl(klarnaPaymentsAuthorizeResponse.authorization_token, Validators.required));
+      this.standardPaymentFlow();
+    }
+  };
+
+  private setupPaymentMethod(makePaymentAction: Function, autoCapture?: boolean, threeDs?: boolean, paymentConfirmationRequired?: boolean) {
+    this.makePayment = makePaymentAction;
     this.autoCapture = autoCapture;
     this.threeDs = threeDs;
     this.paymentConfirmationRequired = paymentConfirmationRequired;
@@ -190,6 +214,11 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         this.setupPaymentMethod(this.standardPaymentFlow);
         break;
       }
+      case 'klarna': {
+        this.paymentDetails.get('capture').setValue(false);
+        this.setupPaymentMethod(this.klarnaPaymentFlow);
+        break;
+      }
       case 'paypal': {
         this.setupPaymentMethod(this.standardPaymentFlow);
         break;
@@ -266,38 +295,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         };
         break;
       }
-      /*case 'klarna': {
-        let klarnaAuthorizeCallback = (response) => {
-          this._paymentService.requestPayment({
-            currency: this.paymentDetails.value.currency,
-            amount: this.paymentDetails.value.amount,
-            source: {
-              type: paymentMethod.type,
-              authorization_token: response.authorization_token,
-              locale: this.klarnaSession.get('locale').value,
-              purchase_country: this.klarnaSession.get('purchase_country').value,
-              tax_amount: this.klarnaSession.get('tax_amount').value,
-              billing_address: this.klarnaSession.get('billing_address').value,
-              products: this.klarnaSession.get('products').value
-            }
-          }).subscribe(
-            response => this.handlePaymentResponse(response),
-            error => {
-              console.warn(error);
-              this.processing = null;
-            });
-        };
-        this.makePayment = () => {
-          this.processing = true;
-          Klarna.Payments.authorize({
-            instance_id: 'cko-demo-klarna-instance'
-          }, function (response) {
-            console.log(response);
-            klarnaAuthorizeCallback(response);
-          })
-        }
-        break;
-      }*/
       default: {
         console.warn(`No ${paymentMethod.name} specific action was defined!`);
         this.makePayment = () => { throw new Error(`${paymentMethod.name} payment is not implemented yet!`) };
