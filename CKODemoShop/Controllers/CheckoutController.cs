@@ -165,14 +165,14 @@ namespace CKODemoShop.Controllers
             object response;
             try
             {
-                if (lppId == "ideal")
+                if (lppId == "eps")
                 {
                     client.DefaultRequestHeaders.Clear();
                     client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
-                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/ideal-external/issuers");
+                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/eps/banks");
                     string content = await result.Content.ReadAsStringAsync();
-                    IssuersResponse issuersResponse = JsonConvert.DeserializeObject<IssuersResponse>(content);
-                    response = issuersResponse;
+                    BanksResponse banksResponse = JsonConvert.DeserializeObject<BanksResponse>(content);
+                    response = banksResponse;
                 }
                 else if (lppId == "giropay")
                 {
@@ -182,6 +182,15 @@ namespace CKODemoShop.Controllers
                     string content = await result.Content.ReadAsStringAsync();
                     BanksResponse banksResponse = JsonConvert.DeserializeObject<BanksResponse>(content);
                     response = banksResponse;
+                }
+                else if (lppId == "ideal")
+                {
+                    client.DefaultRequestHeaders.Clear();
+                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
+                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/ideal-external/issuers");
+                    string content = await result.Content.ReadAsStringAsync();
+                    IssuersResponse issuersResponse = JsonConvert.DeserializeObject<IssuersResponse>(content);
+                    response = issuersResponse;
                 }
                 else
                 {
@@ -371,6 +380,12 @@ namespace CKODemoShop.Controllers
                         {"customerName", source.CustomerName },
                         {"cpf", source.Cpf },
                         {"birthDate", source.BirthDate }
+                    };
+                case "eps":
+                    return new AlternativePaymentSource(source.Type)
+                    {
+                        {"bic", source.Bic },
+                        {"purpose", source.Purpose }
                     };
                 case "giropay":
                     return new AlternativePaymentSource(source.Type)

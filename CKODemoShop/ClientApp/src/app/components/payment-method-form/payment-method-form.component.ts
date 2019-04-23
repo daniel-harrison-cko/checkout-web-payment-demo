@@ -38,6 +38,11 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     processingCurrencies: ['BRL', 'USD']
   },
   {
+    name: 'eps',
+    type: 'eps',
+    processingCurrencies: ['EUR']
+  },
+  {
     name: 'Giropay',
     type: 'giropay',
     processingCurrencies: ['EUR']
@@ -303,6 +308,16 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
             this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('customerName').setValue(customerName)),
             this.source.get('customerName').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.paymentDetails.get('customer.name').setValue(customerName))
           );
+          break;
+        }
+        case 'eps': {
+          this.paymentMethodRequiresAdditionalInformation = true;
+          this._paymentDetailsService.requiresConfirmationStep = false;
+
+          this.source.addControl('purpose', new FormControl('Giropay Test Payment', Validators.required));
+          this.source.addControl('bic', new FormControl(null));
+
+          this.getBanks(paymentMethod);
           break;
         }
         case 'giropay': {

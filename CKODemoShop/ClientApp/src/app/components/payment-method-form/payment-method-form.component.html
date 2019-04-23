@@ -69,6 +69,18 @@
             <mat-error *ngIf="paymentDetails.get('source.cpf').hasError('required')">Please provide your CPF</mat-error>
           </mat-form-field>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'eps'" [formGroup]="bankForm">
+          <mat-form-field class="wide">
+            <input type="text" placeholder="Your bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()">
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
+              <mat-option>--</mat-option>
+              <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+                <span class="monospace">{{bank.bic}}</span>&nbsp;{{bank.name}}
+              </mat-option>
+            </mat-autocomplete>
+            <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list (HYPTAT22XXX for Sandbox)</mat-hint>
+          </mat-form-field>
+        </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'giropay'" [formGroup]="bankForm">
           <mat-form-field class="wide">
             <input type="text" placeholder="Your bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()">

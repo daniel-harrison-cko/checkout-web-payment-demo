@@ -167,6 +167,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this.setupPaymentMethod(this.standardPaymentFlow);
           break;
         }
+        case 'eps': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
         case 'giropay': {
           this.setupPaymentMethod(this.standardPaymentFlow);
           break;
