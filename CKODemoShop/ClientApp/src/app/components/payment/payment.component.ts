@@ -1,7 +1,6 @@
 import { Component, OnInit, OnDestroy, NgZone, AfterViewInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
 import { PaymentsService } from '../../services/payments.service';
-import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 import { Subscription } from 'rxjs';
 import { HttpResponse } from '@angular/common/http';
 import { ScriptService } from '../../services/script.service';
