@@ -278,6 +278,9 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this.setupPaymentMethod(this.standardPaymentFlow);
           break;
         }
+        case null: {
+          break;
+        }
         default: {
           this.makePayment = () => { throw new Error(`${sourceType} payment is not implemented yet!`) };
           throw new Error(`No ${sourceType} specific action was defined!`);

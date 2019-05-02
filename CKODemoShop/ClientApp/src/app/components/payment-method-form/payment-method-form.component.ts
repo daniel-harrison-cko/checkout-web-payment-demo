@@ -156,6 +156,19 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
       this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customer = customerFullName),
+      this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => {
+        let sourceType = this.paymentDetails.get('source.type').value;
+        let sourceTypeCanHandleCurrency = (sourceType: string, currency: string): boolean => {
+          let paymentMethod = PAYMENT_METHODS.find(paymentMethod => paymentMethod.type == sourceType);
+          return paymentMethod.processingCurrencies.length == 0 ? true : paymentMethod.processingCurrencies.includes(currency);
+        }
+        if (sourceType) {
+          if (!sourceTypeCanHandleCurrency(sourceType, currency)) {
+            this.resetPaymentMethod();
+            this.paymentDetails.get('source.type').setValue(null);
+          }
+        }        
+      }),
       this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.routePaymentMethod(source)),
       this.bankForm.get('bankObject.bic').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(bic => this.paymentDetails.get('source.bic').setValue(bic))
     );
@@ -551,6 +564,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.paymentMethodRequiresAdditionalInformation = false;
           this._paymentDetailsService.requiresConfirmationStep = false;
 
+          break;
+        }
+        case null: {
           break;
         }
         default: {
