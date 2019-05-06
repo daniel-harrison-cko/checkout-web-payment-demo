@@ -8,6 +8,14 @@
   <h4>Billing Details</h4>
   <div [formGroup]="paymentDetails">
     <div [formGroup]="customer">
+      <mat-form-field form-field="title">
+        <mat-label>Title</mat-label>
+        <mat-select formControlName="title" name="food">
+          <mat-option *ngFor="let title of ['Mr', 'Ms']" [value]="title">
+            {{title}}
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
       <mat-form-field form-field="given_name">
         <input matInput placeholder="Given Name" formControlName="given_name">
       </mat-form-field>

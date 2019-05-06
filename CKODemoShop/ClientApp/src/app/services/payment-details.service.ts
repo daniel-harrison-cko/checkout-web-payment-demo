@@ -25,14 +25,14 @@ export class PaymentDetailsService {
   // Subjects
   private paymentDetailsSource = new BehaviorSubject<FormGroup>(this.paymentDetailsTemplate);
   private customerSource = new BehaviorSubject<FormGroup>(this.customerTemplate);
+  private paymentConsentSource = new BehaviorSubject<FormGroup>(this.paymentConsentTemplate);
   private listenToValueChangesSource = new BehaviorSubject<boolean>(true);
-  private requiresConfirmationStepSource = new BehaviorSubject<boolean>(false);
 
   // Observables
   public paymentDetails$ = this.paymentDetailsSource.asObservable();
   public customer$ = this.customerSource.asObservable();
+  public paymentConsent$ = this.paymentConsentSource.asObservable();
   public listenToValueChanges$ = this.listenToValueChangesSource.asObservable();
-  public requiresConfirmationStep$ = this.requiresConfirmationStepSource.asObservable();
 
   // Methods
   public updatePaymentDetails(paymentDetails: FormGroup) {
@@ -41,8 +41,8 @@ export class PaymentDetailsService {
   public updateCustomer(customerFullName: FormGroup) {
     this.customerSource.next(customerFullName);
   }
-  set requiresConfirmationStep(isRequired: boolean) {
-    this.requiresConfirmationStepSource.next(isRequired);
+  public updatePaymentConsent(paymentConsent: FormGroup) {
+    this.paymentConsentSource.next(paymentConsent);
   }
   public resumeListeningToValueChanges() {
     this.listenToValueChangesSource.next(true);
@@ -53,6 +53,12 @@ export class PaymentDetailsService {
 
   get currencies(): ICurrency[] {
     return CURRENCIES;
+  }
+
+  get paymentConsentTemplate(): FormGroup {
+    return this._formBuilder.group({
+      approved: [false, Validators.requiredTrue]
+    });
   }
 
   get customerTemplate(): FormGroup {

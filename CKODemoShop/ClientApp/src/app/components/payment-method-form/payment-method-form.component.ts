@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, FormControl, AbstractControl } from '@angular/forms';
 import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Observable, Subscription } from 'rxjs';
@@ -38,7 +38,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     processingCurrencies: ['BRL', 'USD']
   },
   {
-    name: 'eps',
+    name: 'EPS',
     type: 'eps',
     processingCurrencies: ['EUR']
   },
@@ -100,18 +100,18 @@ const flatten = <T = any>(arr: T[]) => {
 
 export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   titles = ['Mr', 'Ms'];
+  creditorIdentifier: string = 'DE36ZZZ00001690322';
   subscriptions: Subscription[] = [];
   paymentMethodSubsriptions: Subscription[] = [];
   paymentDetails: FormGroup;
   customer: FormGroup;
+  paymentConsent: FormGroup;
   listenToValueChanges: boolean;
   paymentMethodRequiresAdditionalInformation: boolean;
   selectedSourceType: string;
   creditCardForm: FormGroup;
   klarnaCreditSession: FormGroup;
   klarnaCreditSessionResponse: FormGroup = this._formBuilder.group({});
-  sepaSourceDataForm: FormGroup;
-  addressForm: FormGroup;
   bankForm: FormGroup;
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
@@ -133,29 +133,11 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         name: null
       })
     });
-    this.sepaSourceDataForm = this._formBuilder.group({
-      account_holder: ['Bruce Wayne', Validators.required],
-      first_name: ['Bruce'],
-      last_name: ['Wayne'],
-      account_iban: ['DE25100100101234567893', Validators.required],
-      bic: ['PBNKDEFFXXX'],
-      verify_bic: [{ value: 'PBNKDEFFXXX', disabled: true}],
-      billing_descriptor: ['CKO Demo Shop', Validators.required],
-      mandate_type: ['single', Validators.required]
-    });
-    this.addressForm = this._formBuilder.group({
-      address_line1: ['Wayne Plaza 1', Validators.required],
-      address_line2: [''],
-      city: ['Gotham City', Validators.required],
-      state: ['NJ', Validators.required],
-      zip: ['12345', Validators.required],
-      country: ['US', Validators.required]
-    });
-    
     this.subscriptions.push(
       this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
       this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customer = customerFullName),
+      this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent),
       this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => {
         let sourceType = this.paymentDetails.get('source.type').value;
         let sourceTypeCanHandleCurrency = (sourceType: string, currency: string): boolean => {
@@ -251,6 +233,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
   private resetPaymentMethod = () => {
     this.paymentMethodRequiresAdditionalInformation = null;
+    this.paymentConsent.disable();
     this.banks = null;
     this.filteredBanks = null;
     this.paymentMethodSubsriptions.forEach(subscription => subscription.unsubscribe());
@@ -269,7 +252,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       switch (paymentMethod.type) {
         case 'cko-frames': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
           this.source.addControl('token', new FormControl(null));
 
@@ -277,7 +259,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         }
         case 'card': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
           this.source.addControl('number', new FormControl('4242424242424242', Validators.required));
           this.source.addControl('expiry_month', new FormControl(12, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])));
@@ -291,78 +272,68 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         }
         case 'alipay': {
           this.paymentMethodRequiresAdditionalInformation = false;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
           break;
         }
         case 'bancontact': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
-          this.source.addControl('payment_country', new FormControl('DE', Validators.required));
-          this.source.addControl('account_holder_name', new FormControl(this.paymentDetails.get('customer.name').value, Validators.required));
-          this.source.addControl('billing_descriptor', new FormControl('Checkout.com Demo Shop'));
+          this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
+          this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.get('billing_address.country').value, disabled: true }, Validators.required));
+          this.source.addControl('billing_descriptor', new FormControl({ value: 'CKO Bancontact Demo', disabled: false }));
 
           this.paymentMethodSubsriptions.push(
             this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('account_holder_name').setValue(customerName)),
-            this.source.get('account_holder_name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.paymentDetails.get('customer.name').setValue(customerName))
+            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(country => this.source.get('payment_country').setValue(country))
           );
           break;
         }
         case 'boleto': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
-          this.source.addControl('birthDate', new FormControl('1939-02-19', Validators.required));
-          this.source.addControl('cpf', new FormControl('00003456789', Validators.required));
-          this.source.addControl('customerName', new FormControl(this.paymentDetails.get('customer.name').value, Validators.required));
+          this.source.addControl('birthDate', new FormControl({ value: '1939-02-19', disabled: false}, Validators.required));
+          this.source.addControl('cpf', new FormControl({ value: '00003456789', disabled: false }, Validators.required));
+          this.source.addControl('customerName', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
 
-          this.paymentMethodSubsriptions.push(
-            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('customerName').setValue(customerName)),
-            this.source.get('customerName').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.paymentDetails.get('customer.name').setValue(customerName))
-          );
           break;
         }
         case 'eps': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
-          this.source.addControl('purpose', new FormControl('Giropay Test Payment', Validators.required));
-          this.source.addControl('bic', new FormControl(null));
+          this.source.addControl('purpose', new FormControl({ value: 'CKO EPS Demo', disabled: false }, Validators.required));
+          this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
           this.getBanks(paymentMethod);
           break;
         }
         case 'giropay': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
-          this.source.addControl('purpose', new FormControl('Giropay Test Payment', Validators.required));
-          this.source.addControl('bic', new FormControl(null));
+          this.source.addControl('purpose', new FormControl({ value: 'CKO Giropay Demo', disabled: false }, Validators.required));
+          this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
           this.getBanks(paymentMethod);
+
           break;
         }
         case 'googlepay': {
           this.paymentMethodRequiresAdditionalInformation = false;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
           break;
         }
         case 'ideal': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
-          this.source.addControl('description', new FormControl('iDEAL Test Payment', Validators.required));
-          this.source.addControl('bic', new FormControl(null, Validators.required));
-          this.source.addControl('language', new FormControl(null));
+          this.source.addControl('description', new FormControl({ value: 'CKO iDEAL Demo', disabled: false }, Validators.required));
+          this.source.addControl('bic', new FormControl({ value: null, disabled: false }, Validators.required));
+          this.source.addControl('language', new FormControl({ value: 'NL', disabled: false }));
 
           this.getBanksLegacy(paymentMethod);
+
           break;
         }
         case 'klarna': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
           let requestKlarnaCreditSession = () => this._paymentsService.requestKlarnaSession(this.klarnaCreditSession.value).subscribe(klarnaCreditSessionResponse => handleKlarnaCreditSessionResponse(klarnaCreditSessionResponse));
           let handleKlarnaCreditSessionResponse = async (klarnaCreditSessionResponse: HttpResponse<any>) => {
@@ -501,19 +472,17 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         }
         case 'paypal': {
           this.paymentMethodRequiresAdditionalInformation = false;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
           break;
         }
         case 'poli': {
           this.paymentMethodRequiresAdditionalInformation = false;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
           break;
         }
         case 'sepa': {
           this.paymentMethodRequiresAdditionalInformation = true;
-          this._paymentDetailsService.requiresConfirmationStep = true;
+          this.paymentConsent.enable();
 
           this.source.addControl('reference', new FormControl(`cko_demo_${uuid()}`));
           this.source.addControl(
@@ -538,13 +507,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl(
             'source_data',
             this._formBuilder.group({
-              first_name: ['Bruce', Validators.required],
-              last_name: ['Wayne', Validators.required],
-              account_iban: ['DE25100100101234567893', Validators.required],
+              first_name: [{ value: this.customer.value.given_name, disabled: true }, Validators.required],
+              last_name: [{ value: this.customer.value.family_name, disabled: true }, Validators.required],
+              account_iban: [{ value: 'DE25100100101234567893', disabled: false }, Validators.required],
               // PBNKDEFFXXX is the required value for bic in Sandbox
-              bic: ['PBNKDEFFXXX', Validators.required],
-              billing_descriptor: ['CKO Demo Shop', Validators.required],
-              mandate_type: ['single', Validators.required]
+              bic: [{ value: 'PBNKDEFFXXX', disabled: true }, Validators.required],
+              billing_descriptor: [{ value: 'CKO Demo Shop', disabled: false }, Validators.required],
+              mandate_type: [{ value: 'single', disabled: false }, Validators.required]
             })
           );
 
@@ -562,7 +531,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         }
         case 'sofort': {
           this.paymentMethodRequiresAdditionalInformation = false;
-          this._paymentDetailsService.requiresConfirmationStep = false;
 
           break;
         }

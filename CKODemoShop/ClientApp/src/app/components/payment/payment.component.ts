@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, NgZone, AfterViewInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormControl } from '@angular/forms';
+import { FormGroup, Validators, FormControl } from '@angular/forms';
 import { PaymentsService } from '../../services/payments.service';
 import { Subscription } from 'rxjs';
 import { HttpResponse } from '@angular/common/http';
@@ -26,16 +26,13 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   isLinear = true;
   paymentRequest: any;
   paymentDetails: FormGroup;
+  paymentConsent: FormGroup;
   listenToValueChanges: boolean;
-  requiresConfirmationStep: boolean;
   sourceDetails: FormGroup;
-  paymentConfirmation: FormGroup;
-  creditorIdentifier: string = 'DE36ZZZ00001690322';
   processing: boolean;
   makePayment: Function;
 
   constructor(
-    private _formBuilder: FormBuilder,
     private _paymentDetailsService: PaymentDetailsService,
     private _paymentService: PaymentsService,
     private _sourcesService: SourcesService,
@@ -45,20 +42,17 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   ) { }
 
   ngOnInit() {
-    this.paymentConfirmation = this._formBuilder.group({
-      approved: [false, Validators.requiredTrue]
-    });
     this.subscriptions.push(
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
-      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
-      this._paymentDetailsService.requiresConfirmationStep$.subscribe(requiresConfirmationStep => this.requiresConfirmationStep = requiresConfirmationStep)
+      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges)
     );
   }
 
   ngAfterViewInit() {
     this.subscriptions.push(
-      this.paymentDetails.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(paymentDetails => this.paymentRequest = paymentDetails),
-      this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.routePaymentMethod(sourceType))
+      this.paymentDetails.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(_ => this.paymentRequest = this.paymentDetails.getRawValue()),
+      this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.routePaymentMethod(sourceType)),
+      this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent)
     );
   }
 
@@ -74,10 +68,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   set threeDs(threeDs: boolean) {
     let threeDsEnabledField = this.paymentDetails.get('3ds');
     threeDs ? threeDsEnabledField.enable() : threeDsEnabledField.disable();
-  }
-
-  set paymentConfirmationRequired(paymentConfirmationRequired: boolean) {
-    paymentConfirmationRequired ? this.paymentConfirmation.enable() : this.paymentConfirmation.disable();
   }
 
   private standardPaymentFlow = () => {
@@ -115,7 +105,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     this.makePayment = makePaymentAction;
     this.autoCapture = autoCapture;
     this.threeDs = threeDs;
-    this.paymentConfirmationRequired = paymentConfirmationRequired;
   }
 
   private routePaymentMethod(sourceType: string) {
@@ -178,7 +167,6 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         case 'googlepay': {
           this.autoCapture = false;
           this.threeDs = false;
-          this.paymentConfirmationRequired = false;
 
           let googleClient;
           let allowedPaymentMethods = ['CARD', 'TOKENIZED_CARD'];
@@ -261,11 +249,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
         case 'sepa': {
           this.autoCapture = false;
           this.threeDs = false;
-          this.paymentConfirmationRequired = true;
 
           this.makePayment = () => {
             this.processing = true;
-            this._sourcesService.requestSource(this.paymentDetails.value.source).subscribe(
+            this._sourcesService.requestSource(this.paymentRequest.source).subscribe(
               response => this.handleSourceResponse(response),
               error => {
                 console.warn(error);

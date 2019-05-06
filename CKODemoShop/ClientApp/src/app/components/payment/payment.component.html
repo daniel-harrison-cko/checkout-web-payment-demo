@@ -18,69 +18,20 @@
         <mat-step [stepControl]="paymentDetails">
           <ng-template matStepLabel>Select a Payment Method</ng-template>
           <app-payment-method-form></app-payment-method-form>
-          <br />
-          <div *ngIf="requiresConfirmationStep">
-            <button mat-stroked-button matStepperNext>Next</button>
-          </div>
-        </mat-step>
-        <mat-step [stepControl]="paymentDetails" *ngIf="requiresConfirmationStep">
-          <form [formGroup]="paymentConfirmation">
-            <ng-template matStepLabel>Confirm</ng-template>
-            <mat-card class="mandate">
-              <mat-card-header>
-                <mat-card-title><h3>SEPA Direct Debit Mandate for {{paymentDetails.value.source.source_data.mandate_type}} payment</h3></mat-card-title>
-              </mat-card-header>
-              <mat-card-content class="mandate-content">
-                <div class="creditor">
-                  <h2>Creditor</h2>
-                  <h3>b4payment GmbH</h3>
-                  <p>Oberm&uuml;nsterstraße&nbsp;14</p>
-                  <p>93047&nbsp;Regensburg</p>
-                  <p>{{'Germany' | uppercase}}</p>
-                  <br />
-                  <p class="monospace">Creditor ID: {{creditorIdentifier}}</p>
-                </div>
-                <div class="debitor">
-                  <h2>Debtor</h2>
-                  <h3>{{paymentDetails.value.source.source_data.first_name + ' ' + paymentDetails.value.source.source_data.last_name}}</h3>
-                  <div class="address">
-                    <p *ngIf="paymentDetails.value.source.billing_address.address_line2">{{paymentDetails.value.source.billing_address.address_line2}}</p>
-                    <p>{{paymentDetails.value.source.billing_address.zip}}&nbsp;{{paymentDetails.value.source.billing_address.city}}, {{paymentDetails.value.source.billing_address.state}}</p>
-                    <p>{{paymentDetails.value.source.billing_address.country | uppercase}}</p>
-                  </div>
-                  <br />
-                  <p class="monospace">BIC&nbsp;:&nbsp;{{paymentDetails.value.source.source_data.bic}}</p>
-                  <p class="monospace">IBAN:&nbsp;{{paymentDetails.value.source.source_data.account_iban}}</p>
-                </div>
-                <div>
-                  <mat-divider></mat-divider>
-                  <p>By accepting this mandate form, you authorise (A) b4payment GmbH to send instructions to your bank to debit your account (B) your bank to debit your account in accordance with the instructions from b4payment GmbH.</p>
-                  <p>As part of your rights, you are entitled to a refund from your bank under the terms and conditions of your agreement with your bank. A refund must be claimed within 8 weeks starting from the date on which your account was debited.</p>
-                  <mat-checkbox formControlName="approved" required><h4>I accept the mandate for a {{paymentDetails.value.source.source_data.mandate_type}} payment</h4></mat-checkbox>
-                </div>
-              </mat-card-content>
-              <mat-divider></mat-divider>
-              <mat-card-footer>
-                <p class="mandate-info">
-                  Your rights regarding the above mandate are explained in a statement that you can obtain from your bank.
-                </p>
-              </mat-card-footer>
-            </mat-card>
-          </form>
         </mat-step>
       </mat-vertical-stepper>
       <br />
       <div class="payNowButton-container">
-        <button mat-flat-button color="accent" [disabled]="paymentDetails.invalid || paymentConfirmation.invalid || processing" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
+        <button mat-flat-button color="accent" [disabled]="paymentDetails.invalid || paymentConsent.invalid || processing" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
       </div>
     </mat-card>
   </div>
 </div>
-<div class="column" *ngIf="false">
+<div class="column" *ngIf="true">
   <div class="row">
     <mat-card>
       <pre>{{paymentDetails.valid}}</pre>
-      <pre>{{paymentDetails.value | json}}</pre>
+      <pre>{{paymentDetails.getRawValue() | json}}</pre>
     </mat-card>
   </div>
 </div>

@@ -309,7 +309,7 @@ body {
           flex: 1 0 auto;
         }
         /*BANCONTACT*/
-        [form-field="bancontact_billing_descriptor"] {
+        [form-field="bancontact_account_holder_name"], [form-field="bancontact_payment_country"], [form-field="bancontact_billing_descriptor"] {
           flex: 1 0 100%;
         }
         /*BOLETO*/
