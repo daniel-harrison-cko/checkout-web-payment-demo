@@ -272,6 +272,7 @@ body {
           justify-content: flex-start;
           display: flex;
           margin: unset;
+          flex-wrap: wrap;
         }
 
         mat-form-field.wide {
@@ -301,7 +302,7 @@ body {
           min-width: 300px;
         }
         /*CARD*/
-        [form-field="card_number"] {
+        [form-field="card_name"], [form-field="card_number"] {
           flex: 1 0 100%;
         }
 
@@ -313,11 +314,35 @@ body {
           flex: 1 0 100%;
         }
         /*BOLETO*/
-        [form-field="boleto_birthDate"], [form-field="boleto_cpf"] {
+        [form-field="boleto_customerName"], [form-field="boleto_birthDate"], [form-field="boleto_cpf"] {
+          flex: 1 0 100%;
+        }
+        /*EPS*/
+        [form-field="eps_bank"], [form-field="eps_purpose"] {
+          flex: 1 0 100%;
+        }
+        /*GIROPAY*/
+        [form-field="giropay_bank"], [form-field="giropay_purpose"] {
+          flex: 1 0 100%;
+        }
+        /*IDEAL*/
+        [form-field="ideal_bank"], [form-field="ideal_description"] {
           flex: 1 0 100%;
         }
         /*SEPA DIRECT DEBIT*/
-        [form-field="sepa_source_data_account_iban"], [form-field="sepa_source_data_billing_descriptor"] {
+        [form-field="sepa_source_data_first_name"], [form-field="sepa_source_data_last_name"] {
+          flex: 1 0 auto;
+        }
+
+        [form-field="sepa_source_data_account_iban"] {
+          flex:8 0 auto;
+        }
+
+        [form-field="sepa_source_data_bic"] {
+          flex: 2 0 auto;
+        }
+
+        [form-field="sepa_source_data_billing_descriptor"] {
           flex: 1 0 100%;
         }
 

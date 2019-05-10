@@ -15,6 +15,9 @@
           <div class="cko-container row"></div>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'card'">
+          <mat-form-field form-field="card_name">
+            <input matInput placeholder="Card Holder Name" formControlName="name" />
+          </mat-form-field>
           <mat-form-field form-field="card_number">
             <input matInput placeholder="Card Number" formControlName="number" autocomplete="cc-number" required />
             <mat-error *ngIf="paymentDetails.get('source.number').hasError('required')">Please enter a Credit Card number</mat-error>
@@ -33,6 +36,15 @@
             <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
             <mat-error *ngIf="paymentDetails.get('source.cvv').hasError('minlength') || paymentDetails.get('source.cvv').hasError('maxlength')">Your CVV must have 3-4 digits</mat-error>
           </mat-form-field>
+          <div formGroupName="phone" class="row">
+            <mat-form-field form-field="card_phone_country_code">
+              <span matPrefix>Phone&nbsp;</span>
+              <input matInput placeholder="Country Code" formControlName="country_code">
+            </mat-form-field>
+            <mat-form-field form-field="card_phone_number">
+              <input matInput placeholder="Number" formControlName="number">
+            </mat-form-field>
+          </div>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'bancontact'">
           <mat-form-field form-field="bancontact_account_holder_name">
@@ -59,7 +71,7 @@
           </mat-form-field>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'eps'">
-          <mat-form-field [formGroup]="bankForm" form-field="eps_bank" class="wide">
+          <mat-form-field [formGroup]="bankForm" form-field="eps_bank">
             <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()">
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
               <mat-option>--</mat-option>
@@ -69,13 +81,13 @@
             </mat-autocomplete>
             <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list (<span class="monospace">HYPTAT22XXX</span> for Sandbox)</mat-hint>
           </mat-form-field>
-          <mat-form-field form-field="eps_purpose" class="wide">
+          <mat-form-field form-field="eps_purpose">
             <input matInput placeholder="Purpose" formControlName="purpose" required />
             <mat-error *ngIf="paymentDetails.get('source.purpose').hasError('required')">Please provide a purpose</mat-error>
           </mat-form-field>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'giropay'">
-          <mat-form-field [formGroup]="bankForm" form-field="giropay_bank" class="wide">
+          <mat-form-field [formGroup]="bankForm" form-field="giropay_bank">
             <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()">
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
               <mat-option>--</mat-option>
@@ -85,13 +97,13 @@
             </mat-autocomplete>
             <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list (<span class="monospace">TESTDETT421</span> for Sandbox)</mat-hint>
           </mat-form-field>
-          <mat-form-field form-field="giropay_purpose" class="wide">
+          <mat-form-field form-field="giropay_purpose">
             <input matInput placeholder="Purpose" formControlName="purpose" required />
             <mat-error *ngIf="paymentDetails.get('source.purpose').hasError('required')">Please provide a purpose</mat-error>
           </mat-form-field>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'ideal'">
-          <mat-form-field [formGroup]="bankForm" form-field="ideal_bank" class="wide">
+          <mat-form-field [formGroup]="bankForm" form-field="ideal_bank">
             <input type="text" placeholder="Your bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()" required>
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
               <mat-option>--</mat-option>
@@ -102,7 +114,7 @@
             <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list (<span class="monospace">INGBNL2A</span> for Sandbox)</mat-hint>
             <mat-error *ngIf="bankForm.get('bank').hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment</mat-error>
           </mat-form-field>
-          <mat-form-field form-field="ideal_description" class="wide">
+          <mat-form-field form-field="ideal_description">
             <input matInput placeholder="Description" formControlName="description" required />
             <mat-error *ngIf="paymentDetails.get('source.description').hasError('required')">Please provide a description</mat-error>
           </mat-form-field>
@@ -125,7 +137,7 @@
           </ng-container>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'sepa'">
-          <div formGroupName="source_data">
+          <div formGroupName="source_data" class="row">
             <div class="row">
               <mat-form-field form-field="sepa_source_data_first_name">
                 <input matInput placeholder="First Name" formControlName="first_name" required />
@@ -142,7 +154,7 @@
                 <input matInput placeholder="BIC" formControlName="bic" />
                 <mat-hint>Must be this BIC in Sandbox</mat-hint>
               </mat-form-field>
-            </div>          
+            </div>
           </div>
           <div formGroupName="phone" class="row">
             <mat-form-field form-field="sepa_phone_country_code">
@@ -153,7 +165,7 @@
               <input matInput placeholder="Number" formControlName="number">
             </mat-form-field>
           </div>
-          <div formGroupName="source_data">
+          <div formGroupName="source_data" class="row">
             <div class="row">
               <mat-form-field form-field="sepa_source_data_billing_descriptor">
                 <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />

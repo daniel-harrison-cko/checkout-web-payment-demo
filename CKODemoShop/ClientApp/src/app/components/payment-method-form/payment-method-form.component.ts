@@ -253,21 +253,28 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         case 'cko-frames': {
           this.paymentMethodRequiresAdditionalInformation = true;
 
-          this.source.addControl('token', new FormControl(null));
+          this.source.addControl('token', new FormControl({ value: null, disabled: false }));
 
           break;
         }
         case 'card': {
           this.paymentMethodRequiresAdditionalInformation = true;
 
-          this.source.addControl('number', new FormControl('4242424242424242', Validators.required));
-          this.source.addControl('expiry_month', new FormControl(12, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])));
-          this.source.addControl('expiry_year', new FormControl(2022, Validators.required));
-          this.source.addControl('name', new FormControl(this.paymentDetails.value.customer.name));
-          this.source.addControl('cvv', new FormControl('100', Validators.compose([Validators.minLength(3), Validators.maxLength(4)])));
-          this.source.addControl('stored', new FormControl(null));
-          this.source.addControl('billing_address', new FormControl(this.paymentDetails.value.billing_address));
-          this.source.addControl('phone', new FormControl(null));
+          this.source.addControl('number', new FormControl({ value: '4242424242424242', disabled: false }, Validators.required));
+          this.source.addControl('expiry_month', new FormControl({ value: 12, disabled: false }, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])));
+          this.source.addControl('expiry_year', new FormControl({ value: 2022, disabled: false }, Validators.required));
+          this.source.addControl('name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }));
+          this.source.addControl('cvv', new FormControl({ value: '100', disabled: false }, Validators.compose([Validators.minLength(3), Validators.maxLength(4)])));
+          this.source.addControl('stored', new FormControl({ value: null, disabled: false }));
+          this.source.addControl('billing_address', new FormControl({ value: this.paymentDetails.value.billing_address, disabled: true }));
+          this.source.addControl(
+            'phone',
+            this._formBuilder.group({
+              country_code: null,
+              number: null
+            })
+          );
+
           break;
         }
         case 'alipay': {
@@ -466,6 +473,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
               order_lines: klarnaCreditSession.products
             }))
           );
+
           requestKlarnaCreditSession();
 
           break;
