@@ -248,7 +248,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest();
+                return BadRequest(e.Message);
             }
         }
 
@@ -264,7 +264,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest();
+                return BadRequest(e.Message);
             }
         }
 
@@ -339,12 +339,13 @@ namespace CKODemoShop.Controllers
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
                 HttpResponseMessage result = await client.PostAsJsonAsync(hypermediaRequest.Link, hypermediaRequest.Payload);
+                if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
                 string content = await result.Content.ReadAsStringAsync();
                 return AcceptedAtRoute("Hypermedia", content);
             }
             catch (Exception e)
             {
-                return BadRequest();
+                return BadRequest(e.Message);
             }
         }
 
@@ -443,7 +444,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest();
+                return BadRequest(e.Message);
             }
         }
     }
