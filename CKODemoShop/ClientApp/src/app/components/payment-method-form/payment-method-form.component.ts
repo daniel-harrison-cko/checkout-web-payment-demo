@@ -15,72 +15,98 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'Credit Card (Frames)',
     type: 'cko-frames',
-    processingCurrencies: []
+    restrictedCurrencyCountryPairings: null
   },
   {
     name: 'Credit Card (PCI DSS)',
     type: 'card',
-    processingCurrencies: []
+    restrictedCurrencyCountryPairings: null
   },
   {
     name: 'Alipay',
     type: 'alipay',
-    processingCurrencies: ['USD']
+    restrictedCurrencyCountryPairings: {
+      'USD': ['CN']
+    }
   },
   {
     name: 'Bancontact',
     type: 'bancontact',
-    processingCurrencies: ['EUR']
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['BE']
+    }
   },
   {
     name: 'Boleto',
     type: 'boleto',
-    processingCurrencies: ['BRL', 'USD']
+    restrictedCurrencyCountryPairings: {
+      'BRL': ['BR'],
+      'USD': ['BR']
+      }
   },
   {
     name: 'EPS',
     type: 'eps',
-    processingCurrencies: ['EUR']
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['AT']
+    }
   },
   {
     name: 'Giropay',
     type: 'giropay',
-    processingCurrencies: ['EUR']
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['DE']
+    }
   },
   {
     name: 'Google Pay',
     type: 'googlepay',
-    processingCurrencies: []
+    restrictedCurrencyCountryPairings: null
   },
   {
     name: 'iDEAL',
     type: 'ideal',
-    processingCurrencies: ['EUR']
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['NL']
+    }
   },
   {
     name: 'Klarna',
     type: 'klarna',
-    processingCurrencies: ['EUR', 'DKK', 'GBP', 'NOK', 'SEK']
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['AT', 'DE', 'FI', 'NL'],
+      'DKK': ['DK'],
+      'GBP': ['UK'],
+      'NOK': ['NO'],
+      'SEK': ['SE']
+    }
   },
   {
     name: 'PayPal',
     type: 'paypal',
-    processingCurrencies: []
+    restrictedCurrencyCountryPairings: null
   },
   {
     name: 'Poli',
     type: 'poli',
-    processingCurrencies: ['AUD', 'NZD']
+    restrictedCurrencyCountryPairings: {
+      'AUD': ['AU'],
+      'NZD': ['NZ']
+    }
   },
   {
     name: 'SEPA Direct Debit',
     type: 'sepa',
-    processingCurrencies: ['EUR']
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['AT', 'BE', 'DE', 'ES', 'FR', 'IT', 'LU', 'NL', 'PT']
+    }
   },
   {
     name: 'Sofort',
     type: 'sofort',
-    processingCurrencies: ['EUR']
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['AT', 'BE', 'DE', 'ES', 'IT', 'NL']
+    }
   }
 ]
 const flatten = <T = any>(arr: T[]) => {
@@ -140,12 +166,12 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent),
       this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => {
         let sourceType = this.paymentDetails.get('source.type').value;
-        let sourceTypeCanHandleCurrency = (sourceType: string, currency: string): boolean => {
+        let sourceTypeSupportsCurrencyCountryPairing = (sourceType: string, currency: string): boolean => {
           let paymentMethod = PAYMENT_METHODS.find(paymentMethod => paymentMethod.type == sourceType);
-          return paymentMethod.processingCurrencies.length == 0 ? true : paymentMethod.processingCurrencies.includes(currency);
+          return paymentMethod.restrictedCurrencyCountryPairings.length == 0 ? true : paymentMethod.restrictedCurrencyCountryPairings.includes(currency);
         }
         if (sourceType) {
-          if (!sourceTypeCanHandleCurrency(sourceType, currency)) {
+          if (!sourceTypeSupportsCurrencyCountryPairing(sourceType, currency)) {
             this.resetPaymentMethod();
             this.paymentDetails.get('source.type').setValue(null);
           }
@@ -160,8 +186,17 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
-  private matchProcessingCurrencies(processingCurrencies: string[]): boolean {
-    return processingCurrencies.length == 0 ? true : processingCurrencies.includes(this.paymentDetails.get('currency').value);
+  private sourceTypeSupportsCurrencyCountryPairing(sourceType: string): boolean {
+    if (!sourceType) {
+      return true;
+    }
+    let paymentMethod = PAYMENT_METHODS.find(paymentMethod => paymentMethod.type == sourceType);
+    if (paymentMethod.restrictedCurrencyCountryPairings == null) {
+      return true;
+    } else if (paymentMethod.restrictedCurrencyCountryPairings[this.paymentDetails.value.currency]) {
+      return paymentMethod.restrictedCurrencyCountryPairings[this.paymentDetails.value.currency].includes(this.paymentDetails.value.billing_address.country);
+    }
+    return false;
   }
 
   get source(): FormGroup {
