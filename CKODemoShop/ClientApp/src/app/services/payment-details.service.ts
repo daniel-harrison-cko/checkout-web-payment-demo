@@ -9,6 +9,7 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'CHF', base: 100 },
   { iso4217: 'EUR', base: 100 },
   { iso4217: 'GBP', base: 100 },
+  { iso4217: 'KWD', base: 1000 },
   { iso4217: 'NOK', base: 100 },
   { iso4217: 'NZD', base: 100 },
   { iso4217: 'SEK', base: 100 },

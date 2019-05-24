@@ -82,6 +82,13 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     }
   },
   {
+    name: 'KNET',
+    type: 'knet',
+    restrictedCurrencyCountryPairings: {
+      'KWD': ['KW']
+    }
+  },
+  {
     name: 'PayPal',
     type: 'paypal',
     restrictedCurrencyCountryPairings: null
@@ -166,12 +173,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent),
       this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => {
         let sourceType = this.paymentDetails.get('source.type').value;
-        let sourceTypeSupportsCurrencyCountryPairing = (sourceType: string, currency: string): boolean => {
-          let paymentMethod = PAYMENT_METHODS.find(paymentMethod => paymentMethod.type == sourceType);
-          return paymentMethod.restrictedCurrencyCountryPairings.length == 0 ? true : paymentMethod.restrictedCurrencyCountryPairings.includes(currency);
-        }
         if (sourceType) {
-          if (!sourceTypeSupportsCurrencyCountryPairing(sourceType, currency)) {
+          if (!this.sourceTypeSupportsCurrencyCountryPairing(sourceType)) {
             this.resetPaymentMethod();
             this.paymentDetails.get('source.type').setValue(null);
           }
@@ -510,6 +513,27 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           );
 
           requestKlarnaCreditSession();
+
+          break;
+        }
+        case 'knet': {
+          this.paymentMethodRequiresAdditionalInformation = true;
+
+          this.source.addControl('language', new FormControl({ value: 'en', disabled: false }, Validators.required));
+          this.source.addControl('user_defined_field1', new FormControl({ value: 'First user defined field', disabled: false }));
+          this.source.addControl('user_defined_field2', new FormControl({ value: 'Second user defined field', disabled: false }));
+          this.source.addControl('user_defined_field3', new FormControl({ value: '', disabled: false }));
+          this.source.addControl('user_defined_field4', new FormControl({ value: 'Fourth user defined field', disabled: false }));
+          this.source.addControl('user_defined_field5', new FormControl({ value: '', disabled: false }));
+          this.source.addControl('card_token', new FormControl({ value: '01234567', disabled: false }, Validators.pattern('[0-9]{8}')));
+          this.source.addControl('ptlf', new FormControl({ value: 'ptlf xxxx xxxxx xxxxx xxxxx', disabled: false }));
+
+          this.paymentMethodSubsriptions.push(
+            this.source.get('user_defined_field3').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('card_token').reset()),
+            this.source.get('card_token').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('user_defined_field3').reset()),
+            this.source.get('user_defined_field5').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('ptlf').reset()),
+            this.source.get('ptlf').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('user_defined_field5').reset())
+          );
 
           break;
         }

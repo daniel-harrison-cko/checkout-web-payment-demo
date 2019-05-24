@@ -275,6 +275,13 @@ body {
           flex-wrap: wrap;
         }
 
+        span.spacer {
+          flex: 0 0 auto;
+          margin: 0px 20px 0px 20px;
+          align-self: center;
+          text-align: center;
+        }
+
         mat-form-field.wide {
           width: 100%;
         }
@@ -329,13 +336,21 @@ body {
         [form-field="ideal_bank"], [form-field="ideal_description"] {
           flex: 1 0 100%;
         }
+        /*KNET*/
+        [form-field="knet_user_defined_field1"], [form-field="knet_user_defined_field2"], [form-field="knet_user_defined_field4"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="knet_user_defined_field3"], [form-field="knet_card_token"], [form-field="knet_user_defined_field5"], [form-field="knet_ptlf"] {
+          flex: 1 0 auto;
+        }
         /*SEPA DIRECT DEBIT*/
         [form-field="sepa_source_data_first_name"], [form-field="sepa_source_data_last_name"] {
           flex: 1 0 auto;
         }
 
         [form-field="sepa_source_data_account_iban"] {
-          flex:8 0 auto;
+          flex: 8 0 auto;
         }
 
         [form-field="sepa_source_data_bic"] {

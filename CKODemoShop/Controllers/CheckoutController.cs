@@ -113,6 +113,20 @@ namespace CKODemoShop.Controllers
         public string AccountHolderName { get; set; }
         [JsonProperty(PropertyName = "billing_descriptor")]
         public string BillingDescriptor { get; set; }
+        public string Language { get; set; }
+        [JsonProperty(PropertyName = "user_defined_field1")]
+        public string UDF1 { get; set; }
+        [JsonProperty(PropertyName = "user_defined_field2")]
+        public string UDF2 { get; set; }
+        [JsonProperty(PropertyName = "user_defined_field3")]
+        public string UDF3 { get; set; }
+        [JsonProperty(PropertyName = "user_defined_field4")]
+        public string UDF4 { get; set; }
+        [JsonProperty(PropertyName = "user_defined_field5")]
+        public string UDF5 { get; set; }
+        [JsonProperty(PropertyName = "card_token")]
+        public string CardToken { get; set; }
+        public string PTLF { get; set; }
 
     }
 
@@ -409,6 +423,18 @@ namespace CKODemoShop.Controllers
                         {"tax_amount", source.TaxAmount.ToString() },
                         {"billing_address", source.BillingAddress },
                         {"products", source.Products }
+                    };
+                case "knet":
+                    return new AlternativePaymentSource(source.Type)
+                    {
+                        {"language", source.Language },
+                        {"user_defined_field1", source.UDF1 },
+                        {"user_defined_field2", source.UDF2 },
+                        {"user_defined_field3", source.UDF3 },
+                        {"user_defined_field4", source.UDF4 },
+                        {"user_defined_field5", source.UDF5 },
+                        {"card_token", source.CardToken },
+                        {"ptlf", source.PTLF }
                     };
                 default:
                     return new AlternativePaymentSource(source.Type);

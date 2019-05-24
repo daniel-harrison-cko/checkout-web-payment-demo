@@ -238,6 +238,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this.setupPaymentMethod(this.klarnaPaymentFlow);
           break;
         }
+        case 'knet': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
         case 'paypal': {
           this.setupPaymentMethod(this.standardPaymentFlow);
           break;

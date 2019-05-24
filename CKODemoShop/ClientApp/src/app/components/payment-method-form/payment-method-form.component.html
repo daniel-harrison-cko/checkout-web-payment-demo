@@ -136,6 +136,49 @@
             </div>
           </ng-container>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'knet'">
+          <mat-form-field form-field="knet_language">
+            <mat-label>Language</mat-label>
+            <mat-select formControlName="language" required>
+              <mat-option value="ar">Arabic (ar-KW)</mat-option>
+              <mat-option value="en">English (en-US)</mat-option>
+            </mat-select>
+          </mat-form-field>
+          <div class="row">
+            <mat-form-field form-field="knet_user_defined_field1">
+              <input matInput placeholder="UDF1" formControlName="user_defined_field1" />
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="knet_user_defined_field2">
+              <input matInput placeholder="UDF2" formControlName="user_defined_field2" />
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="knet_card_token" #knet_card_token>
+              <input matInput placeholder="Card Token" formControlName="card_token" />
+              <mat-error *ngIf="paymentDetails.get('source.card_token').hasError('pattern')">Must be 8 digits</mat-error>
+            </mat-form-field>
+            <span class="spacer">or</span>
+            <mat-form-field form-field="knet_user_defined_field3" #knet_user_defined_field3>
+              <input matInput placeholder="UDF3" formControlName="user_defined_field3" />
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="knet_user_defined_field4">
+              <input matInput placeholder="UDF4" formControlName="user_defined_field4" />
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="knet_ptlf" #knet_ptlf>
+              <input matInput placeholder="PTLF" formControlName="ptlf" />
+            </mat-form-field>
+            <span class="spacer">or</span>
+            <mat-form-field form-field="knet_user_defined_field5" #knet_user_defined_field5>
+              <input matInput placeholder="UDF5" formControlName="user_defined_field5" />
+            </mat-form-field>
+          </div>
+        </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'sepa'">
           <div formGroupName="source_data" class="row">
             <div class="row">
