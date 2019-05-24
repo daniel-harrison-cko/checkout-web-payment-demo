@@ -4,6 +4,7 @@ import { IPayment } from '../../interfaces/payment.interface';
 import { MatTableDataSource, MatSort, MatSortable } from '@angular/material';
 import { UserService } from '../../services/user.service';
 import { PaymentsService } from 'src/app/services/payments.service';
+import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 
 @Component({
   selector: 'app-orders',
@@ -19,7 +20,8 @@ export class OrdersComponent {
 
   constructor(
     private _userService: UserService,
-    private _paymentsService: PaymentsService
+    private _paymentsService: PaymentsService,
+    private _paymentDetailsService: PaymentDetailsService,
   ) {
     this.user = _userService.getUser();
     let recordedOrders: string[] = JSON.parse(localStorage.getItem('payments'));
@@ -51,5 +53,9 @@ export class OrdersComponent {
 
   private paymentMethodIcon(payment: IPayment): string {
     return this._paymentsService.paymentMethodIcon(payment);
+  }
+
+  private currencyBaseAmount(currencyCode: string): number {
+    return this._paymentDetailsService.currencies.find(currency => currency.iso4217 == currencyCode).base;
   }
 }

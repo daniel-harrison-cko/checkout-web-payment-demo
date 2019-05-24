@@ -3,6 +3,7 @@ import { ActivatedRoute } from '@angular/router';
 import { IPayment } from '../../interfaces/payment.interface';
 import { finalize } from 'rxjs/operators';
 import { PaymentsService } from 'src/app/services/payments.service';
+import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 
 @Component({
   selector: 'app-order-detail',
@@ -16,6 +17,7 @@ export class OrderDetailComponent {
 
   constructor(
     private _paymentsService: PaymentsService,
+    private _paymentDetailsService: PaymentDetailsService,
     private _activatedRoute: ActivatedRoute
   ) {
     let orderId = _activatedRoute.snapshot.params['orderId'] || _activatedRoute.snapshot.queryParams['cko-session-id'];
@@ -31,5 +33,9 @@ export class OrderDetailComponent {
 
   private paymentMethodIcon(payment: IPayment): string {
     return this._paymentsService.paymentMethodIcon(payment);
+  }
+
+  private currencyBaseAmount(currencyCode: string): number {
+    return this._paymentDetailsService.currencies.find(currency => currency.iso4217 == currencyCode).base;
   }
 }
