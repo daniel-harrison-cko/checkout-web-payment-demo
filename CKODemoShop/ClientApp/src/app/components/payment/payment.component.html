@@ -22,12 +22,12 @@
       </mat-vertical-stepper>
       <br />
       <div class="payNowButton-container">
-        <button mat-flat-button color="accent" [disabled]="paymentDetails.invalid || paymentConsent.invalid || processing" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
+        <button mat-flat-button color="accent" [disabled]="paymentButtonIsDisabled" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
       </div>
     </mat-card>
   </div>
 </div>
-<div class="column" *ngIf="true">
+<div class="column" *ngIf="false">
   <div class="row">
     <mat-card>
       <pre>{{paymentDetails.valid}}</pre>

@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl, AbstractControl } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Observable, Subscription } from 'rxjs';
@@ -49,6 +49,13 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     type: 'eps',
     restrictedCurrencyCountryPairings: {
       'EUR': ['AT']
+    }
+  },
+  {
+    name: 'Fawry',
+    type: 'fawry',
+    restrictedCurrencyCountryPairings: {
+      'EGP': ['EG']
     }
   },
   {
@@ -349,6 +356,34 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
           this.getBanks(paymentMethod);
+          break;
+        }
+        case 'fawry': {
+          this.paymentMethodRequiresAdditionalInformation = true;
+
+          this.source.addControl('description', new FormControl({ value: 'Fawry Demo Payment', disabled: false }, Validators.required));
+          this.source.addControl('customer_mobile', new FormControl({ value: '0102800991193847299', disabled: false }, Validators.required));
+          this.source.addControl('customer_email', new FormControl({ value: this.paymentDetails.value.customer.email, disabled: false }, Validators.compose([Validators.email, Validators.required])));
+          this.source.addControl('customer_profile_id', new FormControl({ value: '00000001', disabled: false }));
+          this.source.addControl('expires_on', new FormControl({ value: '', disabled: false }));
+          this.source.addControl(
+            'products',
+            this._formBuilder.array([
+              this._formBuilder.group({
+                product_id: ['0123456789', Validators.required],
+                quantity: [1, Validators.required],
+                price: [this.paymentDetails.value.amount, Validators.required],
+                description: ['CKO Demo Purchase Item', Validators.required]
+              })
+            ])
+          );
+
+          this.paymentMethodSubsriptions.push(
+            this.paymentDetails.get('amount').valueChanges.pipe(distinctUntilChanged()).subscribe(amount => (<FormArray>this.source.get('products')).controls[0].get('price').setValue(amount)),
+            this.paymentDetails.get('customer.email').valueChanges.pipe(distinctUntilChanged()).subscribe(email => this.source.get('customer_email').setValue(email)),
+            this.source.get('customer_email').valueChanges.pipe(distinctUntilChanged()).subscribe(email => this.paymentDetails.get('customer.email').setValue(email))
+          );
+
           break;
         }
         case 'giropay': {

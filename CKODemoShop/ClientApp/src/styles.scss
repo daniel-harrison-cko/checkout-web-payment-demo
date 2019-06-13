@@ -328,6 +328,13 @@ body {
         [form-field="eps_bank"], [form-field="eps_purpose"] {
           flex: 1 0 100%;
         }
+        /*FAWRY*/
+        [form-field="fawry_description"], [form-field="fawry_customer_profile_id"], [form-field="fawry_expires_on"] {
+          flex: 1 0 100%;
+        }
+        [form-field="fawry_customer_email"], [form-field="fawry_customer_mobile"] {
+          flex: 1 0 auto;
+        }
         /*GIROPAY*/
         [form-field="giropay_bank"], [form-field="giropay_purpose"] {
           flex: 1 0 100%;

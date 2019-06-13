@@ -7,6 +7,7 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'AUD', base: 100 },
   { iso4217: 'BRL', base: 100 },
   { iso4217: 'CHF', base: 100 },
+  { iso4217: 'EGP', base: 100 },
   { iso4217: 'EUR', base: 100 },
   { iso4217: 'GBP', base: 100 },
   { iso4217: 'KWD', base: 1000 },
@@ -83,7 +84,7 @@ export class PaymentDetailsService {
       }),
       customer: this._formBuilder.group({
         id: null,
-        email: ['bruce@wayne-enterprises.com', Validators.required],
+        email: ['bruce@wayne-enterprises.com', Validators.compose([Validators.email, Validators.required])],
         name: ['Bruce Wayne', Validators.required]
       }),
       billing_address: this._formBuilder.group({

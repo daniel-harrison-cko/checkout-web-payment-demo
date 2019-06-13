@@ -37,6 +37,15 @@ namespace CKODemoShop.Controllers
         public bool HasBanks { get { return Banks.Count > 0; } }
     }
 
+    public class Webhook
+    {
+        public string Id { get; set; }
+        public string Type { get; set; }
+        [JsonProperty(PropertyName = "created_on")]
+        public string CreatedOn { get; set; }
+        public IDictionary<string, object> Data { get; set; }
+    }
+
     public class PaymentRequest
     {
         public PaymentRequest(
@@ -72,6 +81,8 @@ namespace CKODemoShop.Controllers
     {
         public string Link { get; set; }
         public object Payload { get; set; }
+        [JsonProperty(PropertyName = "httpMethod")]
+        public string HttpMethod { get; set; }
     }
 
     public class Source : IRequestSource
@@ -106,7 +117,7 @@ namespace CKODemoShop.Controllers
         public int TaxAmount { get; set; }
         [JsonProperty(PropertyName = "billing_address")]
         public object BillingAddress { get; set; }
-        public IEnumerable<KlarnaProduct> Products { get; set; }
+        public IEnumerable<object> Products { get; set; }
         [JsonProperty(PropertyName = "payment_country")]
         public string PaymentCountry { get; set; }
         [JsonProperty(PropertyName = "account_holder_name")]
@@ -127,6 +138,14 @@ namespace CKODemoShop.Controllers
         [JsonProperty(PropertyName = "card_token")]
         public string CardToken { get; set; }
         public string PTLF { get; set; }
+        [JsonProperty(PropertyName = "customer_mobile")]
+        public string CustomerMobile { get; set; }
+        [JsonProperty(PropertyName = "customer_email")]
+        public string CustomerEmail { get; set; }
+        [JsonProperty(PropertyName = "customer_profile_id")]
+        public string CustomerProfileId { get; set; }
+        [JsonProperty(PropertyName = "expires_on")]
+        public string ExpiresOn { get; set; }
 
     }
 
@@ -352,7 +371,19 @@ namespace CKODemoShop.Controllers
             {
                 client.DefaultRequestHeaders.Clear();
                 client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
-                HttpResponseMessage result = await client.PostAsJsonAsync(hypermediaRequest.Link, hypermediaRequest.Payload);
+                HttpResponseMessage result;
+                switch (hypermediaRequest.HttpMethod)
+                {
+                    case "POST":
+                        result = await client.PostAsJsonAsync(hypermediaRequest.Link, hypermediaRequest.Payload);
+                        break;
+                    case "PUT":
+                        result = await client.PutAsJsonAsync(hypermediaRequest.Link, hypermediaRequest.Payload);
+                        break;
+                    default:
+                        result = await client.PostAsJsonAsync(hypermediaRequest.Link, hypermediaRequest.Payload);
+                        break;
+                }
                 if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
                 string content = await result.Content.ReadAsStringAsync();
                 return AcceptedAtRoute("Hypermedia", content);
@@ -402,6 +433,16 @@ namespace CKODemoShop.Controllers
                         {"bic", source.Bic },
                         {"purpose", source.Purpose }
                     };
+                case "fawry":
+                    return new AlternativePaymentSource(source.Type)
+                    {
+                        {"description", source.Description },
+                        {"customer_mobile", source.CustomerMobile },
+                        {"customer_email", source.CustomerEmail },
+                        {"customer_profile_id", source.CustomerProfileId },
+                        {"expires_on", source.ExpiresOn },
+                        {"products", source.Products },
+                    };
                 case "giropay":
                     return new AlternativePaymentSource(source.Type)
                     {
@@ -420,7 +461,7 @@ namespace CKODemoShop.Controllers
                         {"authorization_token", source.AuthorizationToken },
                         {"locale", source.Locale },
                         {"purchase_country", source.PurchaseCountry },
-                        {"tax_amount", source.TaxAmount.ToString() },
+                        {"tax_amount", source.TaxAmount },
                         {"billing_address", source.BillingAddress },
                         {"products", source.Products }
                     };
@@ -481,8 +522,9 @@ namespace CKODemoShop.Controllers
     {
         [HttpPost("incoming/checkout")]
         [ProducesResponseType(200)]
-        public IActionResult Webhooks(object sessionRequest)
+        public IActionResult Webhooks(Webhook webhook)
         {
+            Console.WriteLine($"\nWEBHOOK\n{webhook.CreatedOn} - {webhook.Data["id"]} ({webhook.Type})\n");
             return Ok();
         }
     }

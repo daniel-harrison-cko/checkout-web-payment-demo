@@ -70,6 +70,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
     threeDs ? threeDsEnabledField.enable() : threeDsEnabledField.disable();
   }
 
+  get paymentButtonIsDisabled(): boolean {
+    return (this.paymentDetails ? this.paymentDetails.invalid : false) || (this.paymentConsent ? this.paymentConsent.invalid : false) || this.processing;
+  }
+
   private standardPaymentFlow = () => {
     this.processing = true;
     this._paymentService.requestPayment(this.paymentRequest).subscribe(
@@ -157,6 +161,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           break;
         }
         case 'eps': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
+        case 'fawry': {
           this.setupPaymentMethod(this.standardPaymentFlow);
           break;
         }

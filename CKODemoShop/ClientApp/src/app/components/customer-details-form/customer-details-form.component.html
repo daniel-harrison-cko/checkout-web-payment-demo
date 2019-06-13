@@ -43,6 +43,7 @@
     <div formGroupName="customer">
       <mat-form-field form-field="email">
         <input matInput placeholder="Email" formControlName="email">
+        <mat-error *ngIf="this.paymentDetails.get('customer.email').hasError('email')">Please enter a valid email address</mat-error>
       </mat-form-field>
     </div>
   </div>

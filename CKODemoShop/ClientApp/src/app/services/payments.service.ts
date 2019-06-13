@@ -14,6 +14,7 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'AUD', base: 100 },
   { iso4217: 'BRL', base: 100 },
   { iso4217: 'CHF', base: 100 },
+  { iso4217: 'EGP', base: 100 },
   { iso4217: 'EUR', base: 100 },
   { iso4217: 'GBP', base: 100 },
   { iso4217: 'KWD', base: 1000 },

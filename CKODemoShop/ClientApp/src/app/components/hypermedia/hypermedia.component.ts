@@ -25,7 +25,7 @@ export class HypermediaComponent implements OnInit {
   }
 
   private initiateHypermediaAction(relation: string, link: string) {
-    let hypermediaRequest = new HypermediaRequest(relation, link);
+    let hypermediaRequest = new HypermediaRequest(this.payment.source.type, relation, link);
     this._paymentsService.performHypermediaAction(hypermediaRequest).subscribe(
       response => location.reload(true),
       error => console.warn(error)

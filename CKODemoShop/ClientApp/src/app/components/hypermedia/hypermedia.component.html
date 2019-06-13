@@ -1,6 +1,6 @@
 <mat-list class="hypermedia-list">
   <ng-container *ngFor="let link of links | keyvalue">
-    <mat-list-item *ngIf="link.key == 'refund' || link.key == 'capture' || link.key == 'void' || link.key == 'self' || link.key == 'klarna:payment-capture' || link.key == 'klarna:payment-void'" class="hypermedia-list-item">
+    <mat-list-item *ngIf="link.key == 'refund' || link.key == 'capture' || link.key == 'void' || link.key == 'self' || link.key == 'klarna:payment-capture' || link.key == 'klarna:payment-void' || link.key == 'approve' || link.key == 'cancel'" class="hypermedia-list-item">
       <button mat-stroked-button mat-line color="primary" (click)="initiateHypermediaAction(link.key, link.value.href)" [disabled]="link.key == 'self'">{{link.key}}</button>
     </mat-list-item>
     <mat-expansion-panel *ngIf="link.key == 'actions'" class="hypermedia-list-expansion-panel">

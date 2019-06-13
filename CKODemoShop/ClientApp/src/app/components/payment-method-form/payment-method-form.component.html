@@ -86,6 +86,33 @@
             <mat-error *ngIf="paymentDetails.get('source.purpose').hasError('required')">Please provide a purpose</mat-error>
           </mat-form-field>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'fawry'">
+          <div class="row">
+            <mat-form-field form-field="fawry_description">
+              <input matInput placeholder="Description" formControlName="description" required />
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="fawry_customer_profile_id">
+              <input matInput placeholder="Customer Profile ID" formControlName="customer_profile_id" />
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="fawry_customer_email">
+              <input matInput placeholder="Customer Email" formControlName="customer_email" required />
+              <mat-error *ngIf="this.source.get('customer_email').hasError('email')">Please enter a valid email address</mat-error>
+            </mat-form-field>
+            <mat-form-field form-field="fawry_customer_mobile">
+              <input matInput placeholder="Customer Mobile" formControlName="customer_mobile" required />
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="fawry_expires_on">
+              <input matInput placeholder="Expires On" formControlName="expires_on" />
+              <mat-hint>Overrides the default expiration period with a specific ISO 8601 date and time (yyyy-mm-ddThh:mm:ss.ffffff)</mat-hint>
+            </mat-form-field>
+          </div>
+        </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'giropay'">
           <mat-form-field [formGroup]="bankForm" form-field="giropay_bank">
             <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()">
@@ -224,7 +251,7 @@
                   recurring
                 </mat-radio-button>
               </mat-radio-group>
-            </div>            
+            </div>
           </div>
         </ng-container>
       </mat-card-content>
