@@ -44,7 +44,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
 
-  private paymentMethods = this._paymentsService.paymentMethods;
+  public paymentMethods = this._paymentsService.paymentMethods;
 
   constructor(
     private _formBuilder: FormBuilder,
