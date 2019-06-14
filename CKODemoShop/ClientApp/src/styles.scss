@@ -17,6 +17,10 @@ body {
     font-family: monospace;
   }
 
+  img.flag {
+    width: 1.5 * $margin;
+  }
+
   mat-toolbar {
     position: sticky;
     position: -webkit-sticky;

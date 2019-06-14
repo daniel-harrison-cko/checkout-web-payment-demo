@@ -11,118 +11,6 @@ import { PaymentDetailsService } from 'src/app/services/payment-details.service'
 import { v4 as uuid } from 'uuid';
 
 declare var Klarna: any;
-const PAYMENT_METHODS: IPaymentMethod[] = [
-  {
-    name: 'Credit Card (Frames)',
-    type: 'cko-frames',
-    restrictedCurrencyCountryPairings: null
-  },
-  {
-    name: 'Credit Card (PCI DSS)',
-    type: 'card',
-    restrictedCurrencyCountryPairings: null
-  },
-  {
-    name: 'Alipay',
-    type: 'alipay',
-    restrictedCurrencyCountryPairings: {
-      'USD': ['CN']
-    }
-  },
-  {
-    name: 'Bancontact',
-    type: 'bancontact',
-    restrictedCurrencyCountryPairings: {
-      'EUR': ['BE']
-    }
-  },
-  {
-    name: 'Boleto',
-    type: 'boleto',
-    restrictedCurrencyCountryPairings: {
-      'BRL': ['BR'],
-      'USD': ['BR']
-      }
-  },
-  {
-    name: 'EPS',
-    type: 'eps',
-    restrictedCurrencyCountryPairings: {
-      'EUR': ['AT']
-    }
-  },
-  {
-    name: 'Fawry',
-    type: 'fawry',
-    restrictedCurrencyCountryPairings: {
-      'EGP': ['EG']
-    }
-  },
-  {
-    name: 'Giropay',
-    type: 'giropay',
-    restrictedCurrencyCountryPairings: {
-      'EUR': ['DE']
-    }
-  },
-  {
-    name: 'Google Pay',
-    type: 'googlepay',
-    restrictedCurrencyCountryPairings: null
-  },
-  {
-    name: 'iDEAL',
-    type: 'ideal',
-    restrictedCurrencyCountryPairings: {
-      'EUR': ['NL']
-    }
-  },
-  {
-    name: 'Klarna',
-    type: 'klarna',
-    restrictedCurrencyCountryPairings: {
-      'EUR': ['AT', 'DE', 'FI', 'NL'],
-      'DKK': ['DK'],
-      'GBP': ['UK'],
-      'NOK': ['NO'],
-      'SEK': ['SE']
-    }
-  },
-  {
-    name: 'KNET',
-    type: 'knet',
-    restrictedCurrencyCountryPairings: {
-      'KWD': ['KW']
-    }
-  },
-  {
-    name: 'PayPal',
-    type: 'paypal',
-    restrictedCurrencyCountryPairings: null
-  },
-  {
-    name: 'Poli',
-    type: 'poli',
-    restrictedCurrencyCountryPairings: {
-      'AUD': ['AU'],
-      'NZD': ['NZ']
-    }
-  },
-  {
-    name: 'SEPA Direct Debit',
-    type: 'sepa',
-    restrictedCurrencyCountryPairings: {
-      'EUR': ['AT', 'BE', 'DE', 'ES', 'FR', 'IT', 'LU', 'NL', 'PT']
-    }
-  },
-  {
-    name: 'Sofort',
-    type: 'sofort',
-    restrictedCurrencyCountryPairings: {
-      'EUR': ['AT', 'BE', 'DE', 'ES', 'IT', 'NL']
-    }
-  }
-]
 const flatten = <T = any>(arr: T[]) => {
   const reducer = <T = any>(prev: T[], curr: T | T[]) => {
     if (curr.constructor !== Array) {
@@ -156,7 +44,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   banks: IBank[];
   filteredBanks: Observable<IBank[]>;
 
-  private paymentMethods = PAYMENT_METHODS;
+  private paymentMethods = this._paymentsService.paymentMethods;
 
   constructor(
     private _formBuilder: FormBuilder,
@@ -200,7 +88,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     if (!sourceType) {
       return true;
     }
-    let paymentMethod = PAYMENT_METHODS.find(paymentMethod => paymentMethod.type == sourceType);
+    let paymentMethod = this.paymentMethods.find(paymentMethod => paymentMethod.type == sourceType);
     if (paymentMethod.restrictedCurrencyCountryPairings == null) {
       return true;
     } else if (paymentMethod.restrictedCurrencyCountryPairings[this.paymentDetails.value.currency]) {
@@ -214,7 +102,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   get paymentMethodName(): string {
-    return this.paymentDetails.value.source.type ? PAYMENT_METHODS.find(element => element.type == this.paymentDetails.value.source.type).name : '';
+    return this.paymentDetails.value.source.type ? this.paymentMethods.find(element => element.type == this.paymentDetails.value.source.type).name : '';
   }
 
   private deselectBank() {

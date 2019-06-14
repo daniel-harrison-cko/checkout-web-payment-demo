@@ -17,32 +17,37 @@
         </mat-select>
       </mat-form-field>
       <mat-form-field form-field="given_name">
-        <input matInput placeholder="Given Name" formControlName="given_name">
+        <input matInput placeholder="Given Name" formControlName="given_name" required>
       </mat-form-field>
       <mat-form-field form-field="family_name">
-        <input matInput placeholder="Family Name" formControlName="family_name">
+        <input matInput placeholder="Family Name" formControlName="family_name" required>
       </mat-form-field>
     </div>
     <div formGroupName="billing_address">
       <mat-form-field form-field="address_line2">
-        <input matInput placeholder="Address" formControlName="address_line2">
+        <input matInput placeholder="Address" formControlName="address_line2" required>
       </mat-form-field>
       <mat-form-field form-field="zip">
-        <input matInput placeholder="Postcode" formControlName="zip">
+        <input matInput placeholder="Postcode" formControlName="zip" required>
       </mat-form-field>
       <mat-form-field form-field="city">
-        <input matInput placeholder="City" formControlName="city">
+        <input matInput placeholder="City" formControlName="city" required>
       </mat-form-field>
       <mat-form-field form-field="state">
         <input matInput placeholder="Municipality" formControlName="state">
       </mat-form-field>
-      <mat-form-field form-field="country">
-        <input matInput placeholder="Country" formControlName="country">
+      <mat-form-field form-field="countries">
+        <mat-label>Country</mat-label>
+        <mat-select formControlName="country" name="food" required>
+          <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.name}}&nbsp;({{country.alpha2Code}})">
+            <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.name}}&nbsp;({{country.alpha2Code}})</span>
+          </mat-option>
+        </mat-select>
       </mat-form-field>
     </div>
     <div formGroupName="customer">
       <mat-form-field form-field="email">
-        <input matInput placeholder="Email" formControlName="email">
+        <input matInput placeholder="Email" formControlName="email" required>
         <mat-error *ngIf="this.paymentDetails.get('customer.email').hasError('email')">Please enter a valid email address</mat-error>
       </mat-form-field>
     </div>
@@ -71,8 +76,13 @@
         <mat-form-field form-field="state">
           <input matInput placeholder="Municipality" formControlName="state">
         </mat-form-field>
-        <mat-form-field form-field="country">
-          <input matInput placeholder="Country" formControlName="country">
+        <mat-form-field form-field="countries">
+          <mat-label>Country</mat-label>
+          <mat-select formControlName="country" name="food" required>
+            <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.name}}&nbsp;({{country.alpha2Code}})">
+              <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.name}}&nbsp;({{country.alpha2Code}})</span>
+            </mat-option>
+          </mat-select>
         </mat-form-field>
       </div>
     </div>
@@ -96,7 +106,7 @@
   <br />
   <button mat-stroked-button color="primary" (click)="addShippingAddress()">Add Shipping Details</button>
 </ng-template>
-<form *ngIf="paymentDetails; else loading">
+<form *ngIf="paymentDetails && countries; else loading">
   <div class="payment-setup">
     <div class="payment-configurators">
       <!-- billing container -->

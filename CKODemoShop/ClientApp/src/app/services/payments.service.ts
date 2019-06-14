@@ -24,6 +24,120 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'USD', base: 100 }
 ];
 
+const PAYMENT_METHODS: IPaymentMethod[] = [
+  {
+    name: 'Credit Card (Frames)',
+    type: 'cko-frames',
+    restrictedCurrencyCountryPairings: null
+  },
+  {
+    name: 'Credit Card (PCI DSS)',
+    type: 'card',
+    restrictedCurrencyCountryPairings: null
+  },
+  {
+    name: 'Alipay',
+    type: 'alipay',
+    restrictedCurrencyCountryPairings: {
+      'USD': ['CN']
+    }
+  },
+  {
+    name: 'Bancontact',
+    type: 'bancontact',
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['BE']
+    }
+  },
+  {
+    name: 'Boleto',
+    type: 'boleto',
+    restrictedCurrencyCountryPairings: {
+      'BRL': ['BR'],
+      'USD': ['BR']
+    }
+  },
+  {
+    name: 'EPS',
+    type: 'eps',
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['AT']
+    }
+  },
+  {
+    name: 'Fawry',
+    type: 'fawry',
+    restrictedCurrencyCountryPairings: {
+      'EGP': ['EG']
+    }
+  },
+  {
+    name: 'Giropay',
+    type: 'giropay',
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['DE']
+    }
+  },
+  {
+    name: 'Google Pay',
+    type: 'googlepay',
+    restrictedCurrencyCountryPairings: null
+  },
+  {
+    name: 'iDEAL',
+    type: 'ideal',
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['NL']
+    }
+  },
+  {
+    name: 'Klarna',
+    type: 'klarna',
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['AT', 'DE', 'FI', 'NL'],
+      'DKK': ['DK'],
+      'GBP': ['GB'],
+      'NOK': ['NO'],
+      'SEK': ['SE']
+    }
+  },
+  {
+    name: 'KNET',
+    type: 'knet',
+    restrictedCurrencyCountryPairings: {
+      'KWD': ['KW']
+    }
+  },
+  {
+    name: 'PayPal',
+    type: 'paypal',
+    restrictedCurrencyCountryPairings: null
+  },
+  {
+    name: 'Poli',
+    type: 'poli',
+    restrictedCurrencyCountryPairings: {
+      'AUD': ['AU'],
+      'NZD': ['NZ']
+    }
+  },
+  {
+    name: 'SEPA Direct Debit',
+    type: 'sepa',
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['AT', 'BE', 'DE', 'ES', 'FR', 'IT', 'LU', 'NL', 'PT']
+    }
+  },
+  {
+    name: 'Sofort',
+    type: 'sofort',
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['AT', 'BE', 'DE', 'ES', 'IT', 'NL']
+    }
+  }
+]
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -47,6 +161,10 @@ export class PaymentsService {
 
   get currencies(): ICurrency[] {
     return CURRENCIES;
+  }
+
+  get paymentMethods(): IPaymentMethod[] {
+    return PAYMENT_METHODS;
   }
 
   public setAmount(amount: number) {
