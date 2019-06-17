@@ -449,7 +449,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl('user_defined_field4', new FormControl({ value: 'Fourth user defined field', disabled: false }));
           this.source.addControl('user_defined_field5', new FormControl({ value: '', disabled: false }));
           this.source.addControl('card_token', new FormControl({ value: '01234567', disabled: false }, Validators.pattern('[0-9]{8}')));
-          this.source.addControl('ptlf', new FormControl({ value: 'ptlf xxxx xxxxx xxxxx xxxxx', disabled: false }));
+          this.source.addControl('ptlf', new FormControl({ value: 'xxxx xxxxx xxxxx xxxxx', disabled: false }));
 
           this.paymentMethodSubsriptions.push(
             this.source.get('user_defined_field3').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('card_token').reset()),
