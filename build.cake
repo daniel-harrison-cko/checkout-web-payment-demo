@@ -5,7 +5,7 @@
 ///////////////////////////////////////////////////
 // ADDINS
 //////////////////////////////////////////////////////////////////////
-#addin "Cake.Docker"
+#addin nuget:?package=Cake.Docker&version=0.10.0
 
 #l "scripts/octopus.cake"
 #l "scripts/ecr.cake"
@@ -102,7 +102,6 @@ Task("__UnitTest")
     .Does(() =>
     {        
         var projectFiles = GetFiles("./test/**/*.UnitTests.csproj");
-        //var projectFiles = GetFiles("./**/*.Tests.csproj");
         foreach(var projectFile in projectFiles)
         {
             if(isCIBuild)
@@ -121,6 +120,12 @@ Task("__DockerBuild")
                 var imageName = isProduction
                     ? project.EcsIrelandImageName
                     : project.EcsLondonImageName;
+
+                if(System.String.IsNullOrWhiteSpace(imageName))
+                {
+                    Information($"Skipping building {project.OctopusProjectName}, as it doesn't have configured image name.");
+                    return System.Threading.Tasks.Task.CompletedTask;
+                }
 
                 var settings = new DockerImageBuildSettings
                 {
@@ -156,6 +161,12 @@ Task("__DockerPush")
                     ? project.EcsIrelandImageName
                     : project.EcsLondonImageName;
 
+                if(System.String.IsNullOrWhiteSpace(imageName))
+                {
+                    Information($"Skipping pushing {project.OctopusProjectName}, as it doesn't have configured image name.");
+                    return System.Threading.Tasks.Task.CompletedTask;
+                }
+
                 DockerPush($"{ecsRepository}/{imageName}");
                 return System.Threading.Tasks.Task.CompletedTask;
             }));
@@ -164,7 +175,7 @@ Task("__DockerPush")
     });
 
 Task("__OctoCreateRelease")
-    .Does(async () =>
+    .Does(async ctx =>
     {
         string channel = null;
 
@@ -191,7 +202,18 @@ Task("__OctoCreateRelease")
         var apiKey = EnvironmentVariable("OCTOPUS_APIKEY");            
         var aggregate = solution
             .Select(project => 
-                Octo.CreateRelease(server, apiKey, project.OctopusProjectName, nugetVersion, channel)
+            {
+                var imageName = isProduction
+                    ? project.EcsIrelandImageName
+                    : project.EcsLondonImageName;
+
+                if(System.String.IsNullOrWhiteSpace(imageName))
+                {
+                    Information($"Skipping release {project.OctopusProjectName}, as it doesn't have configured image name.");
+                    return System.Threading.Tasks.Task.CompletedTask;
+                }
+               return Octo.CreateRelease(ctx, server, apiKey, project.OctopusProjectName, nugetVersion, channel);
+            }
             );
 
         await System.Threading.Tasks.Task.WhenAll(aggregate);
@@ -216,7 +238,8 @@ Task("__DockerComposeDown")
     {
         var settings = new DockerComposeDownSettings
         {
-            Files = new[] { "docker-compose.yml" }
+            Files = new[] { "docker-compose.yml" },
+            Volumes = true
         };
 
         DockerComposeDown(settings);
