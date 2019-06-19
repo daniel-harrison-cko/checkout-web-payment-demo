@@ -51,14 +51,14 @@ Setup(context =>
     {
         new Project
         {
-            OctopusProjectName = "Demo Shop - External",
-            EcsLondonImageName = $"ckotech/demo-shop:{nugetVersion}",
-            EcsIrelandImageName = $"ckotech/demo-shop-prod:{nugetVersion}",
+            OctopusProjectName = "Web Payment Demo",
+            EcsLondonImageName = $"ckotech/fweb-payment-demo:{nugetVersion}",
+            EcsIrelandImageName = $"ckotech/web-payment-demo-prod:{nugetVersion}",
             DockerImagePath = "./CKODemoShop/Dockerfile"
         }
     };
 
-    Information("Building Demo Shop v{0} with configuration {1}", nugetVersion, configuration);
+    Information("Building Web Payment Demo v{0} with configuration {1}", nugetVersion, configuration);
 });
 
 Task("__BuildAll")
@@ -88,7 +88,7 @@ Task("__Test")
 Task("__IntegrationTest")
     .Does(() =>
     {        
-        var projectFiles = GetFiles("./test/**/*.Tests.csproj");
+        var projectFiles = GetFiles("./test/**/*.IntegrationTests.csproj");
         foreach(var projectFile in projectFiles)
         {
             if(isCIBuild)

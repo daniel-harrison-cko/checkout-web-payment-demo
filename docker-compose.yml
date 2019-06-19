@@ -1,0 +1,14 @@
+version: "3"
+
+services:
+  web.payment.demo:
+    container_name: web.payment.demo
+    build:
+      context: .
+      dockerfile: CKODemoShop/Dockerfile
+    restart: unless-stopped
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://*:5050
+    ports:
+      - "5050:80"

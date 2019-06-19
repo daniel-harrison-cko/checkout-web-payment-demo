@@ -322,9 +322,12 @@ namespace CKODemoShop.Tests
                 {
                     beforeAllAsync = async () =>
                     {
+                        var a = new Source("potato");
+                        a.Id = "INGBNL2A";
+
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(new Source("ideal") { IssuerId = "INGBNL2A" }, amount, currency);
+                        paymentRequest = new PaymentRequest(a, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
@@ -393,9 +396,12 @@ namespace CKODemoShop.Tests
                 {
                     beforeAllAsync = async () =>
                     {
+                        var a = new Source("potato");
+                        a.Id = "INGBNL2A";
+
                         currency = Currency.USD;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(new Source("ideal") {IssuerId = "INGBNL2A" }, amount, currency);
+                        paymentRequest = new PaymentRequest(a, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
@@ -424,9 +430,12 @@ namespace CKODemoShop.Tests
                 PaymentRequest paymentRequest;
                 beforeAllAsync = async () =>
                 {
+                    var a = new Source("potato");
+                    a.Id = "INGBNL2A";
+
                     currency = Currency.EUR;
                     amount = 100;
-                    paymentRequest = new PaymentRequest(new Source("ideal") { IssuerId = "INGBNL2A" }, amount, currency);
+                    paymentRequest = new PaymentRequest(a, amount, currency);
                     result = await controller.Payments(paymentRequest); // POST payments
                     payment = (result as ObjectResult).Value as Resource;
                     result = await controller.Payments((payment as PaymentPending).Id); // GET payments
@@ -458,7 +467,7 @@ namespace CKODemoShop.Tests
                         billingAddress: new Address()
                         {
                             AddressLine1 = "Checkout GmbH",
-                            AddressLine2 = "Rudi-Dutschke-Straße 26",
+                            AddressLine2 = "Rudi-Dutschke-Straï¿½e 26",
                             City = "Berlin",
                             Zip = "10969",
                             State = "Berlin",
@@ -511,7 +520,7 @@ namespace CKODemoShop.Tests
                 {
                     currency = Currency.EUR;
                     amount = 100;
-                    paymentRequest = new PaymentRequest(new Source("card") { Number = "4242424242424242" , ExpiryMonth = 12, ExpiryYear = 2022}, amount, currency);
+                    paymentRequest = new PaymentRequest(new Source("card") { Number = "4242424242424242", ExpiryMonth = 12, ExpiryYear = 2022 }, amount, currency);
                     result = await controller.Payments(paymentRequest); // POST payments
                     payment = (result as ObjectResult).Value as Resource;
                     result = await controller.Actions((payment as PaymentProcessed).Id);
