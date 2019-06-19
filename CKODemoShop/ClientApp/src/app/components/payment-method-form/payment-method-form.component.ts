@@ -449,7 +449,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl('user_defined_field4', new FormControl({ value: 'Fourth user defined field', disabled: false }));
           this.source.addControl('user_defined_field5', new FormControl({ value: '', disabled: false }));
           this.source.addControl('card_token', new FormControl({ value: '01234567', disabled: false }, Validators.pattern('[0-9]{8}')));
-          this.source.addControl('ptlf', new FormControl({ value: 'ptlf xxxx xxxxx xxxxx xxxxx', disabled: false }));
+          this.source.addControl('ptlf', new FormControl({ value: 'xxxx xxxxx xxxxx xxxxx', disabled: false }));
 
           this.paymentMethodSubsriptions.push(
             this.source.get('user_defined_field3').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('card_token').reset()),
@@ -467,6 +467,16 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         }
         case 'poli': {
           this.paymentMethodRequiresAdditionalInformation = false;
+
+          break;
+        }
+        case 'qpay': {
+          this.paymentMethodRequiresAdditionalInformation = true;
+
+          this.source.addControl('language', new FormControl({ value: 'en', disabled: false }));
+          this.source.addControl('description', new FormControl({ value: 'Qpay Test', disabled: false }, Validators.required));
+          this.source.addControl('quantity', new FormControl({ value: 1, disabled: true }));
+          this.source.addControl('national_id', new FormControl({ value: '03883377392282', disabled: false }));
 
           break;
         }

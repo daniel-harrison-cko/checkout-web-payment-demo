@@ -146,6 +146,9 @@ namespace CKODemoShop.Controllers
         public string CustomerProfileId { get; set; }
         [JsonProperty(PropertyName = "expires_on")]
         public string ExpiresOn { get; set; }
+        public int Quantity { get; set; }
+        [JsonProperty(PropertyName = "national_id")]
+        public string NationalId { get; set; }
 
     }
 
@@ -476,6 +479,14 @@ namespace CKODemoShop.Controllers
                         {"user_defined_field5", source.UDF5 },
                         {"card_token", source.CardToken },
                         {"ptlf", source.PTLF }
+                    };
+                case "qpay":
+                    return new AlternativePaymentSource(source.Type)
+                    {
+                        {"language", source.Language },
+                        {"description", source.Description },
+                        {"quantity", source.Quantity },
+                        {"national_id", source.NationalId }
                     };
                 default:
                     return new AlternativePaymentSource(source.Type);

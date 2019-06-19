@@ -31,5 +31,5 @@ export class AppComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
-  private navigateTo = (url: string) => { this._router.navigateByUrl(url) };
+  navigateTo = (url: string) => { this._router.navigateByUrl(url) };
 }

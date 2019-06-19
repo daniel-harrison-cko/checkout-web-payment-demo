@@ -13,6 +13,7 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'KWD', base: 1000 },
   { iso4217: 'NOK', base: 100 },
   { iso4217: 'NZD', base: 100 },
+  { iso4217: 'QAR', base: 100 },
   { iso4217: 'SEK', base: 100 },
   { iso4217: 'USD', base: 100 }
 ];

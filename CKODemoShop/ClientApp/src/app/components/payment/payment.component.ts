@@ -258,6 +258,10 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this.setupPaymentMethod(this.standardPaymentFlow);
           break;
         }
+        case 'qpay': {
+          this.setupPaymentMethod(this.standardPaymentFlow);
+          break;
+        }
         case 'sepa': {
           this.autoCapture = false;
           this.threeDs = false;
