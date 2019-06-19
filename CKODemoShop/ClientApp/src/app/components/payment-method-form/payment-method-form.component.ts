@@ -470,6 +470,16 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
           break;
         }
+        case 'qpay': {
+          this.paymentMethodRequiresAdditionalInformation = true;
+
+          this.source.addControl('language', new FormControl({ value: 'en', disabled: false }));
+          this.source.addControl('description', new FormControl({ value: 'Qpay Test', disabled: false }, Validators.required));
+          this.source.addControl('quantity', new FormControl({ value: 1, disabled: true }));
+          this.source.addControl('national_id', new FormControl({ value: '03883377392282', disabled: false }));
+
+          break;
+        }
         case 'sepa': {
           this.paymentMethodRequiresAdditionalInformation = true;
           this.paymentConsent.enable();

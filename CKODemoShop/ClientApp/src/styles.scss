@@ -336,6 +336,7 @@ body {
         [form-field="fawry_description"], [form-field="fawry_customer_profile_id"], [form-field="fawry_expires_on"] {
           flex: 1 0 100%;
         }
+
         [form-field="fawry_customer_email"], [form-field="fawry_customer_mobile"] {
           flex: 1 0 auto;
         }
@@ -348,11 +349,19 @@ body {
           flex: 1 0 100%;
         }
         /*KNET*/
-        [form-field="knet_user_defined_field1"], [form-field="knet_user_defined_field2"], [form-field="knet_user_defined_field4"] {
+        [form-field="knet_language"], [form-field="knet_user_defined_field1"], [form-field="knet_user_defined_field2"], [form-field="knet_user_defined_field4"] {
           flex: 1 0 100%;
         }
 
         [form-field="knet_user_defined_field3"], [form-field="knet_card_token"], [form-field="knet_user_defined_field5"], [form-field="knet_ptlf"] {
+          flex: 1 0 auto;
+        }
+        /*QPAY*/
+        [form-field="qpay_language"], [form-field="qpay_national_id"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="qpay_description"], [form-field="qpay_quantity"] {
           flex: 1 0 auto;
         }
         /*SEPA DIRECT DEBIT*/

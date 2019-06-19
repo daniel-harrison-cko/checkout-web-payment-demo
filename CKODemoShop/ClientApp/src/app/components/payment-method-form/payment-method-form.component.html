@@ -206,6 +206,30 @@
             </mat-form-field>
           </div>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'qpay'">
+          <div class="row">
+            <mat-form-field form-field="qpay_language">
+              <mat-label>Language</mat-label>
+              <mat-select formControlName="language" required>
+                <mat-option value="ar">Arabic (ar-QA)</mat-option>
+                <mat-option value="en">English (en-US)</mat-option>
+              </mat-select>
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="qpay_description">
+              <input matInput placeholder="Description" formControlName="description" required />
+            </mat-form-field>
+            <mat-form-field form-field="qpay_quantity">
+              <input matInput placeholder="Quantity" formControlName="quantity" required />
+            </mat-form-field>
+          </div>
+          <div class="row">
+            <mat-form-field form-field="qpay_national_id">
+              <input matInput placeholder="National ID" formControlName="national_id" />
+            </mat-form-field>
+          </div>
+        </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'sepa'">
           <div formGroupName="source_data" class="row">
             <div class="row">
