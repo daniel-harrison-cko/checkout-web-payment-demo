@@ -4,7 +4,7 @@
     <span class="toolbar-spacer"></span>
     <form [formGroup]="paymentDetails" class="toolbar-item currency-form">
       <mat-form-field>
-        <mat-select [value]="currency" formControlName="currency">
+        <mat-select formControlName="currency">
           <mat-option *ngFor="let currency of currencies" [value]="currency.iso4217">
             {{currency.iso4217}}
           </mat-option>
