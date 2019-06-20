@@ -10,7 +10,7 @@ using Octopus.Client.Model;
 
 public class Octo
 {
-    public static async Task CreateRelease(string server, string apiKey, string project, string version, string channel)
+    public static async Task CreateRelease(ICakeContext context, string server, string apiKey, string project, string version, string channel)
     {
         var endpoint = new OctopusServerEndpoint(
                 server,
@@ -20,6 +20,10 @@ public class Octo
         var repository = new OctopusAsyncRepository(client);
 
         var proj = await repository.Projects.FindOne(x => x.Name == project);
+        if(proj == null)
+        {
+            context.Error($"Could not find Octopus project {project}");
+        }
         var ch = string.IsNullOrEmpty(channel) ? null : await repository.Channels.FindByName(proj, channel);
 
         var release = new ReleaseResource(
