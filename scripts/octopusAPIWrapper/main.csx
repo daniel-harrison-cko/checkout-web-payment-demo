@@ -18,13 +18,6 @@ using Oakton;
 
 public class OctCommand : OaktonAsyncCommand<RunnerOptions>
 {
-    public enum Targets
-    {
-        Internal,
-        External,
-        Simulator
-    }
-
     private static OctopusClient _octClient;
     private static OctopusRepository _octRepo;
     private static ProjectResource _baseProject;
@@ -62,9 +55,15 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
 
         RunModeCheck();
 
-        CreateGroup(_settings.GroupName);
-        CreateProjects(_settings.Projects);
-        CleanUp();
+        try
+        {
+            CreateGroup(_settings.GroupName);
+            CreateProjects(_settings.Projects);
+        }
+        finally
+        {
+            CleanUp();
+        }
 
         NormLogger.Info($"All done, bye bye");
         return true;
@@ -228,7 +227,7 @@ public class ProgramSettings
 public class Project
 {
     public string CloneTo { get; set; }
-    public string CloneFrom { get; set;}
+    public string CloneFrom { get; set; }
 }
 
 public class RunnerOptions
