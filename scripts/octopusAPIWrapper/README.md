@@ -1,4 +1,4 @@
-# Seq API Wrapper v2.0.0
+# Octopus API Wrapper v1.0.0
 
 The aim of this script is to automate the creation of Octopus Elements related to a new service.
 These include `Groups` and `Projects`
@@ -22,7 +22,7 @@ In order to run the OctopusAPIWrapper script you need to install dotnet script f
     "GroupName": "WebPaymentDemo",
     // The name to be used from the Project
     "ProjectName": "Web Payment Demo",
-    // The project that wil be cloned from
+    // The project that will be cloned from
     "BaseProjectName": "Fawry",
     // The targets that should be created, ie project for external
     "Targets" : [
@@ -54,7 +54,7 @@ i.e `dotnet script [file path] -- --apply`
 
 dotnet script uses the double dash to separate self arguments and process arguments.
 
-### Debuging
+### Debugging
 
 If you need to debug the process you can attach a debugger via VS Code.
 

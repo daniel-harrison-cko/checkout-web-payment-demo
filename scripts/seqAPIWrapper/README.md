@@ -30,7 +30,7 @@ i.e `dotnet script [file path] -- --apply`
 
 dotnet script uses the double dash to separate self arguments and process arguments.
 
-### Debuging
+### Debugging
 
 If you need to debug the process you can attach a debugger via VS Code.
 
