@@ -64,7 +64,7 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
 
         foreach (string target in _settings.Targets)
         {
-            var targetEnum = (Targets) Enum.Parse(typeof(Targets), target);
+            var targetEnum = (Targets)Enum.Parse(typeof(Targets), target);
 
             string fullProjectName = CalculateName(_settings.ProjectName, targetEnum);
             string fullBaseProjectName = CalculateName(_settings.BaseProjectName, targetEnum);
@@ -110,9 +110,13 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
         {
             baseName += " AP - External Service";
         }
-        else
+        else if (target == Targets.Internal)
         {
             baseName += " AP - Internal Service";
+        }
+        else
+        {
+            throw new Exception("Could not map target to existing environmets.");
         }
 
         return baseName;
@@ -125,9 +129,9 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
     public string CreateGroup(string groupName)
     {
         var group = _octRepo.ProjectGroups.FindByName(groupName);
-        
+
         if (group != null)
-        {            
+        {
             return group.Id;
         }
 
@@ -135,7 +139,8 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
         group.Name = groupName;
         group.Description = "Group for " + groupName;
 
-        if (!_settings.ApplyChanges) {
+        if (!_settings.ApplyChanges)
+        {
             group.Name = "TEST-" + group.Name;
         }
 
@@ -269,7 +274,7 @@ public static class NormLogger
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine(message);
         ResetColor();
-    }    
+    }
 
     private static void ResetColor()
     {
