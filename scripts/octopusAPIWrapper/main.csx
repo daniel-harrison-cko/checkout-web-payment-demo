@@ -135,7 +135,7 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
         group.Name = groupName;
         group.Description = "Group for " + groupName;
 
-        if (_settings.ApplyChanges) {
+        if (!_settings.ApplyChanges) {
             group.Name = "TEST-" + group.Name;
         }
 
@@ -163,7 +163,7 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
     /// Clones an existing project with modifications
     /// </summary>
     /// <param name="fullProjectName">The fully qualified name of the project</param>
-    /// <param name="groupId">the gorup id to be part of</param>
+    /// <param name="groupId">the group id to be part of</param>
     public void CloneProject(string fullProjectName, string groupId)
     {
         var newProject = _octRepo.Projects.FindByName(fullProjectName);
