@@ -74,24 +74,21 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
     /// Loops through the projects and creates them
     /// </summary>
     /// <param name="projects">The list of projects to be created</param>
-    public void CreateProjects(string[][] projects)
+    public void CreateProjects(Project[] projects)
     {
-        foreach (string[] project in projects)
+        foreach (Project project in projects)
         {
-            var targetProject = project[0];
-            var cloneProject = project[1];
+            NormLogger.Info($"Will Create new Project [{project.CloneTo}] based on [{project.CloneFrom}]");
 
-            NormLogger.Info($"Will Create new Project [{targetProject}] based on [{cloneProject}]");
-
-            GetBaseProject(cloneProject);
+            GetBaseProject(project.CloneFrom);
 
             if (_baseProject == null)
             {
-                NormLogger.Err($"No Base Project [{cloneProject}] found! skipping to next.");
+                NormLogger.Err($"No Base Project [{project.CloneFrom}] found! skipping to next.");
                 continue;
             }
 
-            CloneProject(targetProject);
+            CloneProject(project.CloneTo);
         }
     }
 
@@ -224,8 +221,14 @@ public class ProgramSettings
     public string Server { get; set; }
     public string APIKey { get; set; }
     public string GroupName { get; set; }
-    public string[][] Projects { get; set; }
+    public Project[] Projects { get; set; }
     public bool ApplyChanges { get; set; } = false;
+}
+
+public class Project
+{
+    public string CloneTo { get; set; }
+    public string CloneFrom { get; set;}
 }
 
 public class RunnerOptions
