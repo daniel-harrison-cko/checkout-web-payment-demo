@@ -322,7 +322,7 @@ namespace CKODemoShop.Tests
                 {
                     beforeAllAsync = async () =>
                     {
-                        var source = new Source("sepa");
+                        var source = new Source("ideal");
                         source.Id = "INGBNL2A";
 
                         currency = Currency.EUR;
@@ -396,7 +396,7 @@ namespace CKODemoShop.Tests
                 {
                     beforeAllAsync = async () =>
                     {
-                        var source = new Source("sepa");
+                        var source = new Source("ideal");
                         source.Id = "INGBNL2A";
 
                         currency = Currency.USD;
@@ -430,7 +430,7 @@ namespace CKODemoShop.Tests
                 PaymentRequest paymentRequest;
                 beforeAllAsync = async () =>
                 {
-                    var source = new Source("sepa");
+                    var source = new Source("ideal");
                     source.Id = "INGBNL2A";
 
                     currency = Currency.EUR;
@@ -467,7 +467,7 @@ namespace CKODemoShop.Tests
                         billingAddress: new Address()
                         {
                             AddressLine1 = "Checkout GmbH",
-                            AddressLine2 = "Rudi-Dutschke-Stra�e 26",
+                            AddressLine2 = "Rudi-Dutschke-Strasse 26",
                             City = "Berlin",
                             Zip = "10969",
                             State = "Berlin",
