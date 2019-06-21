@@ -22,7 +22,7 @@ public class Octo
         var proj = await repository.Projects.FindOne(x => x.Name == project);
         if(proj == null)
         {
-            context.Error($"Could not find Octopus project {project}");
+            throw new Exception($"Could not find Octopus project {project}");
         }
         var ch = string.IsNullOrEmpty(channel) ? null : await repository.Channels.FindByName(proj, channel);
 
