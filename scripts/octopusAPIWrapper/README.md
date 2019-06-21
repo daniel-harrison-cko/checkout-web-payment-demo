@@ -10,6 +10,27 @@ In order to run the OctopusAPIWrapper script you need to install dotnet script f
 `dotnet tool install -g dotnet-script`
 
 *it is required to have .Net Core 2.1*
+
+### Appsettings
+
+```
+    // The name of the octopus server
+    "Server": "http://cd.ckotech.co",
+    // The Api Key of the octopus server
+    "APIKey": "API-",
+    // The name to be used for the group
+    "GroupName": "WebPaymentDemo",
+    // The name to be used from the Project
+    "ProjectName": "Web Payment Demo",
+    // The project that wil be cloned from
+    "BaseProjectName": "Fawry",
+    // The targets that should be created, ie project for external
+    "Targets" : [
+        "External"     
+    ]
+```
+
+
 ### Execution
 
 To run the script execute `dotnet script [file path] -- <environment> <password>`
@@ -18,8 +39,7 @@ Where environment points towards a specific `appsettings.{environment}.json` fil
 
 For example.
 ```bash
-dotnet-script main.csx -- Staging $(/usr/bin/security find-generic-password -a admin -ws "SEQ London" ~/Library/Keychains/CKO-Admin.keychain-db)
-dotnet-script main.csx -- Production $(/usr/bin/security find-generic-password -a admin -ws "SEQ Ireland" ~/Library/Keychains/CKO-Admin.keychain-db)
+dotnet script .\main.csx Production API-XXXXXXXXXXXXXXXXXXXXXXXXXX 
 ```
 ### DryRun
 
@@ -41,5 +61,5 @@ If you need to debug the process you can attach a debugger via VS Code.
 If you want debug output add `-d` after the cmd
 
 ## Technology
-SeqAPIWrapper uses [dotnet script](https://github.com/filipw/dotnet-script) as we had issues using cake with the SEQ Library.
+OctopusAPIWrapper uses [dotnet script](https://github.com/filipw/dotnet-script)
 
