@@ -28,6 +28,7 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
     private static OctopusClient _octClient;
     private static OctopusRepository _octRepo;
     private static ProjectResource _baseProject;
+    private static string _groupId;
     private static ProgramSettings _settings;
 
     /// <summary>
@@ -58,29 +59,51 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
         }
 
         _settings.ApplyChanges = options.ApplyFlag;
+
         RunModeCheck();
 
-        string groupId = CreateGroup(_settings.GroupName);
-
-        foreach (string target in _settings.Targets)
-        {
-            var targetEnum = (Targets)Enum.Parse(typeof(Targets), target);
-
-            string fullProjectName = CalculateName(_settings.ProjectName, targetEnum);
-            string fullBaseProjectName = CalculateName(_settings.BaseProjectName, targetEnum);
-
-            NormLogger.Info($"Will Create new Project [{fullProjectName}] based on [{fullBaseProjectName}]");
-
-            GetBaseProject(fullBaseProjectName);
-
-            if (_baseProject != null)
-            {
-                CloneProject(fullProjectName, groupId);
-            }
-        }
+        CreateGroup(_settings.GroupName);
+        CreateProjects(_settings.Projects);
+        CleanUp();
 
         NormLogger.Info($"All done, bye bye");
         return true;
+    }
+
+    /// <summary>
+    /// Loops through the projects and creates them
+    /// </summary>
+    /// <param name="projects">The list of projects to be created</param>
+    public void CreateProjects(string[][] projects)
+    {
+        foreach (string[] project in projects)
+        {
+            var targetProject = project[0];
+            var cloneProject = project[1];
+
+            NormLogger.Info($"Will Create new Project [{targetProject}] based on [{cloneProject}]");
+
+            GetBaseProject(cloneProject);
+
+            if (_baseProject == null)
+            {
+                NormLogger.Err($"No Base Project [{cloneProject}] found! skipping to next.");
+                continue;
+            }
+
+            CloneProject(targetProject);
+        }
+    }
+
+    /// <summary>
+    /// Clean up function
+    /// </summary>
+    public void CleanUp()
+    {
+        if (!_settings.ApplyChanges)
+        {
+            DeleteGroup(_groupId);
+        }
     }
 
     /// <summary>
@@ -96,43 +119,18 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
     }
 
     /// <summary>
-    /// Calculates the name based on conventions
-    /// </summary>
-    /// <param name="baseName">The base name of a project before adding prefix/suffix</param>
-    /// <param name="target">The Target we want to create it againt</param>
-    public string CalculateName(string baseName, Targets target)
-    {
-        if (target == Targets.Simulator)
-        {
-            baseName += " Simulator";
-        }
-        else if (target == Targets.External)
-        {
-            baseName += " AP - External Service";
-        }
-        else if (target == Targets.Internal)
-        {
-            baseName += " AP - Internal Service";
-        }
-        else
-        {
-            throw new Exception("Could not map target to existing environmets.");
-        }
-
-        return baseName;
-    }
-
-    /// <summary>
     /// Creates a new group for the Project
+    /// TEST Prefix is added to temp groups which are then removed on cleanup
     /// </summary>
     /// <param name="groupName">The fully qualified name of the group</param>
-    public string CreateGroup(string groupName)
+    public void CreateGroup(string groupName)
     {
         var group = _octRepo.ProjectGroups.FindByName(groupName);
 
         if (group != null)
         {
-            return group.Id;
+            _groupId = group.Id;
+            return;
         }
 
         group = new ProjectGroupResource();
@@ -146,8 +144,17 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
 
         group = _octRepo.ProjectGroups.Create(group);
 
+        _groupId = group.Id;
+    }
 
-        return group.Id;
+    public static void DeleteGroup(string groupId)
+    {
+        var group = _octRepo.ProjectGroups.FindOne(x => x.Id == groupId);
+
+        if (group != null)
+        {
+            _octRepo.ProjectGroups.Delete(group);
+        }
     }
 
     /// <summary>
@@ -168,8 +175,7 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
     /// Clones an existing project with modifications
     /// </summary>
     /// <param name="fullProjectName">The fully qualified name of the project</param>
-    /// <param name="groupId">the group id to be part of</param>
-    public void CloneProject(string fullProjectName, string groupId)
+    public void CloneProject(string fullProjectName)
     {
         var newProject = _octRepo.Projects.FindByName(fullProjectName);
 
@@ -183,7 +189,7 @@ public class OctCommand : OaktonAsyncCommand<RunnerOptions>
         {
             Name = fullProjectName,
             Description = "",
-            ProjectGroupId = groupId,
+            ProjectGroupId = _groupId,
             LifecycleId = _baseProject.LifecycleId
         };
 
@@ -218,9 +224,7 @@ public class ProgramSettings
     public string Server { get; set; }
     public string APIKey { get; set; }
     public string GroupName { get; set; }
-    public string ProjectName { get; set; }
-    public string BaseProjectName { get; set; }
-    public string[] Targets { get; set; }
+    public string[][] Projects { get; set; }
     public bool ApplyChanges { get; set; } = false;
 }
 
