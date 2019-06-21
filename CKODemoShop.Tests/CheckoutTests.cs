@@ -322,12 +322,12 @@ namespace CKODemoShop.Tests
                 {
                     beforeAllAsync = async () =>
                     {
-                        var a = new Source("potato");
-                        a.Id = "INGBNL2A";
+                        var source = new Source("sepa");
+                        source.Id = "INGBNL2A";
 
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(a, amount, currency);
+                        paymentRequest = new PaymentRequest(source, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
@@ -396,12 +396,12 @@ namespace CKODemoShop.Tests
                 {
                     beforeAllAsync = async () =>
                     {
-                        var a = new Source("potato");
-                        a.Id = "INGBNL2A";
+                        var source = new Source("sepa");
+                        source.Id = "INGBNL2A";
 
                         currency = Currency.USD;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(a, amount, currency);
+                        paymentRequest = new PaymentRequest(source, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
@@ -430,12 +430,12 @@ namespace CKODemoShop.Tests
                 PaymentRequest paymentRequest;
                 beforeAllAsync = async () =>
                 {
-                    var a = new Source("potato");
-                    a.Id = "INGBNL2A";
+                    var source = new Source("sepa");
+                    source.Id = "INGBNL2A";
 
                     currency = Currency.EUR;
                     amount = 100;
-                    paymentRequest = new PaymentRequest(a, amount, currency);
+                    paymentRequest = new PaymentRequest(source, amount, currency);
                     result = await controller.Payments(paymentRequest); // POST payments
                     payment = (result as ObjectResult).Value as Resource;
                     result = await controller.Payments((payment as PaymentPending).Id); // GET payments
