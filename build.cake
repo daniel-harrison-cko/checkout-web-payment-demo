@@ -52,8 +52,8 @@ Setup(context =>
         new Project
         {
             OctopusProjectName = "Web Payment Demo",
-            EcsLondonImageName = $"ckotech/web-payment-demo:{nugetVersion}",
-            EcsIrelandImageName = $"ckotech/web-payment-demo-prod:{nugetVersion}",
+            EcsLondonImageName = $"ckotech/demoshop-external:{nugetVersion}",
+            EcsIrelandImageName = $"ckotech/demoshop-external-prod:{nugetVersion}",
             DockerImagePath = "./CKODemoShop/Dockerfile"
         }
     };
