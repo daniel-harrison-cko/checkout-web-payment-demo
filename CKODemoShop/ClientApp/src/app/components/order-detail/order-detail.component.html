@@ -1,0 +1,42 @@
+<div class="row">
+  <mat-card class="order-card">
+    <mat-spinner *ngIf="loading" [diameter]="20" strokeWidth="3"></mat-spinner>
+    <ng-container *ngIf="order">
+      <mat-card-header>
+        <img mat-card-avatar class="payment-method-avatar" src="/assets/payment_method/{{paymentMethodIcon(order) || 'undefined'}}.jpg">
+        <mat-card-title>{{order.reference}}</mat-card-title>
+        <mat-card-subtitle>{{order.status || 'Awaiting Status ...'}}</mat-card-subtitle>
+      </mat-card-header>
+      <mat-card-content>
+        <p>Requested on {{order.requested_on | date:'y-MMM-dd@HH:mm:ss (z)':'UTC'}}</p>
+        <p>Amount {{order.amount / currencyBaseAmount(order.currency) | currency:order.currency:'symbol'}}</p>
+        <mat-expansion-panel>
+          <mat-expansion-panel-header>
+            <mat-panel-title>
+              Full Payment Information
+            </mat-panel-title>
+            <mat-panel-description>
+              Explore the payment object's JSON
+            </mat-panel-description>
+          </mat-expansion-panel-header>
+          <pre class="payment-json">{{order | json}}</pre>
+        </mat-expansion-panel>
+      </mat-card-content>
+      <mat-card-actions>
+        <h3 mat-subheader>Hypermedia</h3>
+        <app-hypermedia [payment]="order"></app-hypermedia>
+      </mat-card-actions>
+    </ng-container>
+    <ng-container *ngIf="orderNotFound">
+      <mat-card-header>
+        <mat-card-title>{{'Order not found' | uppercase}}</mat-card-title>
+      </mat-card-header>
+    </ng-container>
+  </mat-card>
+</div>
+<div class="row">
+  <a mat-raised-button [routerLink]="['/user/orders']"><mat-icon>receipt</mat-icon>&nbsp;ALL ORDERS</a>
+</div>
+<div class="row">
+  <a mat-raised-button [routerLink]="['']" color="accent"><mat-icon>shopping_cart</mat-icon>&nbsp;NEW ORDER</a>
+</div>

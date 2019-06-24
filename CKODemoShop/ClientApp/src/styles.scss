@@ -1,0 +1,503 @@
+/* You can add global styles to this file, and also import other style files */
+$tablet: "(min-width: 768px) and (max-width: 1023px)";
+$desktop-small: "(min-width: 1024px) and (max-width: 1279px)";
+$desktop-medium: "(min-width: 1280px) and (max-width: 1599px)";
+$desktop-large: "(min-width: 1600px)";
+
+$color-background: unquote('#f8f8f8f8');
+
+$margin: 16px;
+$padding: $margin;
+
+body {
+  background-color: $color-background;
+  overflow-y: scroll;
+
+  .monospace {
+    font-family: monospace;
+  }
+
+  img.flag {
+    width: 1.5 * $margin;
+  }
+
+  mat-toolbar {
+    position: sticky;
+    position: -webkit-sticky;
+    top: 0;
+    z-index: 100;
+
+    app-breadcrumbs {
+      overflow: hidden;
+      text-overflow: ellipsis;
+
+      .toolbar-title {
+        a {
+          color: white !important;
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+
+    .toolbar-spacer {
+      flex: 1 1 auto;
+    }
+
+    .toolbar-item {
+      margin-left: $margin;
+      margin-right: $margin;
+
+      &.currency-form {
+        .mat-form-field-infix {
+          width: 64px;
+        }
+      }
+    }
+  }
+
+  app-orders {
+    display: flex;
+    flex: 1 1 auto;
+    padding: $padding;
+    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+
+    div.row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: $margin;
+    }
+
+    .mat-card {
+      @media #{$tablet} {
+        max-width: 100%;
+      }
+
+      @media #{$desktop-small} {
+        max-width: 1024px;
+      }
+
+      @media #{$desktop-medium} {
+        max-width: 1024px;
+      }
+
+      @media #{$desktop-large} {
+        max-width: 1024px;
+      }
+
+      flex: 1 1 auto;
+    }
+
+    .mat-card-content {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .order-table {
+      flex: 1 1 auto;
+
+      tr {
+        font-family: monospace;
+      }
+    }
+
+    .payment-method-icon {
+      vertical-align: middle;
+      height: 40px;
+    }
+  }
+
+  app-order-detail {
+    display: flex;
+    flex: 1 1 auto;
+    padding: $padding;
+    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+
+    div.row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: $margin;
+    }
+
+    .mat-card {
+      @media #{$tablet} {
+        max-width: 100%;
+      }
+
+      @media #{$desktop-small} {
+        max-width: 1024px;
+      }
+
+      @media #{$desktop-medium} {
+        max-width: 1024px;
+      }
+
+      @media #{$desktop-large} {
+        max-width: 1024px;
+      }
+
+      flex: 1 1 auto;
+
+      .mat-card-header {
+        margin-bottom: $margin;
+      }
+
+      .payment-method-avatar {
+        object-fit: scale-down;
+        border-radius: unset;
+        width: 61px;
+        height: 61px
+      }
+
+      .payment-json {
+        font-size: 0.8em;
+        overflow-x: scroll;
+      }
+    }
+
+    app-hypermedia {
+
+      pre {
+        font-size: 0.8em;
+      }
+
+      .hypermedia-list {
+        display: flex;
+        flex-direction: row;
+        flex-wrap: wrap;
+
+        .hypermedia-list-expansion-panel {
+          width: 100%;
+          margin-left: $margin;
+          margin-right: $margin;
+          margin-bottom: $margin / 2;
+        }
+
+        .hypermedia-list-item {
+          flex: 1 1 auto;
+          width: unset;
+        }
+      }
+    }
+  }
+
+  app-payment-component {
+    display: flex;
+    flex: 1 1 auto;
+    padding: $padding;
+    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+
+    div.row {
+      display: flex;
+      justify-content: center;
+      margin-bottom: $margin;
+    }
+
+    app-product-form, app-payment-configuration-form {
+      display: flex;
+      flex: 1 1 auto;
+    }
+
+    .mat-card {
+      @media #{$tablet} {
+        max-width: 100%;
+      }
+
+      @media #{$desktop-small} {
+        max-width: 1024px;
+      }
+
+      @media #{$desktop-medium} {
+        max-width: 1024px;
+      }
+
+      @media #{$desktop-large} {
+        max-width: 1024px;
+      }
+
+      flex: 1 1 auto;
+    }
+
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .product-form {
+      flex-direction: row;
+
+      .mat-form-field {
+        width: 128px;
+
+        input {
+          text-align: right;
+        }
+      }
+    }
+
+    .payment-configuration-form {
+      padding-top: $padding;
+      padding-bottom: $padding;
+    }
+
+    .customer-form, .address-form, .klarna-address-form {
+      flex-direction: row;
+      flex-wrap: wrap;
+      padding-top: $padding;
+      padding-bottom: $padding;
+
+      .mat-form-field {
+        flex: 1 0 auto;
+      }
+    }
+
+    .payment-setup {
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+
+      .payment-configurators {
+        display: flex;
+        flex: 1 1 auto;
+        padding-bottom: $padding;
+        flex-wrap: wrap;
+
+        .row {
+          flex: 1 0 100%;
+          justify-content: flex-start;
+          display: flex;
+          margin: unset;
+          flex-wrap: wrap;
+        }
+
+        span.spacer {
+          flex: 0 0 auto;
+          margin: 0px 20px 0px 20px;
+          align-self: center;
+          text-align: center;
+        }
+
+        mat-form-field.wide {
+          width: 100%;
+        }
+
+        .card-container, .mandate-container, .account-info {
+          flex: 1 1 auto;
+          display: inherit;
+          flex-wrap: inherit;
+          justify-content: inherit;
+        }
+
+        .card-container, .account-info {
+          max-width: 50%;
+        }
+
+        .card-configuration-container {
+          flex: 1 1 auto;
+          max-width: 50%;
+          display: inherit;
+          flex-direction: inherit;
+          justify-content: inherit;
+        }
+
+        [form-field="email"] {
+          min-width: 300px;
+        }
+        /*CARD*/
+        [form-field="card_name"], [form-field="card_number"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="card_expiry_month"], [form-field="card_expiry_year"], [form-field="card_cvv"] {
+          flex: 1 0 auto;
+        }
+        /*BANCONTACT*/
+        [form-field="bancontact_account_holder_name"], [form-field="bancontact_payment_country"], [form-field="bancontact_billing_descriptor"] {
+          flex: 1 0 100%;
+        }
+        /*BOLETO*/
+        [form-field="boleto_customerName"], [form-field="boleto_birthDate"], [form-field="boleto_cpf"] {
+          flex: 1 0 100%;
+        }
+        /*EPS*/
+        [form-field="eps_bank"], [form-field="eps_purpose"] {
+          flex: 1 0 100%;
+        }
+        /*FAWRY*/
+        [form-field="fawry_description"], [form-field="fawry_customer_profile_id"], [form-field="fawry_expires_on"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="fawry_customer_email"], [form-field="fawry_customer_mobile"] {
+          flex: 1 0 auto;
+        }
+        /*GIROPAY*/
+        [form-field="giropay_bank"], [form-field="giropay_purpose"] {
+          flex: 1 0 100%;
+        }
+        /*IDEAL*/
+        [form-field="ideal_bank"], [form-field="ideal_description"] {
+          flex: 1 0 100%;
+        }
+        /*KNET*/
+        [form-field="knet_language"], [form-field="knet_user_defined_field1"], [form-field="knet_user_defined_field2"], [form-field="knet_user_defined_field4"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="knet_user_defined_field3"], [form-field="knet_card_token"], [form-field="knet_user_defined_field5"], [form-field="knet_ptlf"] {
+          flex: 1 0 auto;
+        }
+        /*QPAY*/
+        [form-field="qpay_language"], [form-field="qpay_national_id"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="qpay_description"], [form-field="qpay_quantity"] {
+          flex: 1 0 auto;
+        }
+        /*SEPA DIRECT DEBIT*/
+        [form-field="sepa_source_data_first_name"], [form-field="sepa_source_data_last_name"] {
+          flex: 1 0 auto;
+        }
+
+        [form-field="sepa_source_data_account_iban"] {
+          flex: 8 0 auto;
+        }
+
+        [form-field="sepa_source_data_bic"] {
+          flex: 2 0 auto;
+        }
+
+        [form-field="sepa_source_data_billing_descriptor"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="credit-card"], [form-field="account_holder"], [radio-group="mandate_type"] {
+          flex: 1 0 100%;
+        }
+      }
+    }
+
+    .mandate {
+      margin-top: $margin;
+
+      .mandate-content {
+        display: flex;
+        flex-wrap: wrap;
+      }
+
+      .creditor, .debitor, .address {
+        flex: 1 0 auto;
+        margin: $margin;
+
+        & > * {
+          margin: unset;
+        }
+      }
+
+      .mandate-info {
+        padding-top: 16px;
+        text-align: center;
+        color: #aaa;
+        font-size: 0.9em;
+      }
+    }
+
+    .payNowButton-container {
+      display: flex;
+
+      #payNowButton {
+        flex: 1 1 auto;
+        height: 3em;
+        display: flex;
+        justify-content: center;
+      }
+    }
+  }
+
+  .example-radio-group {
+    display: inline-flex;
+    flex-direction: column;
+    padding-top: $padding;
+    padding-bottom: $padding;
+  }
+
+  .example-radio-button {
+    margin: 5px;
+  }
+
+  .klarna-radio-group {
+    display: inline-flex;
+    flex-direction: column;
+    padding-top: $padding;
+    padding-bottom: $padding;
+
+    img {
+      width: 64px;
+    }
+  }
+
+  .klarna-radio-button {
+    margin: 5px;
+
+    span {
+      display: flex;
+      align-items: center;
+    }
+  }
+
+  #klarna-container {
+    flex: 1 1 auto;
+    text-align: center;
+  }
+
+  .example-selected-value {
+    margin: 15px 0;
+  }
+
+  .gtc-checkbox {
+    text-align: justify;
+    padding-top: $padding;
+    padding-bottom: $padding;
+
+    .mat-checkbox-label {
+      white-space: normal;
+    }
+  }
+
+  .cko-container {
+    flex: 1 1 auto;
+  }
+
+  .mat-card-avatar {
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+  }
+
+  .mat-drawer-container {
+    background: none;
+  }
+
+  .mat-drawer-content {
+    display: flex !important;
+    justify-content: center;
+    padding-bottom: $padding;
+
+    .mat-card {
+      flex: 1 1 auto;
+      max-width: 50%;
+      margin-top: 2 * $margin;
+      margin-bottom: 2 * $margin;
+    }
+  }
+}

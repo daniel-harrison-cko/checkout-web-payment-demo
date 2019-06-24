@@ -1,0 +1,30 @@
+{
+  "family": "demoshop-external-dev",
+  "networkMode": "bridge",
+  "containerDefinitions": [
+    {
+      "name": "demoshop-external",
+      "image": "679045690091.dkr.ecr.eu-west-2.amazonaws.com/ckotech/demoshop-external:0.0.1",
+      "environment": [
+        {
+          "name": "ASPNETCORE_URLS",
+          "value": "http://*:5000/"
+        },
+        {
+          "name": "DEMOSHOP_PathBase_Only_Here_For_Reference",
+          "value": "/demoshop-external"
+        }
+      ],
+      "cpu": 0,
+      "portMappings": [
+      {
+	      "hostPort": 0,
+	      "containerPort": 5000,
+	      "protocol": "tcp"
+      }
+      ],      
+      "memory": 300,
+      "essential": true
+    }
+  ]
+}

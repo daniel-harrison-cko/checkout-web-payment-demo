@@ -1,0 +1,37 @@
+<div class="column">
+  <div class="row">
+    <mat-card>
+      <app-product-form></app-product-form>
+      <app-payment-configuration-form></app-payment-configuration-form>
+    </mat-card>
+  </div>
+  <div class="row">
+    <mat-card>
+      <mat-vertical-stepper [linear]="isLinear" #stepper>
+        <mat-step>
+          <ng-template matStepLabel>Customer Details</ng-template>
+          <app-customer-details-form></app-customer-details-form>
+          <div>
+            <button mat-stroked-button matStepperNext>Next</button>
+          </div>
+        </mat-step>
+        <mat-step [stepControl]="paymentDetails">
+          <ng-template matStepLabel>Select a Payment Method</ng-template>
+          <app-payment-method-form></app-payment-method-form>
+        </mat-step>
+      </mat-vertical-stepper>
+      <br />
+      <div class="payNowButton-container">
+        <button mat-flat-button color="accent" [disabled]="paymentButtonIsDisabled" (click)="makePayment()" id="payNowButton"><span *ngIf="!processing">Pay Now</span><mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner></button>
+      </div>
+    </mat-card>
+  </div>
+</div>
+<div class="column" *ngIf="false">
+  <div class="row">
+    <mat-card>
+      <pre>{{paymentDetails.valid}}</pre>
+      <pre>{{paymentDetails.getRawValue() | json}}</pre>
+    </mat-card>
+  </div>
+</div>

@@ -14,11 +14,20 @@ namespace CKODemoShop
     {
         public static void Main(string[] args)
         {
+            //Dumping environment variables
+            Console.WriteLine("GetEnvironmentVariables: ");
+            foreach (dynamic de in Environment.GetEnvironmentVariables())
+                Console.WriteLine("  {0} = {1}", de.Key, de.Value);
             CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
-                .UseStartup<Startup>();
+                .UseStartup<Startup>()
+                .ConfigureAppHealthHostingConfiguration(options =>
+                 {
+                     options.HealthEndpoint = "/_system/health";
+                     options.PingEndpoint = "/_system/ping";
+                 });
     }
 }
