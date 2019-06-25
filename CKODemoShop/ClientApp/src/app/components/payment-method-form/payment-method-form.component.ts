@@ -220,7 +220,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
           this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
           this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.get('billing_address.country').value, disabled: true }, Validators.required));
-          this.source.addControl('billing_descriptor', new FormControl({ value: 'CKO Bancontact Demo', disabled: false }));
+          this.source.addControl('billing_descriptor', new FormControl({ value: 'Bancontact Demo Payment', disabled: false }));
 
           this.paymentMethodSubsriptions.push(
             this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('account_holder_name').setValue(customerName)),
@@ -240,7 +240,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         case 'eps': {
           this.paymentMethodRequiresAdditionalInformation = true;
 
-          this.source.addControl('purpose', new FormControl({ value: 'CKO EPS Demo', disabled: false }, Validators.required));
+          this.source.addControl('purpose', new FormControl({ value: 'EPS Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
           this.getBanks(paymentMethod);
@@ -261,7 +261,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
                 product_id: ['0123456789', Validators.required],
                 quantity: [1, Validators.required],
                 price: [this.paymentDetails.value.amount, Validators.required],
-                description: ['CKO Demo Purchase Item', Validators.required]
+                description: ['Demo Purchase Item', Validators.required]
               })
             ])
           );
@@ -277,7 +277,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         case 'giropay': {
           this.paymentMethodRequiresAdditionalInformation = true;
 
-          this.source.addControl('purpose', new FormControl({ value: 'CKO Giropay Demo', disabled: false }, Validators.required));
+          this.source.addControl('purpose', new FormControl({ value: 'Giropay Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
           this.getBanks(paymentMethod);
@@ -292,7 +292,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         case 'ideal': {
           this.paymentMethodRequiresAdditionalInformation = true;
 
-          this.source.addControl('description', new FormControl({ value: 'CKO iDEAL Demo', disabled: false }, Validators.required));
+          this.source.addControl('description', new FormControl({ value: 'iDEAL Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }, Validators.required));
           this.source.addControl('language', new FormControl({ value: 'NL', disabled: false }));
 
@@ -411,7 +411,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
             'products',
             this._formBuilder.array([
               this._formBuilder.group({
-                name: ['CKO Demo Purchase Item', Validators.required],
+                name: ['Demo Purchase Item', Validators.required],
                 quantity: [1, Validators.required],
                 unit_price: [this.paymentDetails.value.amount, Validators.required],
                 tax_rate: [0, Validators.required],
@@ -474,7 +474,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.paymentMethodRequiresAdditionalInformation = true;
 
           this.source.addControl('language', new FormControl({ value: 'en', disabled: false }));
-          this.source.addControl('description', new FormControl({ value: 'Qpay Test', disabled: false }, Validators.required));
+          this.source.addControl('description', new FormControl({ value: 'QPay Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('quantity', new FormControl({ value: 1, disabled: true }));
           this.source.addControl('national_id', new FormControl({ value: '03883377392282', disabled: false }));
 
@@ -512,7 +512,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
               account_iban: [{ value: 'DE25100100101234567893', disabled: false }, Validators.required],
               // PBNKDEFFXXX is the required value for bic in Sandbox
               bic: [{ value: 'PBNKDEFFXXX', disabled: true }, Validators.required],
-              billing_descriptor: [{ value: 'CKO Demo Shop', disabled: false }, Validators.required],
+              billing_descriptor: [{ value: 'SEPA Demo Payment', disabled: false }, Validators.required],
               mandate_type: [{ value: 'single', disabled: false }, Validators.required]
             })
           );

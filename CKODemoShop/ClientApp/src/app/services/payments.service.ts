@@ -133,7 +133,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     name: 'SEPA Direct Debit',
     type: 'sepa',
     restrictedCurrencyCountryPairings: {
-      'EUR': ['AT', 'BE', 'DE', 'ES', 'FR', 'IT', 'LU', 'NL', 'PT']
+      'EUR': ['AD', 'AT', 'BE', 'BG', 'CH', 'CY', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GB', 'GR', 'HR', 'HU', 'IE', 'IS', 'IT', 'LI', 'LT', 'LU', 'LV', 'MC', 'MT', 'NL', 'NO', 'PL', 'PT', 'RO', 'SE', 'SI', 'SK', 'SM', 'VA']
     }
   },
   {
