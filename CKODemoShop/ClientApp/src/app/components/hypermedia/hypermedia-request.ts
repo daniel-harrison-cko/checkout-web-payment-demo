@@ -42,7 +42,6 @@ export class HypermediaRequest {
       switch (relation) {
         case 'klarna:payment-capture': {
           return {
-            amount: 100,
             reference: 'Klarna Test Capture',
             metadata: null,
             type: 'klarna',
