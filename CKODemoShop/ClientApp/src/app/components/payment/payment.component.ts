@@ -4,12 +4,9 @@ import { PaymentsService } from '../../services/payments.service';
 import { Subscription } from 'rxjs';
 import { HttpResponse } from '@angular/common/http';
 import { ScriptService } from '../../services/script.service';
-import { ITokenSource } from 'src/app/interfaces/token-source.interface';
 import { Router } from '@angular/router';
 import { IPayment } from 'src/app/interfaces/payment.interface';
 import { SourcesService } from 'src/app/services/sources.service';
-import { IIdSource } from 'src/app/interfaces/id-source.interface';
-import { ISource } from 'src/app/interfaces/source.interface';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { distinctUntilChanged, filter } from 'rxjs/operators';
 
@@ -295,15 +292,15 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   handleSourceResponse(response: HttpResponse<any>) {
-    let source: ISource;
+    let source: any;
     try {
       if (response.body.id) {
-        source = <IIdSource>{
+        source = {
           type: 'id',
           id: response.body.id
         }
       } else if (response.body.token) {
-        source = <ITokenSource>{
+        source = {
           type: 'token',
           token: response.body.token
         }

@@ -5,7 +5,6 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AngularMaterialModule } from './angular-material.module';
 import { AppComponent } from './app.component';
-import { AddressFormComponent } from './components/address-form/address-form.component';
 import { HttpClientModule } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PaymentComponent } from './components/payment/payment.component';
@@ -24,7 +23,6 @@ import { CustomerDetailsFormComponent } from './components/customer-details-form
     OrdersComponent,
     OrderDetailComponent,
     PaymentComponent,
-    AddressFormComponent,
     HypermediaComponent,
     BreadcrumbsComponent,
     ProductFormComponent,
