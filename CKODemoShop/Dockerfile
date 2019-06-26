@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:2.1-stretch AS build
+FROM danielmunchcko/dotnet:2.1.302-node-10.7.0 AS build	
 
 ARG BUILDCONFIG=RELEASE
 ARG VERSION=1.0.0
@@ -15,7 +15,7 @@ WORKDIR /src/CKODemoShop/
 RUN dotnet publish -c $BUILDCONFIG -o out /p:Version=$VERSION
 
 #build runtime image
-FROM mcr.microsoft.com/dotnet/core/sdk:2.1-stretch
+FROM microsoft/dotnet:2.1-aspnetcore-runtime-alpine	
 WORKDIR /app
 COPY --from=build /src/CKODemoShop/out .
 
