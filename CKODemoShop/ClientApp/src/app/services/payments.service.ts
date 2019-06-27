@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
@@ -7,7 +7,6 @@ import { IPayment } from '../interfaces/payment.interface';
 import { ICurrency } from '../interfaces/currency.interface';
 import { ILink } from '../interfaces/link.interface';
 import { HypermediaRequest } from '../components/hypermedia/hypermedia-request';
-import {APP_BASE_HREF} from '@angular/common';
 
 const DEFAULT_AMOUNT: number = 100;
 
@@ -153,7 +152,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
 
 export class PaymentsService {
 
-  constructor(@Inject(APP_BASE_HREF) private baseHref:string, private _http: HttpClient) { }
+  constructor(private _http: HttpClient) { }
 
   // Subjects
   private currencySource = new BehaviorSubject<ICurrency>(CURRENCIES.find(currency => currency.iso4217 == 'EUR'));
