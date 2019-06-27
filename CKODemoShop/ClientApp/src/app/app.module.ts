@@ -40,7 +40,7 @@ import {APP_BASE_HREF} from '@angular/common';
     FormsModule,
     ReactiveFormsModule
   ],
-  providers: [{provide: APP_BASE_HREF, useValue: ''}],
+  providers: [{provide: APP_BASE_HREF, useValue: '/demoshop-external/'}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
