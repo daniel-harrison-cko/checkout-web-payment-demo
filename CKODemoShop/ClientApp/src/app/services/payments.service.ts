@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
@@ -7,6 +7,7 @@ import { IPayment } from '../interfaces/payment.interface';
 import { ICurrency } from '../interfaces/currency.interface';
 import { ILink } from '../interfaces/link.interface';
 import { HypermediaRequest } from '../components/hypermedia/hypermedia-request';
+import {APP_BASE_HREF} from '@angular/common';
 
 const DEFAULT_AMOUNT: number = 100;
 
@@ -152,7 +153,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
 
 export class PaymentsService {
 
-  constructor(private _http: HttpClient) { }
+  constructor(@Inject(APP_BASE_HREF) private baseHref:string, private _http: HttpClient) { }
 
   // Subjects
   private currencySource = new BehaviorSubject<ICurrency>(CURRENCIES.find(currency => currency.iso4217 == 'EUR'));
@@ -197,7 +198,7 @@ export class PaymentsService {
 
   // API
   getLegacyBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<any>> {
-    return this._http.get<any>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
+    return this._http.get<any>(`${this.baseHref}/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
   }
 
   getBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBanks>> {
@@ -217,7 +218,7 @@ export class PaymentsService {
   }
 
   requestPayment(paymentRequest: any): Observable<HttpResponse<any>> {
-    return this._http.post<any>(`/api/checkout/payments`, paymentRequest, { observe: 'response' });
+    return this._http.post<any>(`${this.baseHref}/api/checkout/payments`, paymentRequest, { observe: 'response' });
   }
 
   getPaymentActions(id: string): Observable<HttpResponse<any>> {

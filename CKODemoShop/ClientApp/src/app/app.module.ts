@@ -16,6 +16,7 @@ import { ProductFormComponent } from './components/product-form/product-form.com
 import { PaymentMethodFormComponent } from './components/payment-method-form/payment-method-form.component';
 import { PaymentConfigurationFormComponent } from './components/payment-configuration-form/payment-configuration-form.component';
 import { CustomerDetailsFormComponent } from './components/customer-details-form/customer-details-form.component';
+import {APP_BASE_HREF} from '@angular/common';
 
 @NgModule({
   declarations: [
@@ -39,7 +40,7 @@ import { CustomerDetailsFormComponent } from './components/customer-details-form
     FormsModule,
     ReactiveFormsModule
   ],
-  providers: [],
+  providers: [{provide: APP_BASE_HREF, useValue: ''}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
