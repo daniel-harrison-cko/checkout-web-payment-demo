@@ -56,11 +56,14 @@ namespace CKODemoShop
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            app.UsePathBase("/demoshop-external");
-
+            if (!env.IsDevelopment())
+            {
+                app.UsePathBase("/demoshop-external");
+            }
+            
             app.UseHealthEndpoint();
             app.UsePingEndpoint();
-            
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
