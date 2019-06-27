@@ -4,6 +4,7 @@ import { FormGroup } from '@angular/forms';
 import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { PaymentDetailsService } from './services/payment-details.service';
+import { PaymentsService } from './services/payments.service';
 
 @Component({
   selector: 'app-root',
@@ -13,11 +14,12 @@ import { PaymentDetailsService } from './services/payment-details.service';
 export class AppComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   title: string = 'CKO Demo';
-  currencies: ICurrency[] = this._paymentDetailsService.currencies;
+  currencies: ICurrency[] = this._paymentsService.currencies;
   paymentDetails: FormGroup;
 
   constructor(
     private _paymentDetailsService: PaymentDetailsService,
+    private _paymentsService: PaymentsService,
     private _router: Router
   ) { }
 
