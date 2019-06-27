@@ -198,7 +198,7 @@ export class PaymentsService {
 
   // API
   getLegacyBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<any>> {
-    return this._http.get<any>(`${this.baseHref}/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
+    return this._http.get<any>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
   }
 
   getBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBanks>> {
@@ -218,11 +218,11 @@ export class PaymentsService {
   }
 
   requestPayment(paymentRequest: any): Observable<HttpResponse<any>> {
-    return this._http.post<any>(`${this.baseHref}/api/checkout/payments`, paymentRequest, { observe: 'response' });
+    return this._http.post<any>(`/api/checkout/payments`, paymentRequest, { observe: 'response' });
   }
 
   getPaymentActions(id: string): Observable<HttpResponse<any>> {
-    return this._http.get<any>(`api/checkout/payments/${id}/actions`, { observe: 'response' })
+    return this._http.get<any>(`/api/checkout/payments/${id}/actions`, { observe: 'response' })
   }
 
   performHypermediaAction(hypermediaRequest: HypermediaRequest): Observable<HttpResponse<any>> {
