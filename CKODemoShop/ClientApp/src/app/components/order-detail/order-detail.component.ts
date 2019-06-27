@@ -36,6 +36,6 @@ export class OrderDetailComponent {
   }
 
   private currencyBaseAmount(currencyCode: string): number {
-    return this._paymentDetailsService.currencies.find(currency => currency.iso4217 == currencyCode).base;
+    return this._paymentsService.currencies.find(currency => currency.iso4217 == currencyCode).base;
   }
 }
