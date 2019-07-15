@@ -1,0 +1,17 @@
+<h1 mat-dialog-title>Do you want to refund?</h1>
+<div mat-dialog-content>
+  <p>Refund amount: {{amount / data.currency.base | currency:data.currency.iso4217:'symbol'}}</p>
+  <mat-slider [max]="data.amount"
+              [min]="0"
+              [thumbLabel]="true"
+              [(ngModel)]="amount">
+  </mat-slider>
+  <p>Refund reference:</p>
+  <mat-form-field>
+    <input matInput [(ngModel)]="data.reference">
+  </mat-form-field>
+</div>
+<div mat-dialog-actions>
+  <button mat-button (click)="onNoClick()">No Thanks</button>
+  <button mat-button [mat-dialog-close]="{amount: amount, reference: data.reference}" cdkFocusInitial>Yes Refund</button>
+</div>
