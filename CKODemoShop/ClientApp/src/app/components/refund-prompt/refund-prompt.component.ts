@@ -9,7 +9,7 @@ export interface DialogData {
 }
 
 @Component({
-  selector: 'refund-prompt',
+  selector: 'app-refund-prompt',
   templateUrl: './refund-prompt.component.html',
 })
 export class RefundPromptComponent {
