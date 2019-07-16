@@ -189,6 +189,12 @@ body {
     }
   }
 
+  app-refund-prompt {
+    [form-field="refund_prompt_amount"], [form-field="refund_prompt_reference"] {
+      width: 100%;
+    }
+  }
+
   app-payment-component {
     display: flex;
     flex: 1 1 auto;
