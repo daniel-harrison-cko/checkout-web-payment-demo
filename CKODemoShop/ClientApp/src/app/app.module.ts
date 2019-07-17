@@ -45,7 +45,7 @@ import { RefundPromptComponent } from './components/refund-prompt/refund-prompt.
     FormsModule,
     ReactiveFormsModule
   ],
-  providers: [{provide: APP_BASE_HREF, useValue: '/demoshop-external'}],
+  //providers: [{provide: APP_BASE_HREF, useValue: '/demoshop-external'}],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
