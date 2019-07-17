@@ -5,7 +5,7 @@ import { NgModule } from '@angular/core';
 import { AppRoutingModule } from './app-routing.module';
 import { AngularMaterialModule } from './angular-material.module';
 import { AppComponent } from './app.component';
-import { HttpClientModule } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PaymentComponent } from './components/payment/payment.component';
 import { OrderDetailComponent } from './components/order-detail/order-detail.component';
@@ -18,6 +18,7 @@ import { PaymentConfigurationFormComponent } from './components/payment-configur
 import { CustomerDetailsFormComponent } from './components/customer-details-form/customer-details-form.component';
 import {APP_BASE_HREF} from '@angular/common';
 import { RefundPromptComponent } from './components/refund-prompt/refund-prompt.component';
+import { APIInterceptor } from './services/api.interceptor';
 
 @NgModule({
   declarations: [
@@ -45,7 +46,10 @@ import { RefundPromptComponent } from './components/refund-prompt/refund-prompt.
     FormsModule,
     ReactiveFormsModule
   ],
-  //providers: [{provide: APP_BASE_HREF, useValue: '/demoshop-external'}],
+  providers: [
+    //{ provide: APP_BASE_HREF, useValue: '/demoshop-external' },
+    { provide: HTTP_INTERCEPTORS, useClass: APIInterceptor, multi: true }
+  ],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
