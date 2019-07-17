@@ -334,6 +334,106 @@ namespace CKODemoShop.Controllers
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> Payments(PaymentRequest request)
         {
+            var reference = $"cko_demo_{Guid.NewGuid()}";
+            IRequestSource CreateRequestSource(Source source)
+            {
+                switch (source.Type)
+                {
+                    case "token":
+                        return new TokenSource(source.Token);
+                    case "id":
+                        return new IdSource(source.Id);
+                    case "card":
+                        return new CardSource(source.Number, source.ExpiryMonth, source.ExpiryYear);
+                    default:
+                        return CreateAlternativePaymentSource(source);
+                }
+            }
+            IRequestSource CreateAlternativePaymentSource(Source source)
+            {
+                switch (source.Type)
+                {
+                    case "bancontact":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"payment_country", source.PaymentCountry },
+                        {"account_holder_name", source.AccountHolderName },
+                        {"billing_descriptor", source.BillingDescriptor }
+                    };
+                    case "boleto":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"customerName", source.CustomerName },
+                        {"cpf", source.Cpf },
+                        {"birthDate", source.BirthDate }
+                    };
+                    case "eps":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"bic", source.Bic },
+                        {"purpose", source.Purpose }
+                    };
+                    case "fawry":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"description", source.Description },
+                        {"customer_mobile", source.CustomerMobile },
+                        {"customer_email", source.CustomerEmail },
+                        {"customer_profile_id", source.CustomerProfileId },
+                        {"expires_on", source.ExpiresOn },
+                        {"products", source.Products },
+                    };
+                    case "giropay":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"bic", source.Bic },
+                        {"purpose", source.Purpose }
+                    };
+                    case "ideal":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"bic", source.Bic },
+                        {"description", source.Description }
+                    };
+                    case "klarna":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"authorization_token", source.AuthorizationToken },
+                        {"locale", source.Locale },
+                        {"purchase_country", source.PurchaseCountry },
+                        {"tax_amount", source.TaxAmount },
+                        {"billing_address", source.BillingAddress },
+                        {"products", source.Products }
+                    };
+                    case "knet":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"language", source.Language },
+                        {"user_defined_field1", source.UDF1 },
+                        {"user_defined_field2", source.UDF2 },
+                        {"user_defined_field3", source.UDF3 },
+                        {"user_defined_field4", source.UDF4 },
+                        {"user_defined_field5", source.UDF5 },
+                        {"card_token", source.CardToken },
+                        {"ptlf", source.PTLF }
+                    };
+                    case "paypal":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"invoice_number", reference }
+                    };
+                    case "qpay":
+                        return new AlternativePaymentSource(source.Type)
+                    {
+                        {"language", source.Language },
+                        {"description", source.Description },
+                        {"quantity", source.Quantity },
+                        {"national_id", source.NationalId }
+                    };
+                    default:
+                        return new AlternativePaymentSource(source.Type);
+                }
+            }
             var paymentRequest = new PaymentRequest<IRequestSource>(
                 CreateRequestSource(request.Source),
                 request.Currency,
@@ -342,7 +442,7 @@ namespace CKODemoShop.Controllers
             {
                 Capture = request.Capture,
                 ThreeDS = request.ThreeDs,
-                Reference = $"cko_demo_{Guid.NewGuid()}",
+                Reference = reference,
                 PaymentIp = "192.168.1.1",
                 SuccessUrl = "http://localhost:59890/order/succeeded",
                 FailureUrl = "http://localhost:59890/order/failed"
@@ -394,102 +494,6 @@ namespace CKODemoShop.Controllers
             catch (Exception e)
             {
                 return BadRequest(e.Message);
-            }
-        }
-
-        public IRequestSource CreateRequestSource(Source source)
-        {
-            switch (source.Type)
-            {
-                case "token":
-                    return new TokenSource(source.Token);
-                case "id":
-                    return new IdSource(source.Id);
-                case "card":
-                    return new CardSource(source.Number, source.ExpiryMonth, source.ExpiryYear);
-                default:
-                    return CreateAlternativePaymentSource(source);
-            }
-        }
-
-        public IRequestSource CreateAlternativePaymentSource (Source source)
-        {
-            switch (source.Type)
-            {
-                case "bancontact":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"payment_country", source.PaymentCountry },
-                        {"account_holder_name", source.AccountHolderName },
-                        {"billing_descriptor", source.BillingDescriptor }
-                    };
-                case "boleto":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"customerName", source.CustomerName },
-                        {"cpf", source.Cpf },
-                        {"birthDate", source.BirthDate }
-                    };
-                case "eps":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"bic", source.Bic },
-                        {"purpose", source.Purpose }
-                    };
-                case "fawry":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"description", source.Description },
-                        {"customer_mobile", source.CustomerMobile },
-                        {"customer_email", source.CustomerEmail },
-                        {"customer_profile_id", source.CustomerProfileId },
-                        {"expires_on", source.ExpiresOn },
-                        {"products", source.Products },
-                    };
-                case "giropay":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"bic", source.Bic },
-                        {"purpose", source.Purpose }
-                    };
-                case "ideal":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"bic", source.Bic },
-                        {"description", source.Description }
-                    };
-                case "klarna":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"authorization_token", source.AuthorizationToken },
-                        {"locale", source.Locale },
-                        {"purchase_country", source.PurchaseCountry },
-                        {"tax_amount", source.TaxAmount },
-                        {"billing_address", source.BillingAddress },
-                        {"products", source.Products }
-                    };
-                case "knet":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"language", source.Language },
-                        {"user_defined_field1", source.UDF1 },
-                        {"user_defined_field2", source.UDF2 },
-                        {"user_defined_field3", source.UDF3 },
-                        {"user_defined_field4", source.UDF4 },
-                        {"user_defined_field5", source.UDF5 },
-                        {"card_token", source.CardToken },
-                        {"ptlf", source.PTLF }
-                    };
-                case "qpay":
-                    return new AlternativePaymentSource(source.Type)
-                    {
-                        {"language", source.Language },
-                        {"description", source.Description },
-                        {"quantity", source.Quantity },
-                        {"national_id", source.NationalId }
-                    };
-                default:
-                    return new AlternativePaymentSource(source.Type);
             }
         }
     }
