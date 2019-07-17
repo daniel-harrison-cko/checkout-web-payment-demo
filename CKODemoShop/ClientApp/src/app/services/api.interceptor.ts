@@ -8,7 +8,7 @@ export class APIInterceptor implements HttpInterceptor {
     if (req.url.startsWith('http')) {
       return next.handle(req);
     } else {
-      const apiReq = req.clone({ url: `demoshop-external${req.url}` });
+      const apiReq = req.clone({ url: `${req.url}` });
       return next.handle(apiReq);
     }
   }
