@@ -193,6 +193,12 @@ namespace CKODemoShop.Controllers
             this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
+        [HttpGet]
+        public IActionResult Test()
+        {
+            return Ok(1);
+        }
+
         [HttpGet("{lppId}/[action]")]
         [ProducesResponseType(200, Type = typeof(IList<IIBank>))]
         [ProducesResponseType(404)]
