@@ -335,6 +335,7 @@ namespace CKODemoShop.Controllers
         public async Task<IActionResult> Payments(PaymentRequest request)
         {
             var reference = $"cko_demo_{Guid.NewGuid()}";
+            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
             IRequestSource CreateRequestSource(Source source)
             {
                 switch (source.Type)
@@ -443,9 +444,9 @@ namespace CKODemoShop.Controllers
                 Capture = request.Capture,
                 ThreeDS = request.ThreeDs,
                 Reference = reference,
-                PaymentIp = "192.168.1.1",
-                SuccessUrl = "http://localhost:59890/order/succeeded",
-                FailureUrl = "http://localhost:59890/order/failed"
+                PaymentIp = HttpContext.Connection.RemoteIpAddress.ToString(),
+                SuccessUrl = $"{baseUrl}/order/succeeded",
+                FailureUrl = $"{baseUrl}/order/failed"
             };
             try
             {
