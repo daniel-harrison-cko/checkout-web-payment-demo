@@ -16,7 +16,7 @@ import { ProductFormComponent } from './components/product-form/product-form.com
 import { PaymentMethodFormComponent } from './components/payment-method-form/payment-method-form.component';
 import { PaymentConfigurationFormComponent } from './components/payment-configuration-form/payment-configuration-form.component';
 import { CustomerDetailsFormComponent } from './components/customer-details-form/customer-details-form.component';
-import {APP_BASE_HREF} from '@angular/common';
+import { APP_BASE_HREF } from '@angular/common';
 import { RefundPromptComponent } from './components/refund-prompt/refund-prompt.component';
 import { APIInterceptor } from './services/api.interceptor';
 
@@ -47,7 +47,7 @@ import { APIInterceptor } from './services/api.interceptor';
     ReactiveFormsModule
   ],
   providers: [
-    //{ provide: APP_BASE_HREF, useValue: '/demoshop-external' },
+    { provide: APP_BASE_HREF, useValue: '/demoshop-external' },
     { provide: HTTP_INTERCEPTORS, useClass: APIInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
