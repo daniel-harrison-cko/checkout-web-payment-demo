@@ -11,7 +11,6 @@ export class APIInterceptor implements HttpInterceptor {
     if (req.url.startsWith('http')) {
       return next.handle(req);
     } else {
-      console.log(this.appBaseHref);
       const apiReq = req.clone({ url: `${this.appBaseHref}${req.url}` });
       return next.handle(apiReq);
     }
