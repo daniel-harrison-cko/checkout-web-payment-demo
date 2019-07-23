@@ -1,19 +1,27 @@
 <h1 mat-dialog-title>Do you want to refund?</h1>
 <div mat-dialog-content>
-  <p>Refund amount: {{amount / data.currency.base | currency:data.currency.iso4217:'symbol'}}</p>
-  <mat-slider form-field="refund_prompt_amount"
-              [max]="data.amount"
-              [min]="0"
-              [thumbLabel]="true"
-              [(ngModel)]="amount"
-              cdkFocusInitial>
-  </mat-slider>
-  <p>Refund reference:</p>
-  <mat-form-field form-field="refund_prompt_reference">
-    <input matInput [(ngModel)]="data.reference">
-  </mat-form-field>
+  <form [formGroup]="refundPromptDetails">
+    <mat-form-field form-field="refund_prompt_balance">
+      <input matInput placeholder="Remaining Balance" type="number" [value]="maxRefund" disabled>
+      <mat-hint>{{maxRefund / currency.base | currency:currency.iso4217:'symbol'}}&nbsp;<mat-icon matTooltip="Adding a 'balance' field to the paymnent response is in the backlog. For now it is the static payment amount and not a representative balance.">warning</mat-icon></mat-hint>
+    </mat-form-field>
+    <br />
+    <br />
+    <mat-form-field form-field="refund_prompt_amount">
+      <input matInput placeholder="Refund Amount" type="number" formControlName="amount" min="0" [max]="data.amount" cdkFocusInitial>
+      <mat-hint>{{refundPromptDetails.get('amount').value / currency.base | currency:currency.iso4217:'symbol'}}</mat-hint>
+      <mat-error *ngIf="refundPromptDetails.get('amount').hasError('min')">The amount must be >= 0.</mat-error>
+      <mat-error *ngIf="refundPromptDetails.get('amount').hasError('max')">The amount cannot exceed balance ({{maxRefund}}).</mat-error>
+      <mat-error *ngIf="refundPromptDetails.get('amount').hasError('required')">Specify an amount.</mat-error>
+    </mat-form-field>
+    <br />
+    <br />
+    <mat-form-field form-field="refund_prompt_reference">
+      <input matInput placeholder="Refund Reference" formControlName="reference">
+    </mat-form-field>
+  </form>    
 </div>
 <div mat-dialog-actions>
   <button mat-button (click)="onNoClick()">No Thanks</button>
-  <button mat-button [mat-dialog-close]="{amount: amount, reference: data.reference}" color="primary">Yes Refund</button>
+  <button mat-button [mat-dialog-close]="refundDetails" color="primary" [disabled]="!refundPromptDetails.valid">Yes Refund</button>
 </div>
