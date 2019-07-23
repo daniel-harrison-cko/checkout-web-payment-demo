@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, Output, EventEmitter, OnChanges } from '@angular/core';
 import { ILinks } from 'src/app/interfaces/links.interface';
 import { IPayment } from 'src/app/interfaces/payment.interface';
 import { PaymentsService } from 'src/app/services/payments.service';
@@ -19,8 +19,9 @@ export interface DialogData {
   selector: 'app-hypermedia',
   templateUrl: './hypermedia.component.html'
 })
-export class HypermediaComponent implements OnInit {
+export class HypermediaComponent implements OnInit, OnChanges {
   @Input() payment: IPayment;
+  @Output() updatePayment = new EventEmitter<any>();
   links: ILinks;
   actions: Object[];
   subscriptions: Subscription[] = [];
@@ -37,15 +38,24 @@ export class HypermediaComponent implements OnInit {
   }
 
   ngOnInit() {
+    this.subscriptions.push(
+      this.hypermediaRequest$.pipe(distinctUntilChanged()).subscribe((hypermediaRequest: HypermediaRequest) => this.makeHypermediaRequest(hypermediaRequest))
+    );
+    
+  }
+
+  ngOnChanges(changes) {
+    this.handlePayment(changes.payment.currentValue);
+  }
+
+  private handlePayment(payment: IPayment) {
+    this.payment = payment;
     this.links = this.payment._links;
     if (this.links.actions) {
       this._paymentsService.getPaymentActions(this.payment.id).subscribe(
         response => this.actions = response.body
       );
     }
-    this.subscriptions.push(
-      this.hypermediaRequest$.pipe(distinctUntilChanged()).subscribe((hypermediaRequest: HypermediaRequest) => this.makeHypermediaRequest(hypermediaRequest))
-    );
   }
 
   ngOnDestroy() {
@@ -123,10 +133,11 @@ export class HypermediaComponent implements OnInit {
 
   private makeHypermediaRequest(hypermediaRequest: HypermediaRequest) {
     this._paymentsService.performHypermediaAction(hypermediaRequest).subscribe(
-      response => location.reload(true),
+      response => {
+        this.updatePayment.emit();
+      },
       error => {
-        console.warn(error);
-        location.reload(true);
+        this.updatePayment.emit();
       }
     );
   }
