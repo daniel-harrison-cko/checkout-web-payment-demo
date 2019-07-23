@@ -135,11 +135,9 @@ export class HypermediaComponent implements OnInit, OnChanges {
     this._paymentsService.performHypermediaAction(hypermediaRequest).subscribe(
       response => {
         this.updatePayment.emit();
-        //location.reload(true);
       },
       error => {
-        console.warn(error);
-        location.reload(true);
+        this.updatePayment.emit();
       }
     );
   }
