@@ -52,6 +52,7 @@ namespace CKODemoShop.Controllers
             Source source,
             int amount,
             string currency,
+            string reference,
             string description = null,
             bool capture = true,
             ShippingDetails shipping = null,
@@ -61,6 +62,7 @@ namespace CKODemoShop.Controllers
             Source = source;
             Amount = amount;
             Currency = currency;
+            Reference = reference;
             Description = description;
             Capture = capture;
             Shipping = shipping;
@@ -70,6 +72,7 @@ namespace CKODemoShop.Controllers
         public Source Source { get; }
         public int Amount { get; }
         public string Currency { get; }
+        public string Reference { get; }
         public string Description { get; set; }
         public bool Capture { get; set; }
         public ShippingDetails Shipping { get; set; }
@@ -85,71 +88,9 @@ namespace CKODemoShop.Controllers
         public string HttpMethod { get; set; }
     }
 
-    public class Source : IRequestSource
+    public class Source : Dictionary<string, object>, IRequestSource
     {
-        public Source(string type)
-        {
-            Type = type;
-        }
-
         public string Type { get; }
-        public string Token { get; set; }
-        public string Id { get; set; }
-        public string Number { get; set; }
-        [JsonProperty(PropertyName = "expiry_month")]
-        public int ExpiryMonth { get; set; }
-        [JsonProperty(PropertyName = "expiry_year")]
-        public int ExpiryYear { get; set; }
-        public string Bic { get; set; }
-        public string Purpose { get; set; }
-        public string Description { get; set; }
-        [JsonProperty(PropertyName = "customerName")]
-        public string CustomerName { get; set; }
-        public string Cpf { get; set; }
-        [JsonProperty(PropertyName = "birthDate")]
-        public string BirthDate { get; set; }
-        [JsonProperty(PropertyName = "authorization_token")]
-        public string AuthorizationToken { get; set; }
-        public string Locale { get; set; }
-        [JsonProperty(PropertyName = "purchase_country")]
-        public string PurchaseCountry { get; set; }
-        [JsonProperty(PropertyName = "tax_amount")]
-        public int TaxAmount { get; set; }
-        [JsonProperty(PropertyName = "billing_address")]
-        public object BillingAddress { get; set; }
-        public IEnumerable<object> Products { get; set; }
-        [JsonProperty(PropertyName = "payment_country")]
-        public string PaymentCountry { get; set; }
-        [JsonProperty(PropertyName = "account_holder_name")]
-        public string AccountHolderName { get; set; }
-        [JsonProperty(PropertyName = "billing_descriptor")]
-        public string BillingDescriptor { get; set; }
-        public string Language { get; set; }
-        [JsonProperty(PropertyName = "user_defined_field1")]
-        public string UDF1 { get; set; }
-        [JsonProperty(PropertyName = "user_defined_field2")]
-        public string UDF2 { get; set; }
-        [JsonProperty(PropertyName = "user_defined_field3")]
-        public string UDF3 { get; set; }
-        [JsonProperty(PropertyName = "user_defined_field4")]
-        public string UDF4 { get; set; }
-        [JsonProperty(PropertyName = "user_defined_field5")]
-        public string UDF5 { get; set; }
-        [JsonProperty(PropertyName = "card_token")]
-        public string CardToken { get; set; }
-        public string PTLF { get; set; }
-        [JsonProperty(PropertyName = "customer_mobile")]
-        public string CustomerMobile { get; set; }
-        [JsonProperty(PropertyName = "customer_email")]
-        public string CustomerEmail { get; set; }
-        [JsonProperty(PropertyName = "customer_profile_id")]
-        public string CustomerProfileId { get; set; }
-        [JsonProperty(PropertyName = "expires_on")]
-        public string ExpiresOn { get; set; }
-        public int Quantity { get; set; }
-        [JsonProperty(PropertyName = "national_id")]
-        public string NationalId { get; set; }
-
     }
 
     public class SessionRequest
@@ -334,116 +275,16 @@ namespace CKODemoShop.Controllers
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> Payments(PaymentRequest request)
         {
-            var reference = $"cko_demo_{Guid.NewGuid()}";
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
-            IRequestSource CreateRequestSource(Source source)
-            {
-                switch (source.Type)
-                {
-                    case "token":
-                        return new TokenSource(source.Token);
-                    case "id":
-                        return new IdSource(source.Id);
-                    case "card":
-                        return new CardSource(source.Number, source.ExpiryMonth, source.ExpiryYear);
-                    default:
-                        return CreateAlternativePaymentSource(source);
-                }
-            }
-            IRequestSource CreateAlternativePaymentSource(Source source)
-            {
-                switch (source.Type)
-                {
-                    case "bancontact":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"payment_country", source.PaymentCountry },
-                        {"account_holder_name", source.AccountHolderName },
-                        {"billing_descriptor", source.BillingDescriptor }
-                    };
-                    case "boleto":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"customerName", source.CustomerName },
-                        {"cpf", source.Cpf },
-                        {"birthDate", source.BirthDate }
-                    };
-                    case "eps":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"bic", source.Bic },
-                        {"purpose", source.Purpose }
-                    };
-                    case "fawry":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"description", source.Description },
-                        {"customer_mobile", source.CustomerMobile },
-                        {"customer_email", source.CustomerEmail },
-                        {"customer_profile_id", source.CustomerProfileId },
-                        {"expires_on", source.ExpiresOn },
-                        {"products", source.Products },
-                    };
-                    case "giropay":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"bic", source.Bic },
-                        {"purpose", source.Purpose }
-                    };
-                    case "ideal":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"bic", source.Bic },
-                        {"description", source.Description }
-                    };
-                    case "klarna":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"authorization_token", source.AuthorizationToken },
-                        {"locale", source.Locale },
-                        {"purchase_country", source.PurchaseCountry },
-                        {"tax_amount", source.TaxAmount },
-                        {"billing_address", source.BillingAddress },
-                        {"products", source.Products }
-                    };
-                    case "knet":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"language", source.Language },
-                        {"user_defined_field1", source.UDF1 },
-                        {"user_defined_field2", source.UDF2 },
-                        {"user_defined_field3", source.UDF3 },
-                        {"user_defined_field4", source.UDF4 },
-                        {"user_defined_field5", source.UDF5 },
-                        {"card_token", source.CardToken },
-                        {"ptlf", source.PTLF }
-                    };
-                    case "paypal":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"invoice_number", reference }
-                    };
-                    case "qpay":
-                        return new AlternativePaymentSource(source.Type)
-                    {
-                        {"language", source.Language },
-                        {"description", source.Description },
-                        {"quantity", source.Quantity },
-                        {"national_id", source.NationalId }
-                    };
-                    default:
-                        return new AlternativePaymentSource(source.Type);
-                }
-            }
             var paymentRequest = new PaymentRequest<IRequestSource>(
-                CreateRequestSource(request.Source),
+                request.Source,
                 request.Currency,
                 request.Amount
                 )
             {
                 Capture = request.Capture,
                 ThreeDS = request.ThreeDs,
-                Reference = reference,
+                Reference = request.Reference,
                 PaymentIp = HttpContext.Connection.RemoteIpAddress.ToString(),
                 SuccessUrl = $"{baseUrl}/order/succeeded",
                 FailureUrl = $"{baseUrl}/order/failed"
@@ -542,6 +383,25 @@ namespace CKODemoShop.Controllers
         {
             Console.WriteLine($"\nWEBHOOK\n{webhook.CreatedOn} - {webhook.Data["id"]} ({webhook.Type})\n");
             return Ok();
+        }
+    }
+
+    [Route("api/[controller]")]
+    [ApiController]
+    public class ShopController : Controller
+    {
+        [HttpGet("[action]")]
+        [ProducesResponseType(201, Type = typeof(string))]
+        public IActionResult Reference()
+        {
+            try
+            {
+                return CreatedAtAction(nameof(Reference), new Dictionary<string, string>() { {"reference", $"cko_demo_{Guid.NewGuid()}" } });
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500, e);
+            }
         }
     }
 }
