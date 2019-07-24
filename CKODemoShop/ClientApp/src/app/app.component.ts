@@ -5,6 +5,8 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { PaymentDetailsService } from './services/payment-details.service';
 import { PaymentsService } from './services/payments.service';
+import { ShopService } from './services/shop.service';
+import { reference } from '@angular/core/src/render3';
 
 @Component({
   selector: 'app-root',
@@ -18,6 +20,7 @@ export class AppComponent implements OnInit, OnDestroy {
   paymentDetails: FormGroup;
 
   constructor(
+    private _shopService: ShopService,
     private _paymentDetailsService: PaymentDetailsService,
     private _paymentsService: PaymentsService,
     private _router: Router
@@ -25,7 +28,8 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.push(
-      this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails)
+      this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails),
+      this._shopService.getReference().subscribe(response => this.paymentDetails.get('reference').setValue(response.body.reference))
     );
   }
 

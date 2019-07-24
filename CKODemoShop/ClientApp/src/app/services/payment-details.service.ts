@@ -1,13 +1,17 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
+import { ShopService } from './shop.service';
 
 @Injectable({
   providedIn: 'root'
 })
 
 export class PaymentDetailsService {
-  constructor(private _formBuilder: FormBuilder) { }
+  constructor(
+    private _shopService: ShopService,
+    private _formBuilder: FormBuilder
+  ) { }
 
   // Subjects
   private paymentDetailsSource = new BehaviorSubject<FormGroup>(this.paymentDetailsTemplate);
@@ -60,6 +64,7 @@ export class PaymentDetailsService {
     let paymentDetailsTemplate = this._formBuilder.group({
       amount: [100, [Validators.required, Validators.min(0)]],
       currency: ['EUR', Validators.required],
+      reference: null,
       source: this._formBuilder.group({
         type: [null, Validators.required]
       }),

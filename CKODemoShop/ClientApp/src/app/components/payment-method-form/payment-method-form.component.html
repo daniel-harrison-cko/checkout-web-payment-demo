@@ -206,6 +206,11 @@
             </mat-form-field>
           </div>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'paypal'">
+          <mat-form-field form-field="paypal_invoice_number">
+            <input matInput placeholder="Invoice Number" formControlName="invoice_number" required />
+          </mat-form-field>
+        </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'qpay'">
           <div class="row">
             <mat-form-field form-field="qpay_language">

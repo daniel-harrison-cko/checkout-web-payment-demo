@@ -461,7 +461,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'paypal': {
-          this.paymentMethodRequiresAdditionalInformation = false;
+          this.paymentMethodRequiresAdditionalInformation = true;
+
+          this.source.addControl('invoice_number', new FormControl({ value: this.paymentDetails.value.reference, disabled: true }, Validators.required));
 
           break;
         }
