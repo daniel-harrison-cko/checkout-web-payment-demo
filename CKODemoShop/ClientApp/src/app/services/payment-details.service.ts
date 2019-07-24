@@ -64,7 +64,7 @@ export class PaymentDetailsService {
     let paymentDetailsTemplate = this._formBuilder.group({
       amount: [100, [Validators.required, Validators.min(0)]],
       currency: ['EUR', Validators.required],
-      reference: null,
+      reference: [null],
       source: this._formBuilder.group({
         type: [null, Validators.required]
       }),

@@ -8,7 +8,8 @@ import { Router } from '@angular/router';
 import { IPayment } from 'src/app/interfaces/payment.interface';
 import { SourcesService } from 'src/app/services/sources.service';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
-import { distinctUntilChanged, filter } from 'rxjs/operators';
+import { distinctUntilChanged, filter, finalize } from 'rxjs/operators';
+import { ShopService } from '../../services/shop.service';
 
 declare var Frames: any;
 declare var google: any;
@@ -30,6 +31,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   makePayment: Function;
 
   constructor(
+    private _shopService: ShopService,
     private _paymentDetailsService: PaymentDetailsService,
     private _paymentService: PaymentsService,
     private _sourcesService: SourcesService,
@@ -43,6 +45,11 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
       this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges)
     );
+    if (!this.paymentDetails.value.reference) {
+      this.subscriptions.push(
+        this._shopService.getReference().subscribe(response => this.paymentDetails.get('reference').setValue(response.body.reference))
+      )
+    }
   }
 
   ngAfterViewInit() {
@@ -74,7 +81,9 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private standardPaymentFlow = () => {
     this.processing = true;
-    this._paymentService.requestPayment(this.paymentRequest).subscribe(
+    this._paymentService.requestPayment(this.paymentRequest)
+      .pipe(finalize(() => this.paymentDetails.get('reference').reset()))
+      .subscribe(
       response => this.handlePaymentResponse(response),
       error => {
         console.warn(error);
@@ -320,7 +329,9 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
             currency: this.paymentDetails.value.currency,
             amount: this.paymentDetails.value.amount,
             source: source
-          }).subscribe(
+          })
+            .pipe(finalize(() => this.paymentDetails.get('reference').reset()))
+            .subscribe(
             response => this.handlePaymentResponse(response),
             error => {
               console.warn(error);
