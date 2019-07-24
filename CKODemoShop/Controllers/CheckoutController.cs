@@ -284,7 +284,7 @@ namespace CKODemoShop.Controllers
             {
                 Capture = request.Capture,
                 ThreeDS = request.ThreeDs,
-                Reference = request.Reference,
+                Reference = request.Reference ?? $"cko_demo_{Guid.NewGuid()}",
                 PaymentIp = HttpContext.Connection.RemoteIpAddress.ToString(),
                 SuccessUrl = $"{baseUrl}/order/succeeded",
                 FailureUrl = $"{baseUrl}/order/failed"
