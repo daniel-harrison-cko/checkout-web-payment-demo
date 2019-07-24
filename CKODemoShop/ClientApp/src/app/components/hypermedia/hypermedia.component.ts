@@ -7,7 +7,7 @@ import { MatDialog, MatDialogRef } from '@angular/material';
 import { ICurrency } from '../../interfaces/currency.interface';
 import { RefundPromptComponent } from '../refund-prompt/refund-prompt.component';
 import { Subject, Subscription } from 'rxjs';
-import { distinctUntilChanged } from 'rxjs/operators';
+import { distinctUntilChanged, finalize } from 'rxjs/operators';
 
 export interface DialogData {
   amount: number;
@@ -25,6 +25,7 @@ export class HypermediaComponent implements OnInit, OnChanges {
   links: ILinks;
   actions: Object[];
   subscriptions: Subscription[] = [];
+  processing: boolean;
 
   constructor(
     private _paymentsService: PaymentsService,
@@ -132,13 +133,12 @@ export class HypermediaComponent implements OnInit, OnChanges {
   }
 
   private makeHypermediaRequest(hypermediaRequest: HypermediaRequest) {
-    this._paymentsService.performHypermediaAction(hypermediaRequest).subscribe(
-      response => {
-        this.updatePayment.emit();
-      },
-      error => {
-        this.updatePayment.emit();
-      }
-    );
+    this.processing = true;
+    this._paymentsService.performHypermediaAction(hypermediaRequest)
+      .pipe(finalize(() => this.processing = false))
+      .subscribe(
+        response => this.updatePayment.emit(),
+        error => this.updatePayment.emit()
+      );
   }
 }

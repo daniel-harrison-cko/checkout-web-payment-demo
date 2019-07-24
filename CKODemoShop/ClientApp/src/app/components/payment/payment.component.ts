@@ -54,6 +54,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy() {
+    this.paymentDetails.get('source.type').reset();
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 

@@ -1,6 +1,6 @@
 <div class="row">
   <mat-card class="order-card">
-    <mat-spinner *ngIf="loading" [diameter]="20" strokeWidth="3"></mat-spinner>
+    <mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner>
     <ng-container *ngIf="order">
       <mat-card-header>
         <img mat-card-avatar class="payment-method-avatar" src="/assets/payment_method/{{paymentMethodIcon(order) || 'undefined'}}.jpg">

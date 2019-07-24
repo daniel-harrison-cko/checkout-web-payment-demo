@@ -32,7 +32,6 @@ export class HypermediaRequest {
       if (!relation) throw Error(`Relation ${this.relation} is not set up for ${this.paymentMethod}.`);
       return paymentMethod.relations[relation];
     } catch (e) {
-      console.info('Fallback to default POST HTTP Method.')
       return 'POST';
     }
   }

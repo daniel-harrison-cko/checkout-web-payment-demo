@@ -184,6 +184,10 @@ body {
         .hypermedia-list-item {
           flex: 1 1 auto;
           width: unset;
+
+          mat-spinner {
+            margin: 0 auto;
+          }
         }
       }
     }

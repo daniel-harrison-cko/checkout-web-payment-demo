@@ -9,7 +9,7 @@ import { PaymentsService } from 'src/app/services/payments.service';
   templateUrl: './order-detail.component.html'
 })
 export class OrderDetailComponent {
-  loading: boolean = true;
+  processing: boolean = true;
   order: IPayment;
   orderNotFound: boolean;
 
@@ -23,13 +23,9 @@ export class OrderDetailComponent {
   public getPayment() {
     let orderId = this._activatedRoute.snapshot.params['orderId'] || this._activatedRoute.snapshot.queryParams['cko-session-id'];
     this._paymentsService.getPayment(orderId)
-      .pipe(
-        finalize(() => this.loading = false)
-      )
+      .pipe(finalize(() => this.processing = false))
       .subscribe(
-        response => {
-          this.order = response.body
-        },
+        response => this.order = response.body,
         error => this.orderNotFound = true
       )
   }
