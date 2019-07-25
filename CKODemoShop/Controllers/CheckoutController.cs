@@ -52,7 +52,7 @@ namespace CKODemoShop.Controllers
             Source source,
             int amount,
             string currency,
-            string reference,
+            string reference = null,
             string description = null,
             bool capture = true,
             ShippingDetails shipping = null,
