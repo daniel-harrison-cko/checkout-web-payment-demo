@@ -5,7 +5,7 @@
     <form [formGroup]="paymentDetails" class="toolbar-item country-currency-form">
       <ng-container formGroupName="billing_address">
         <mat-form-field form-field="country">
-          <mat-select formControlName="country" [(ngModel)]="paymentDetails.value.billing_address.country" matTooltip="Select the (billing address) payment country.">
+          <mat-select formControlName="country" [(value)]="paymentDetails.value.billing_address.country" matTooltip="Select the (billing address) payment country.">
             <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.name}}&nbsp;({{country.alpha2Code}})">
               <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.alpha2Code}}</span>
             </mat-option>

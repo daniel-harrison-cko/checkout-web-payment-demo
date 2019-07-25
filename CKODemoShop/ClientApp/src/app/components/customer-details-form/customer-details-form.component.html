@@ -38,7 +38,7 @@
       </mat-form-field>
       <mat-form-field form-field="countries">
         <mat-label>Country</mat-label>
-        <mat-select formControlName="country" [(ngModel)]="paymentDetails.value.billing_address.country" required>
+        <mat-select formControlName="country" [(value)]="paymentDetails.value.billing_address.country" required>
           <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.name}}&nbsp;({{country.alpha2Code}})">
             <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.name}}&nbsp;({{country.alpha2Code}})</span>
           </mat-option>
