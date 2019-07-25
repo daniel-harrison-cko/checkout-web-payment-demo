@@ -5,6 +5,9 @@ import { Subscription } from 'rxjs';
 import { Router } from '@angular/router';
 import { PaymentDetailsService } from './services/payment-details.service';
 import { PaymentsService } from './services/payments.service';
+import { CountriesService } from './services/countries.service';
+import { ICountry } from './interfaces/country.interface';
+import { distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-root',
@@ -16,8 +19,11 @@ export class AppComponent implements OnInit, OnDestroy {
   title: string = 'CKO Demo';
   currencies: ICurrency[] = this._paymentsService.currencies;
   paymentDetails: FormGroup;
+  countries: ICountry[];
+
 
   constructor(
+    private _countriesService: CountriesService,
     private _paymentDetailsService: PaymentDetailsService,
     private _paymentsService: PaymentsService,
     private _router: Router
@@ -25,6 +31,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.subscriptions.push(
+      this._countriesService.countries$.pipe(distinctUntilChanged()).subscribe(countries => this.countries = countries),
       this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails)
     );
   }
