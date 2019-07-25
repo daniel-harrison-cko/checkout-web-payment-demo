@@ -29,17 +29,17 @@ namespace CKODemoShop.Tests
         }
 
         string lppId;
-        List<IIBank> legacyBanks;
+        IssuersResponse legacyBanks;
         BanksResponse banks;
         void when_get_banks()
         {
-            context["given ~/lpp_19/banks"] = () =>
+            context["given ~/ideal/banks"] = () =>
             {
                 beforeAllAsync = async () =>
                 {
-                    lppId = "lpp_9";
+                    lppId = "ideal";
                     result = await controller.Banks(lppId);
-                    legacyBanks = (result as ObjectResult).Value as List<IIBank>;
+                    legacyBanks = (result as ObjectResult).Value as IssuersResponse;
                 };
 
                 it["should return 200 - OK"] = () =>
@@ -49,12 +49,12 @@ namespace CKODemoShop.Tests
 
                 it["should return a non-empty list of legacy typed banks"] = () =>
                 {
-                    legacyBanks.ShouldNotBeEmpty();
+                    legacyBanks.Countries.ShouldNotBeNull();
                 };
 
-                it["should contain single legacy typed bank with key 'Simulation INGDiba' and value 'INGBNL2A'"] = () =>
+                it["should contain single legacy typed bank with name 'Issuer Simulation V3 - ING' and bic 'INGBNL2A'"] = () =>
                 {
-                    legacyBanks.Single(bank => (bank.Key == "Simulation INGDiba" && bank.Value == "INGBNL2A"));
+                    legacyBanks.Countries.Single(country => (country.Issuers.First().Name == "Issuer Simulation V3 - ING" && country.Issuers.First().Bic == "INGBNL2A"));
                 };
             };
 
@@ -186,7 +186,7 @@ namespace CKODemoShop.Tests
                     {
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(new Source("token") { Token = token.Token }, amount, currency);
+                        paymentRequest = new PaymentRequest(new Source() { {"type", "token" }, { "token", token.Token } }, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
@@ -225,7 +225,7 @@ namespace CKODemoShop.Tests
                     {
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(new Source("giropay") { Bic = "TESTDETT421", Purpose = "CKO Demo Shop unit test" }, amount, currency);
+                        paymentRequest = new PaymentRequest(new Source() { {"type", "giropay" }, {"bic", "TESTDETT421" }, {"purpose", "Web Payment Demo Unit Test" } }, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         payment = (result as ObjectResult).Value as Resource;
                     };
@@ -270,7 +270,7 @@ namespace CKODemoShop.Tests
                     {
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(new Source("giropay") { Purpose = "bic_required test" }, amount, currency);
+                        paymentRequest = new PaymentRequest(new Source() { {"type", "giropay" }, {"purpose", "bic_required test" } }, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
@@ -295,7 +295,7 @@ namespace CKODemoShop.Tests
                     {
                         currency = Currency.USD;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(new Source("giropay") { Bic = "TESTDETT421", Purpose = "CKO Demo Shop unit test" }, amount, currency);
+                        paymentRequest = new PaymentRequest(new Source() { { "type", "giropay" }, { "bic", "TESTDETT421" }, { "purpose", "Web Payment Demo Unit Test" } }, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
@@ -322,9 +322,7 @@ namespace CKODemoShop.Tests
                 {
                     beforeAllAsync = async () =>
                     {
-                        var source = new Source("ideal");
-                        source.Id = "INGBNL2A";
-
+                        var source = new Source() { { "type", "ideal" }, {"bic", "INGBNL2A" }, {"description", "Web Payment Demo Unit Test" } };
                         currency = Currency.EUR;
                         amount = 100;
                         paymentRequest = new PaymentRequest(source, amount, currency);
@@ -372,7 +370,7 @@ namespace CKODemoShop.Tests
                     {
                         currency = Currency.EUR;
                         amount = 100;
-                        paymentRequest = new PaymentRequest(new Source("ideal"), amount, currency);
+                        paymentRequest = new PaymentRequest(new Source() { {"type", "ideal" } }, amount, currency);
                         result = await controller.Payments(paymentRequest);
                         exception = (result as ObjectResult).Value as Exception;
                     };
@@ -396,9 +394,7 @@ namespace CKODemoShop.Tests
                 {
                     beforeAllAsync = async () =>
                     {
-                        var source = new Source("ideal");
-                        source.Id = "INGBNL2A";
-
+                        var source = new Source() { {"type", "ideal" }, {"bic", "INGBNL2A" }, { "description", "Web Payment Demo Unit Test" } };
                         currency = Currency.USD;
                         amount = 100;
                         paymentRequest = new PaymentRequest(source, amount, currency);
@@ -430,8 +426,7 @@ namespace CKODemoShop.Tests
                 PaymentRequest paymentRequest;
                 beforeAllAsync = async () =>
                 {
-                    var source = new Source("ideal");
-                    source.Id = "INGBNL2A";
+                    var source = new Source() { {"type", "ideal" }, {"bic", "INGBNL2A" }, { "description", "Web Payment Demo Unit Test" } };
 
                     currency = Currency.EUR;
                     amount = 100;
@@ -520,7 +515,7 @@ namespace CKODemoShop.Tests
                 {
                     currency = Currency.EUR;
                     amount = 100;
-                    paymentRequest = new PaymentRequest(new Source("card") { Number = "4242424242424242", ExpiryMonth = 12, ExpiryYear = 2022 }, amount, currency);
+                    paymentRequest = new PaymentRequest(new Source() { {"type", "card" }, { "number", "4242424242424242" }, { "expiry_month", 12 }, { "expiry_year", 2022 } }, amount, currency);
                     result = await controller.Payments(paymentRequest); // POST payments
                     payment = (result as ObjectResult).Value as Resource;
                     result = await controller.Actions((payment as PaymentProcessed).Id);
