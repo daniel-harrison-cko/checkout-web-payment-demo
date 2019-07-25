@@ -52,7 +52,12 @@ body {
       margin-left: $margin;
       margin-right: $margin;
 
-      &.currency-form {
+      &.country-currency-form {
+        mat-form-field {
+          margin-left: $margin / 2;
+          margin-right: $margin / 2;
+        }
+
         .mat-form-field-infix {
           width: 64px;
         }

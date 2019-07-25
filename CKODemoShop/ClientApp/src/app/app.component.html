@@ -2,9 +2,18 @@
   <mat-toolbar-row>
     <app-breadcrumbs [appTitle]="title"></app-breadcrumbs>
     <span class="toolbar-spacer"></span>
-    <form [formGroup]="paymentDetails" class="toolbar-item currency-form">
-      <mat-form-field>
-        <mat-select formControlName="currency">
+    <form [formGroup]="paymentDetails" class="toolbar-item country-currency-form">
+      <ng-container formGroupName="billing_address">
+        <mat-form-field form-field="country">
+          <mat-select formControlName="country" [(ngModel)]="paymentDetails.value.billing_address.country" matTooltip="Select the (billing address) payment country.">
+            <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.name}}&nbsp;({{country.alpha2Code}})">
+              <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.alpha2Code}}</span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+      </ng-container>
+      <mat-form-field form-field="currency">
+        <mat-select formControlName="currency" matTooltip="Select the payment currency.">
           <mat-option *ngFor="let currency of currencies" [value]="currency.iso4217">
             {{currency.iso4217}}
           </mat-option>
