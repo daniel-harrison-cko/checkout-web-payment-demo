@@ -54,7 +54,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   navigateTo = (url: string) => { this._router.navigateByUrl(url) };
 
-  private toggleWebhooks = (event: MatSlideToggleChange) => {
+  toggleWebhooks = (event: MatSlideToggleChange) => {
     if (event.checked) {
       this._webhooksService.addWebhook(this.webhooksForm.value.eventTypes).subscribe();
     } else {

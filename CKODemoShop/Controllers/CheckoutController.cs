@@ -349,7 +349,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500);
+                return StatusCode(500, e);
             }
         }
 
@@ -495,12 +495,10 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class KlarnaController : Controller
     {
-        private CheckoutApi api;
         private HttpClient client;
 
-        public KlarnaController(CheckoutApi api, HttpClient client)
+        public KlarnaController(HttpClient client)
         {
-            this.api = api ?? throw new ArgumentNullException(nameof(api));
             this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
 

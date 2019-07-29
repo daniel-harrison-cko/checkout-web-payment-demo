@@ -14,9 +14,9 @@ export interface DialogData {
   templateUrl: './refund-prompt.component.html',
 })
 export class RefundPromptComponent implements OnInit{
-  private currency: ICurrency = this.data.currency;
-  private maxRefund: number = this.data.amount;
-  private refundPromptDetails: FormGroup;
+  currency: ICurrency = this.data.currency;
+  maxRefund: number = this.data.amount;
+  refundPromptDetails: FormGroup;
 
   constructor(
     public dialogRef: MatDialogRef<RefundPromptComponent>,
@@ -30,7 +30,7 @@ export class RefundPromptComponent implements OnInit{
     });
   }
 
-  private get refundDetails(): DialogData {
+  get refundDetails(): DialogData {
     return this.refundPromptDetails.value;
   }
 
