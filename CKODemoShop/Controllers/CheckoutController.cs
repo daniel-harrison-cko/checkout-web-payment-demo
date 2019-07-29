@@ -10,6 +10,8 @@ using System.Net.Http;
 using Checkout.Tokens;
 using Newtonsoft.Json;
 using Checkout.Sources;
+using System.Text.RegularExpressions;
+using System.Linq;
 
 namespace CKODemoShop.Controllers
 {
@@ -44,6 +46,30 @@ namespace CKODemoShop.Controllers
         [JsonProperty(PropertyName = "created_on")]
         public string CreatedOn { get; set; }
         public IDictionary<string, object> Data { get; set; }
+    }
+
+    public class WebhookRequest
+    {
+        private const string webhooksUrl = "/api/webhooks/incoming/checkout";
+
+        public WebhookRequest(
+            string baseUrl,
+            string authorization,
+            List<string> eventTypes
+            )
+        {
+            Url = Regex.Match(baseUrl, @"^http[s]{0,1}:\/\/localhost.*$").Success ? $"https://55bf5c0f.ngrok.io/demoshop-external{webhooksUrl}" : $"{baseUrl}{webhooksUrl}";
+            Headers.Add("Authorization", authorization);
+            EventTypes = eventTypes;
+        }
+
+        public string Url { get; }
+        public bool Active { get; } = true;
+        public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
+        [JsonProperty(PropertyName = "content_type")]
+        public string ContentType { get; } = "json";
+        [JsonProperty(PropertyName = "event_types")]
+        public List<string> EventTypes { get; }
     }
 
     public class PaymentRequest
@@ -243,6 +269,131 @@ namespace CKODemoShop.Controllers
             {
                 return BadRequest(e.Message);
             }
+        }
+
+        [HttpGet("[action]", Name = "GetEventTypes")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<object>))]
+        [ProducesResponseType(404)]
+        public async Task<IActionResult> EventTypes()
+        {
+            client.DefaultRequestHeaders.Clear();
+            try
+            {
+                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/event-types");
+                string content = await result.Content.ReadAsStringAsync();
+                var response = JsonConvert.DeserializeObject(content);
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                return NotFound(e);
+            }
+        }
+
+        [HttpGet("[action]", Name = "GetWebhooks")]
+        [ProducesResponseType(200, Type = typeof(IEnumerable<object>))]
+        [ProducesResponseType(204)]
+        public async Task<IActionResult> Webhooks()
+        {
+            client.DefaultRequestHeaders.Clear();
+            try
+            {
+                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/webhooks");
+                if(result.StatusCode == System.Net.HttpStatusCode.NoContent)
+                {
+                    return NoContent();
+                }
+                else
+                {
+                    string content = await result.Content.ReadAsStringAsync();
+                    var response = JsonConvert.DeserializeObject(content);
+                    return Ok(response);
+                }
+            }
+            catch (Exception e)
+            {
+                return NotFound(e);
+            }
+        }
+
+        [HttpPost("[action]", Name = "AddWebhook")]
+        [ProducesResponseType(201, Type = typeof(object))]
+        [ProducesResponseType(409)]
+        [ProducesResponseType(422)]
+        public async Task<IActionResult> Webhooks([FromBody] List<string> eventTypes)
+        {
+            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
+            var webhookRequest = new WebhookRequest(baseUrl, "1234", eventTypes);
+
+            client.DefaultRequestHeaders.Clear();
+            try
+            {
+                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                HttpResponseMessage result = await client.PostAsJsonAsync("https://api.sandbox.checkout.com/webhooks", webhookRequest);
+                string content = await result.Content.ReadAsStringAsync();
+                object response = JsonConvert.DeserializeObject<object>(content);
+                if (result.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity)
+                {
+                    return UnprocessableEntity(response);
+                }
+                else if (result.StatusCode == System.Net.HttpStatusCode.Conflict)
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    return CreatedAtRoute("AddWebhook", response);
+                }
+            }
+            catch (Exception e)
+            {
+                return StatusCode(500);
+            }
+        }
+
+        [HttpDelete("[action]", Name = "ClearWebhooks")]
+        [ProducesResponseType(201, Type = typeof(object))]
+        [ProducesResponseType(409)]
+        [ProducesResponseType(422)]
+        public async Task<IActionResult> Webhooks(string test = null)
+        {
+            List<Task> deletions = new List<Task>();
+            async Task<IActionResult> deleteWebhook(string webhookId)
+            {
+                client.DefaultRequestHeaders.Clear();
+                try
+                {
+                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                    HttpResponseMessage result = await client.DeleteAsync($"https://api.sandbox.checkout.com/webhooks/{webhookId}");
+                    if (result.IsSuccessStatusCode)
+                    {
+                        return Ok();
+                    }
+                    else
+                    {
+                        return NotFound();
+                    }
+                }
+                catch (Exception e)
+                {
+                    return UnprocessableEntity(e);
+                }
+            };
+            var webhooks = await Webhooks();
+            var serializedWebhooksResponse = JsonConvert.SerializeObject((webhooks as ObjectResult).Value);
+            var deserializedWebhooksResponse = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(serializedWebhooksResponse);
+            var webhookIds = deserializedWebhooksResponse.Select(webhook => webhook["id"] as string).ToList();
+
+            foreach(string webhookId in webhookIds)
+            {
+                deletions.Add(deleteWebhook(webhookId));
+            }
+
+            await Task.WhenAll(deletions);
+
+            return Ok();
         }
 
         [HttpPost("[action]")]

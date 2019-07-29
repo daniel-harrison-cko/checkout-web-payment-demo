@@ -27,7 +27,12 @@
       <button mat-menu-item (click)="navigateTo('/user/orders')">	
         <mat-icon>event</mat-icon>
         <span>Past Orders</span>
-      </button>    
+      </button>
+      <button mat-menu-item (click)="$event.stopPropagation();" [disableRipple]="true">
+        <form [formGroup]="webhooksForm">
+          <mat-slide-toggle formControlName="hasWebhooks" (change)="toggleWebhooks($event)">Webhooks</mat-slide-toggle>
+        </form>        
+      </button>      
     </mat-menu>
   </mat-toolbar-row>
 </mat-toolbar>
