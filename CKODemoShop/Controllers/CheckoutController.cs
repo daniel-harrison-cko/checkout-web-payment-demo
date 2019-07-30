@@ -39,7 +39,7 @@ namespace CKODemoShop.Controllers
         public bool HasBanks { get { return Banks.Count > 0; } }
     }
 
-    public class Webhook
+    public class CheckoutWebhook
     {
         public string Id { get; set; }
         public string Type { get; set; }
@@ -160,10 +160,11 @@ namespace CKODemoShop.Controllers
             this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        [HttpGet("{lppId}/[action]")]
+        [HttpGet("{lppId}/[action]", Name = "GetBanks")]
+        [ActionName("Banks")]
         [ProducesResponseType(200, Type = typeof(IList<IIBank>))]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Banks(string lppId)
+        public async Task<IActionResult> GetBanks(string lppId)
         {
             object response;
             try
@@ -207,15 +208,16 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        [HttpPost("[action]/source/card")]
+        [HttpPost("[action]/source/card", Name = "RequestCardToken")]
+        [ActionName("Tokens")]
         [ProducesResponseType(201, Type = typeof(TokenResponse))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
-        public async Task<IActionResult> Tokens(CardTokenRequest tokenRequest)
+        public async Task<IActionResult> RequestCardToken(CardTokenRequest tokenRequest)
         {
             try
             {
                 var tokenResponse = await api.Tokens.RequestAsync(tokenRequest);
-                return CreatedAtAction(nameof(Tokens), tokenResponse);
+                return CreatedAtAction(nameof(RequestCardToken), tokenResponse);
             }
             catch (Exception e)
             {
@@ -223,15 +225,16 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        [HttpPost("[action]/source/wallet")]
+        [HttpPost("[action]/source/wallet", Name = "RequestWalletToken")]
+        [ActionName("Tokens")]
         [ProducesResponseType(201, Type = typeof(TokenResponse))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
-        public async Task<IActionResult> Tokens(WalletTokenRequest tokenRequest)
+        public async Task<IActionResult> RequestWalletToken(WalletTokenRequest tokenRequest)
         {
             try
             {
                 var tokenResponse = await api.Tokens.RequestAsync(tokenRequest);
-                return CreatedAtAction(nameof(Tokens), tokenResponse);
+                return CreatedAtAction(nameof(RequestWalletToken), tokenResponse);
             }
             catch (Exception e)
             {
@@ -240,9 +243,10 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpGet("[action]/{paymentId}", Name = "GetPayment")]
+        [ActionName("Payments")]
         [ProducesResponseType(200, Type = typeof(GetPaymentResponse))]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Payments(string paymentId)
+        public async Task<IActionResult> GetPayment(string paymentId)
         {
             try
             {
@@ -255,10 +259,11 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        [HttpGet("payments/{paymentId}/[action]", Name = "GetPaymentActions")]
+        [HttpGet("payments/{paymentId}/[action]", Name = "GetActions")]
+        [ActionName("Actions")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<PaymentAction>))]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> Actions(string paymentId)
+        public async Task<IActionResult> GetActions(string paymentId)
         {
             try
             {
@@ -272,9 +277,10 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpGet("[action]", Name = "GetEventTypes")]
+        [ActionName("EventTypes")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<object>))]
         [ProducesResponseType(404)]
-        public async Task<IActionResult> EventTypes()
+        public async Task<IActionResult> GetEventTypes()
         {
             client.DefaultRequestHeaders.Clear();
             try
@@ -292,9 +298,10 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpGet("[action]", Name = "GetWebhooks")]
+        [ActionName("Webhooks")]
         [ProducesResponseType(200, Type = typeof(IEnumerable<object>))]
         [ProducesResponseType(204)]
-        public async Task<IActionResult> Webhooks()
+        public async Task<IActionResult> GetWebhooks()
         {
             client.DefaultRequestHeaders.Clear();
             try
@@ -319,10 +326,11 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpPost("[action]", Name = "AddWebhook")]
+        [ActionName("Webhooks")]
         [ProducesResponseType(201, Type = typeof(object))]
         [ProducesResponseType(409)]
         [ProducesResponseType(422)]
-        public async Task<IActionResult> Webhooks([FromBody] List<string> eventTypes)
+        public async Task<IActionResult> AddWebhook([FromBody] List<string> eventTypes)
         {
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
             var webhookRequest = new WebhookRequest(baseUrl, "1234", eventTypes);
@@ -344,7 +352,7 @@ namespace CKODemoShop.Controllers
                 }
                 else
                 {
-                    return CreatedAtRoute("AddWebhook", response);
+                    return CreatedAtAction(nameof(AddWebhook), response);
                 }
             }
             catch (Exception e)
@@ -354,10 +362,11 @@ namespace CKODemoShop.Controllers
         }
 
         [HttpDelete("[action]", Name = "ClearWebhooks")]
+        [ActionName("Webhooks")]
         [ProducesResponseType(201, Type = typeof(object))]
         [ProducesResponseType(409)]
         [ProducesResponseType(422)]
-        public async Task<IActionResult> Webhooks(string test = null)
+        public async Task<IActionResult> ClearWebhooks()
         {
             List<Task> deletions = new List<Task>();
             async Task<IActionResult> deleteWebhook(string webhookId)
@@ -381,7 +390,7 @@ namespace CKODemoShop.Controllers
                     return UnprocessableEntity(e);
                 }
             };
-            var webhooks = await Webhooks();
+            var webhooks = await GetWebhooks();
             var serializedWebhooksResponse = JsonConvert.SerializeObject((webhooks as ObjectResult).Value);
             var deserializedWebhooksResponse = JsonConvert.DeserializeObject<List<Dictionary<string, object>>>(serializedWebhooksResponse);
             var webhookIds = deserializedWebhooksResponse.Select(webhook => webhook["id"] as string).ToList();
@@ -396,11 +405,12 @@ namespace CKODemoShop.Controllers
             return Ok();
         }
 
-        [HttpPost("[action]")]
+        [HttpPost("[action]", Name = "RequestSource")]
+        [ActionName("Sources")]
         [ProducesResponseType(201, Type = typeof(SourceResponse))]
         [ProducesResponseType(202, Type = typeof(SourceResponse))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
-        public async Task<IActionResult> Sources(SourceRequest sourceRequest)
+        public async Task<IActionResult> RequestSource(SourceRequest sourceRequest)
         {
             try
             {
@@ -411,7 +421,7 @@ namespace CKODemoShop.Controllers
                 }
                 else
                 {
-                    return CreatedAtAction("RequestSource", new { paymentId = sourceResponse.Source.Id }, sourceResponse.Source);
+                    return CreatedAtAction(nameof(RequestSource), new { paymentId = sourceResponse.Source.Id }, sourceResponse.Source);
                 }
             }
             catch (Exception e)
@@ -420,11 +430,12 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        [HttpPost("[action]", Name = "PostPayment")]
+        [HttpPost("[action]", Name = "RequestPayment")]
+        [ActionName("Payments")]
         [ProducesResponseType(201, Type = typeof(PaymentProcessed))]
         [ProducesResponseType(202, Type = typeof(PaymentPending))]
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
-        public async Task<IActionResult> Payments(PaymentRequest request)
+        public async Task<IActionResult> RequestPayment(PaymentRequest request)
         {
             var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
             var paymentRequest = new PaymentRequest<IRequestSource>(
@@ -445,11 +456,11 @@ namespace CKODemoShop.Controllers
                 PaymentResponse paymentResponse = await api.Payments.RequestAsync(paymentRequest);
                 if (paymentResponse.IsPending)
                 {
-                    return AcceptedAtRoute("PostPayment", new { paymentId = paymentResponse.Pending.Id }, paymentResponse.Pending);
+                    return AcceptedAtAction(nameof(RequestPayment), new { paymentId = paymentResponse.Pending.Id }, paymentResponse.Pending);
                 }
                 else
                 {
-                    return CreatedAtRoute("PostPayment", new { paymentId = paymentResponse.Payment.Id }, paymentResponse.Payment);
+                    return CreatedAtAction(nameof(RequestPayment), new { paymentId = paymentResponse.Payment.Id }, paymentResponse.Payment);
                 }
             }
             catch (Exception e)
@@ -458,10 +469,11 @@ namespace CKODemoShop.Controllers
             }
         }
 
-        [HttpPost("[action]", Name = "Hypermedia")]
+        [HttpPost("[action]", Name = "RequestHypermedia")]
+        [ActionName("Hypermedia")]
         [ProducesResponseType(202, Type = typeof(GetPaymentResponse))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> Hypermedia(HypermediaRequest hypermediaRequest)
+        public async Task<IActionResult> RequestHypermedia(HypermediaRequest hypermediaRequest)
         {
             try
             {
@@ -482,7 +494,7 @@ namespace CKODemoShop.Controllers
                 }
                 if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
                 string content = await result.Content.ReadAsStringAsync();
-                return AcceptedAtRoute("Hypermedia", content);
+                return AcceptedAtAction(nameof(RequestHypermedia), content);
             }
             catch (Exception e)
             {
@@ -502,10 +514,11 @@ namespace CKODemoShop.Controllers
             this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
-        [HttpPost("[action]", Name = "CreditSessions")]
+        [HttpPost("[action]", Name = "RequestCreditSession")]
+        [ActionName("CreditSessions")]
         [ProducesResponseType(201, Type = typeof(GetPaymentResponse))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> CreditSessions(SessionRequest sessionRequest)
+        public async Task<IActionResult> RequestCreditSession(SessionRequest sessionRequest)
         {
             try
             {
@@ -513,7 +526,7 @@ namespace CKODemoShop.Controllers
                 client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
                 HttpResponseMessage result = await client.PostAsJsonAsync("https://sbapi.ckotech.co/klarna-external/credit-sessions", sessionRequest);
                 string content = await result.Content.ReadAsStringAsync();
-                return CreatedAtAction("CreditSessions", content);
+                return CreatedAtAction(nameof(RequestCreditSession), content);
             }
             catch (Exception e)
             {
@@ -526,9 +539,10 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class WebhooksController : Controller
     {
-        [HttpPost("incoming/checkout")]
+        [HttpPost("incoming/checkout", Name = "HandleCheckoutWebhook")]
+        [ActionName("Webhooks")]
         [ProducesResponseType(200)]
-        public IActionResult Webhooks(Webhook webhook)
+        public IActionResult HandleCheckoutWebhook(CheckoutWebhook webhook)
         {
             Console.WriteLine($"\nWEBHOOK\n{webhook.CreatedOn} - {webhook.Data["id"]} ({webhook.Type})\n");
             return Ok();
@@ -539,13 +553,14 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class ShopController : Controller
     {
-        [HttpGet("[action]")]
+        [HttpGet("[action]", Name = "GetReference")]
+        [ActionName("References")]
         [ProducesResponseType(201, Type = typeof(string))]
-        public IActionResult Reference()
+        public IActionResult GetReference()
         {
             try
             {
-                return CreatedAtAction(nameof(Reference), new Dictionary<string, string>() { {"reference", $"cko_demo_{Guid.NewGuid()}" } });
+                return CreatedAtAction(nameof(GetReference), new Dictionary<string, string>() { {"reference", $"cko_demo_{Guid.NewGuid()}" } });
             }
             catch (Exception e)
             {
