@@ -11,11 +11,14 @@ import { distinctUntilChanged } from 'rxjs/operators';
 import { WebhooksService } from './services/webhooks.service';
 import { MatSlideToggleChange } from '@angular/material';
 
+import { OktaAuthService } from '@okta/okta-angular';
+
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.sass']
 })
+
 export class AppComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
   title: string = 'CKO Demo';
@@ -23,6 +26,7 @@ export class AppComponent implements OnInit, OnDestroy {
   paymentDetails: FormGroup;
   webhooksForm: FormGroup;
   countries: ICountry[];
+  isAuthenticated: boolean;
 
   constructor(
     private _countriesService: CountriesService,
@@ -30,10 +34,19 @@ export class AppComponent implements OnInit, OnDestroy {
     private _paymentDetailsService: PaymentDetailsService,
     private _paymentsService: PaymentsService,
     private _router: Router,
-    private _formBuilder: FormBuilder
-  ) { }
+    private _formBuilder: FormBuilder,
+    public oktaAuth: OktaAuthService
+  ) { 
+    // Subscribe to authentication state changes
+    this.oktaAuth.$authenticationState.subscribe(
+      (isAuthenticated: boolean)  => {
+        this.isAuthenticated = isAuthenticated;
+        console.log("bla");
+      }
+    );
+  }
 
-  ngOnInit() {
+  async ngOnInit() {
     this.webhooksForm = this._formBuilder.group({
       eventTypes: [null],
       webhooks: [null],
@@ -46,6 +59,9 @@ export class AppComponent implements OnInit, OnDestroy {
       this._countriesService.countries$.pipe(distinctUntilChanged()).subscribe(countries => this.countries = countries),
       this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails)
     );
+
+    // Get the authentication state for immediate use
+    this.isAuthenticated = await this.oktaAuth.isAuthenticated();
   }
 
   ngOnDestroy() {
@@ -61,4 +77,8 @@ export class AppComponent implements OnInit, OnDestroy {
       this._webhooksService.clearWebhooks().subscribe();
     }
   };
+
+  logout() {
+    this.oktaAuth.logout('/logout');
+  }
 }
