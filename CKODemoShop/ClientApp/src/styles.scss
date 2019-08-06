@@ -374,6 +374,10 @@ body {
         [form-field="paypal_invoice_number"] {
           flex: 1 0 100%;
         }
+        /*P24*/
+        [form-field="p24_account_holder_name"], [form-field="p24_account_holder_email"], [form-field="p24_billing_descriptor"] {
+          flex: 1 0 100%;
+        }
         /*QPAY*/
         [form-field="qpay_language"], [form-field="qpay_national_id"] {
           flex: 1 0 100%;

@@ -211,6 +211,17 @@
             <input matInput placeholder="Invoice Number" formControlName="invoice_number" required />
           </mat-form-field>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'p24'">
+          <mat-form-field form-field="p24_account_holder_name">
+            <input matInput placeholder="Account Holder Name" formControlName="account_holder_name" required />
+          </mat-form-field>
+          <mat-form-field form-field="p24_account_holder_email">
+            <input matInput placeholder="Account Holder Email" formControlName="account_holder_email" required />
+          </mat-form-field>
+          <mat-form-field form-field="p24_billing_descriptor">
+            <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />
+          </mat-form-field>
+        </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'qpay'">
           <div class="row">
             <mat-form-field form-field="qpay_language">
