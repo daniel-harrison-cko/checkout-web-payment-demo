@@ -3,7 +3,7 @@
     <mat-spinner *ngIf="processing" [diameter]="20" strokeWidth="3"></mat-spinner>
     <ng-container *ngIf="order">
       <mat-card-header>
-        <img mat-card-avatar class="payment-method-avatar" src="/assets/payment_method/{{paymentMethodIcon(order) || 'undefined'}}.jpg">
+        <img mat-card-avatar class="payment-method-avatar" src="/demoshop-external/assets/payment_method/{{paymentMethodIcon(order) || 'undefined'}}.jpg">
         <mat-card-title>{{order.reference}}</mat-card-title>
         <mat-card-subtitle>{{order.status || 'Awaiting Status ...'}}</mat-card-subtitle>
       </mat-card-header>
