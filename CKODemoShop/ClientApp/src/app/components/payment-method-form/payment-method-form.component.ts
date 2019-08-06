@@ -544,6 +544,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         case 'sofort': {
           this.paymentMethodRequiresAdditionalInformation = false;
 
+          this.source.addControl('country_code', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
+
           break;
         }
         case null: {
