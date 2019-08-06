@@ -437,7 +437,15 @@ namespace CKODemoShop.Controllers
         [ProducesResponseType(422, Type = typeof(ErrorResponse))]
         public async Task<IActionResult> RequestPayment(PaymentRequest request)
         {
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
+            string baseUrl;
+            if(HttpContext.Request.Host.ToString().Contains("localhost"))
+            {
+                baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
+            }
+            else
+            {
+                baseUrl = $"https://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
+            }
             var paymentRequest = new PaymentRequest<IRequestSource>(
                 request.Source,
                 request.Currency,
