@@ -2,7 +2,7 @@
   <div class="payment-setup" formGroupName="source">
     <mat-radio-group class="example-radio-group" formControlName="type" required>
       <mat-radio-button class="example-radio-button" *ngFor="let paymentMethod of paymentMethods" [value]="paymentMethod.type" [disabled]="!sourceTypeSupportsCurrencyCountryPairing(paymentMethod.type)">
-        <span title="{{sourceTypeSupportsCurrencyCountryPairing(paymentMethod.type) ? '' : 'Billing Country and Currency mismatch'}}">{{paymentMethod.name}}</span>
+        <span matTooltip="{{sourceTypeSupportsCurrencyCountryPairing(paymentMethod.type) ? '' : 'Billing Country and/or Currency mismatch.'}}">{{paymentMethod.name}}</span>
       </mat-radio-button>
     </mat-radio-group>
     <mat-card *ngIf="paymentMethodRequiresAdditionalInformation">
