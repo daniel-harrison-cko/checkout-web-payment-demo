@@ -13,13 +13,19 @@ using Newtonsoft.Json.Serialization;
 using System.Net.Http;
 using Checkout;
 using CKODemoShop.Checkout;
+using Serilog;
+using Okta.AspNetCore;
+using CKODemoShop.Configuration;
 
 namespace CKODemoShop
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        readonly ILogger _logger;
+
+        public Startup(ILogger logger, IConfiguration configuration)
         {
+            _logger = logger;
             Configuration = configuration;
         }
 
@@ -28,8 +34,23 @@ namespace CKODemoShop
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddAuthentication(options =>
+            {
+                options.DefaultAuthenticateScheme = OktaDefaults.ApiAuthenticationScheme;
+                options.DefaultChallengeScheme = OktaDefaults.ApiAuthenticationScheme;
+                options.DefaultSignInScheme = OktaDefaults.ApiAuthenticationScheme;
+            })
+            .AddOktaWebApi(new OktaWebApiOptions()
+            {
+                OktaDomain = Configuration["Okta:OktaDomain"]
+            });
+ 
+            services.AddOptions()
+                .Configure<OktaWebClientOptions>(Configuration.GetSection("OktaWebClient"));
+
             services
                 .AddMvcCore()
+                .AddAuthorization()
                 .AddJsonFormatters(serializerOptions =>
                 {
                     serializerOptions.NullValueHandling = NullValueHandling.Ignore;
@@ -57,6 +78,7 @@ namespace CKODemoShop
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
             app.UsePathBase("/demoshop-external");
+            app.UseAuthentication();
             app.UseHealthEndpoint();
             app.UsePingEndpoint();
 

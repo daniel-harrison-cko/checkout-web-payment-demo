@@ -41,7 +41,6 @@ export class AppComponent implements OnInit, OnDestroy {
     this.oktaAuth.$authenticationState.subscribe(
       (isAuthenticated: boolean)  => {
         this.isAuthenticated = isAuthenticated;
-        console.log("bla");
       }
     );
   }

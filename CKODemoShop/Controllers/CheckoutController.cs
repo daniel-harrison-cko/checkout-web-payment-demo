@@ -12,6 +12,7 @@ using Newtonsoft.Json;
 using Checkout.Sources;
 using System.Text.RegularExpressions;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace CKODemoShop.Controllers
 {
@@ -148,6 +149,7 @@ namespace CKODemoShop.Controllers
     }
 
     [Route("api/[controller]")]
+    [Authorize]
     [ApiController]
     public class CheckoutController : Controller
     {

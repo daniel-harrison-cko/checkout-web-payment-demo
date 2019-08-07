@@ -23,7 +23,6 @@ export class APIInterceptor implements HttpInterceptor {
   private async handleAccess(request: HttpRequest<any>, next: HttpHandler): Promise<HttpEvent<any>> {
     // Only add to known domains since we don't want to send our tokens to just anyone.
     if(!this.shouldAddAccessToken(request)) {
-      console.log("not handling " + request.url);
       return next.handle(request).toPromise();
     }
 
@@ -33,7 +32,7 @@ export class APIInterceptor implements HttpInterceptor {
         Authorization: 'Bearer ' + accessToken
       }
     });
-    console.log(accessToken);
+
     return next.handle(request).toPromise();
   }
 

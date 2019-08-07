@@ -1,9 +1,9 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule } from '@angular/core';
+import { NgModule, APP_INITIALIZER, Injectable } from '@angular/core';
 import { AngularMaterialModule } from './angular-material.module';
 import { AppComponent } from './app.component';
-import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PaymentComponent } from './components/payment/payment.component';
 import { OrderDetailComponent } from './components/order-detail/order-detail.component';
@@ -15,24 +15,11 @@ import { PaymentMethodFormComponent } from './components/payment-method-form/pay
 import { PaymentConfigurationFormComponent } from './components/payment-configuration-form/payment-configuration-form.component';
 import { CustomerDetailsFormComponent } from './components/customer-details-form/customer-details-form.component';
 import { LogoutComponent } from './components/logout/logout.component';
-import { APP_BASE_HREF } from '@angular/common';
+import { APP_BASE_HREF, PathLocationStrategy, LocationStrategy } from '@angular/common';
 import { RefundPromptComponent } from './components/refund-prompt/refund-prompt.component';
 import { APIInterceptor } from './services/api.interceptor';
-
 import { Routes, RouterModule } from '@angular/router';
-
-import {
-  OKTA_CONFIG,
-  OktaAuthModule,
-  OktaCallbackComponent,
-  OktaAuthGuard
-} from '@okta/okta-angular';
-
-const oktaConfig = {
-  issuer: 'https://dev-320726.okta.com/oauth2/default',
-  redirectUri: 'http://localhost:5000/demoshop-external/implicit/callback',
-  clientId: '0oa11suy0u5Ec7Lg9357'
-}
+import { OKTA_CONFIG, OktaAuthModule, OktaCallbackComponent, OktaAuthGuard} from '@okta/okta-angular';
 
 const routes: Routes = [
   {
@@ -71,6 +58,36 @@ const routes: Routes = [
   }
 ];
 
+@Injectable()
+export class AppConfigService {
+  private _config: any;
+
+  constructor(private location: LocationStrategy) { }
+
+  async loadConfiguration() {
+    let configUrl = this.location.prepareExternalUrl("/api/config");
+    let redirectUrl = this.location.prepareExternalUrl('/implicit/callback');
+    
+    //we're using fetch here instead of HttpClient, since otherwise the HttpClient interceptor kicks in,
+    //initializing Okta before we can actually read the settings. 
+
+    let config = await (await fetch(configUrl)).json();
+    
+    this._config = {
+      'clientId': config.client_id,
+      'issuer': config.issuer,
+      'redirectUri': redirectUrl
+    };
+  }
+
+  public getConfig(): object {
+    return this._config;
+  }
+
+  public get isLoaded(): boolean {
+    return this._config != null;
+  }
+}
 
 @NgModule({
   declarations: [
@@ -101,9 +118,28 @@ const routes: Routes = [
     OktaAuthModule
   ],
   providers: [
+    Location,
+    AppConfigService,
+    {
+      provide: APP_INITIALIZER,
+      useFactory: (settingsService: AppConfigService) => {
+        return () => {
+          return settingsService.loadConfiguration()
+        };
+      },
+      multi: true,
+      deps: [AppConfigService]
+    },
+    { provide: LocationStrategy, useClass: PathLocationStrategy},
     { provide: APP_BASE_HREF, useValue: '/demoshop-external' },
-    { provide: HTTP_INTERCEPTORS, useClass: APIInterceptor, multi: true },
-    { provide: OKTA_CONFIG, useValue: oktaConfig }
+    { 
+      provide: OKTA_CONFIG, 
+      useFactory: (settingsService: AppConfigService) => {
+        return settingsService.getConfig();
+      }, 
+      deps: [AppConfigService] 
+    },
+    { provide: HTTP_INTERCEPTORS, useClass: APIInterceptor, multi: true }
   ],
   bootstrap: [AppComponent]
 })
