@@ -406,6 +406,10 @@ body {
         [form-field="credit-card"], [form-field="account_holder"], [radio-group="mandate_type"] {
           flex: 1 0 100%;
         }
+        /*SOFORT*/
+        [form-field="sofort_country_code"], [form-field="sofort_language_code"] {
+          flex: 1 0 100%;
+        }
       }
     }
 

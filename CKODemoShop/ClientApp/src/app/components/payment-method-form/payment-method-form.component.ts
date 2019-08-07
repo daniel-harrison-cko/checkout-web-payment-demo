@@ -9,6 +9,8 @@ import { HttpResponse } from '@angular/common/http';
 import { ScriptService } from 'src/app/services/script.service';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { v4 as uuid } from 'uuid';
+import { CountriesService } from '../../services/countries.service';
+import { ICountry } from '../../interfaces/country.interface';
 
 declare var Klarna: any;
 const flatten = <T = any>(arr: T[]) => {
@@ -34,6 +36,8 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   paymentDetails: FormGroup;
   customer: FormGroup;
   paymentConsent: FormGroup;
+  countries: ICountry[];
+  country: ICountry;
   listenToValueChanges: boolean;
   paymentMethodRequiresAdditionalInformation: boolean;
   selectedSourceType: string;
@@ -50,6 +54,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     private _formBuilder: FormBuilder,
     private _paymentsService: PaymentsService,
     private _scriptService: ScriptService,
+    private _countriesService: CountriesService,
     private _paymentDetailsService: PaymentDetailsService
   ) { }
 
@@ -62,6 +67,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       })
     });
     this.subscriptions.push(
+      this._countriesService.countries$.pipe(distinctUntilChanged()).subscribe(countries => this.countries = countries),
       this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
       this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customer = customerFullName),
@@ -76,6 +82,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         }        
       }),
       this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.routePaymentMethod(source)),
+      this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(alpha2Code => this.country = this.countries.find(country => country.alpha2Code == alpha2Code)),
       this.bankForm.get('bankObject.bic').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(bic => this.paymentDetails.get('source.bic').setValue(bic))
     );
   }
@@ -542,9 +549,17 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'sofort': {
-          this.paymentMethodRequiresAdditionalInformation = false;
+          this.paymentMethodRequiresAdditionalInformation = true;
 
           this.source.addControl('country_code', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
+          this.source.addControl('language_code', new FormControl({ value: (this.country.languages[0].iso639_1 as string).toUpperCase(), disabled: false }, Validators.required));
+
+          this.paymentMethodSubsriptions.push(
+            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(countryCode => {
+              this.source.get('country_code').setValue(countryCode);
+              this.source.get('language_code').setValue((this.country.languages[0].iso639_1 as string).toUpperCase());
+            })
+          );
 
           break;
         }
