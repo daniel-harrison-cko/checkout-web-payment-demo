@@ -52,7 +52,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     }
   },
   {
-    name: 'Boleto',
+    name: 'Boleto Bancário',
     type: 'boleto',
     restrictedCurrencyCountryPairings: {
       'BRL': ['BR'],
@@ -60,7 +60,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     }
   },
   {
-    name: 'EPS',
+    name: 'eps',
     type: 'eps',
     restrictedCurrencyCountryPairings: {
       'EUR': ['AT']
@@ -74,7 +74,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     }
   },
   {
-    name: 'Giropay',
+    name: 'giropay',
     type: 'giropay',
     restrictedCurrencyCountryPairings: {
       'EUR': ['DE']
@@ -104,7 +104,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     }
   },
   {
-    name: 'KNET',
+    name: 'KNet',
     type: 'knet',
     restrictedCurrencyCountryPairings: {
       'KWD': ['KW']
@@ -116,7 +116,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     restrictedCurrencyCountryPairings: null
   },
   {
-    name: 'Poli',
+    name: 'PoLi',
     type: 'poli',
     restrictedCurrencyCountryPairings: {
       'AUD': ['AU'],
@@ -146,7 +146,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     }
   },
   {
-    name: 'Sofort',
+    name: 'Sofort / Pay Now',
     type: 'sofort',
     restrictedCurrencyCountryPairings: {
       'EUR': ['AT', 'BE', 'DE', 'ES', 'IT', 'NL']
