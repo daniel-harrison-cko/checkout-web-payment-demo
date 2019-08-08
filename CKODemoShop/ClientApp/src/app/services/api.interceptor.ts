@@ -19,6 +19,10 @@ export class APIInterceptor implements HttpInterceptor {
    return from(this.handleAccess(req, next));
   }
 
+  private delay(ms: number) {
+    return new Promise( resolve => setTimeout(resolve, ms) );
+  }
+
   //Inspiration from https://devforum.okta.com/t/angular-access-token/2428/3
   private async handleAccess(request: HttpRequest<any>, next: HttpHandler): Promise<HttpEvent<any>> {
     // Only add to known domains since we don't want to send our tokens to just anyone.
@@ -26,7 +30,19 @@ export class APIInterceptor implements HttpInterceptor {
       return next.handle(request).toPromise();
     }
 
-    const accessToken = await this.oktaAuth.getAccessToken();
+    var accessToken = await this.oktaAuth.getAccessToken();
+
+    //this seems to happen after first login - acessToken is null
+    //despite us being authenticated. In that case we just loop 
+    //and try to get a new accessToken after a while
+    while(this.oktaAuth.isAuthenticated() && accessToken == null)
+    {
+      console.log("waiting for token...");
+      await this.delay(4);
+      console.log("done.");
+      accessToken = await this.oktaAuth.getAccessToken();
+    }
+
     request = request.clone({
       setHeaders: {
         Authorization: 'Bearer ' + accessToken
