@@ -47,7 +47,6 @@ namespace CKODemoShop.Extensions
                 .ReadFrom.Configuration(configuration)
                 .Enrich.WithProperty("HostName", GetHostName())
                 .Enrich.WithProperty("Version", ReflectionUtils.GetAssemblyVersion<T>())
-                .Enrich.WithProperty("APM", "Fawry")
                 .Enrich.WithProperty("Environment", envName)
                 .WriteTo.Elasticsearch(
                     new ElasticsearchSinkOptions(elasticSearchOptions.Node)
