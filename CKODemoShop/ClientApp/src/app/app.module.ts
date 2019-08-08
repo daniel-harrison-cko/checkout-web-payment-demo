@@ -15,11 +15,12 @@ import { PaymentMethodFormComponent } from './components/payment-method-form/pay
 import { PaymentConfigurationFormComponent } from './components/payment-configuration-form/payment-configuration-form.component';
 import { CustomerDetailsFormComponent } from './components/customer-details-form/customer-details-form.component';
 import { LogoutComponent } from './components/logout/logout.component';
-import { APP_BASE_HREF, PathLocationStrategy, LocationStrategy } from '@angular/common';
+import { APP_BASE_HREF } from '@angular/common';
 import { RefundPromptComponent } from './components/refund-prompt/refund-prompt.component';
 import { APIInterceptor } from './services/api.interceptor';
 import { Routes, RouterModule } from '@angular/router';
 import { OKTA_CONFIG, OktaAuthModule, OktaCallbackComponent, OktaAuthGuard} from '@okta/okta-angular';
+import {Location, LocationStrategy, PathLocationStrategy} from '@angular/common';
 
 const routes: Routes = [
   {
@@ -62,15 +63,19 @@ const routes: Routes = [
 export class AppConfigService {
   private _config: any;
 
-  constructor(private location: LocationStrategy) { }
+  constructor(private location: Location) { }
 
   async loadConfiguration() {
+    
     let configUrl = this.location.prepareExternalUrl("/api/config");
-    let redirectUrl = this.location.prepareExternalUrl('/implicit/callback');
+
+    //don't really like to use window here, as it might be hard to unit-test
+    //but didn't really find anything else 
+    let redirectUrl = window.origin + this.location.prepareExternalUrl('/implicit/callback');
     
     //we're using fetch here instead of HttpClient, since otherwise the HttpClient interceptor kicks in,
     //initializing Okta before we can actually read the settings. 
-
+    console.log(redirectUrl);
     let config = await (await fetch(configUrl)).json();
     
     this._config = {
@@ -130,7 +135,6 @@ export class AppConfigService {
       multi: true,
       deps: [AppConfigService]
     },
-    { provide: LocationStrategy, useClass: PathLocationStrategy},
     { provide: APP_BASE_HREF, useValue: '/demoshop-external' },
     { 
       provide: OKTA_CONFIG, 
