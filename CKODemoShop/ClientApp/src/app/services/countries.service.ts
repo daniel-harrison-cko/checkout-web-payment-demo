@@ -43,7 +43,7 @@ export class CountriesService {
       this.alpha2CountryCodes.sort();
       for (let alpha2CountryCode of this.alpha2CountryCodes) {
         let country = await getCountryByAlpha2Code(alpha2CountryCode);
-        countries.push({ alpha2Code: country.alpha2Code, name: country.nativeName, flag: country.flag, languages: country.languages })
+        countries.push({ alpha2Code: country.alpha2Code, name: country.name, nativeName: country.nativeName, flag: country.flag, languages: country.languages })
       }
     }
     await getCountries();
