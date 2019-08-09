@@ -135,7 +135,7 @@ export class AppConfigService {
       multi: true,
       deps: [AppConfigService]
     },
-    { provide: APP_BASE_HREF, useValue: '/demoshop-external' },
+    { provide: APP_BASE_HREF, useValue: '/' },
     { 
       provide: OKTA_CONFIG, 
       useFactory: (settingsService: AppConfigService) => {

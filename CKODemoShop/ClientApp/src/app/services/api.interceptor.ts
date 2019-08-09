@@ -1,22 +1,19 @@
-import { Injectable, Inject } from '@angular/core';
+import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { HttpInterceptor, HttpRequest, HttpHandler, HttpEvent } from '@angular/common/http';
-import { APP_BASE_HREF } from '@angular/common'; 
 import { OktaAuthService } from '@okta/okta-angular';
 import { from } from 'rxjs';
 
 @Injectable()
 export class APIInterceptor implements HttpInterceptor {
-  constructor(@Inject(APP_BASE_HREF) private appBaseHref: string,
-  private oktaAuth: OktaAuthService) { }
+  constructor(private oktaAuth: OktaAuthService) { }
 
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
     if (req.url.startsWith('http')) {
       //everything external, i.e. not our API
       return next.handle(req);
     } else {
-      const apiReq = req.clone({ url: `${this.appBaseHref}${req.url}` });
-      return from(this.handleAccess(apiReq, next));
+      return from(this.handleAccess(req, next));
     }
   }
 

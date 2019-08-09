@@ -59,7 +59,8 @@ namespace CKODemoShop.Controllers
             List<string> eventTypes
             )
         {
-            Url = Regex.Match(baseUrl, @"^http[s]{0,1}:\/\/localhost.*$").Success ? $"https://55bf5c0f.ngrok.io/demoshop-external{webhooksUrl}" : $"{baseUrl}{webhooksUrl}";
+            //fallback for webhook configuration from localhost which gets rejected from Gateway as invalid URL: https://webhook.site/#!/8c914904-fe43-4f2b-b2fe-07cbc6962968
+            Url = Regex.Match(baseUrl, @"^http[s]{0,1}:\/\/localhost.*$").Success ? $"https://webhook.site/8c914904-fe43-4f2b-b2fe-07cbc6962968" : $"{baseUrl}{webhooksUrl}";
             Headers.Add("Authorization", authorization);
             EventTypes = eventTypes;
         }
