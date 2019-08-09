@@ -116,7 +116,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     restrictedCurrencyCountryPairings: null
   },
   {
-    name: 'PoLi',
+    name: 'POLi',
     type: 'poli',
     restrictedCurrencyCountryPairings: {
       'AUD': ['AU'],
