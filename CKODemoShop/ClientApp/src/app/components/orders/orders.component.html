@@ -30,7 +30,7 @@
 
         <ng-container matColumnDef="source">
           <th mat-header-cell *matHeaderCellDef> Source </th>
-          <td mat-cell *matCellDef="let payment"><img class="payment-method-icon" src="/demoshop-external/assets/payment_method/{{paymentMethodIcon(payment) || 'undefined'}}.jpg" /></td>
+          <td mat-cell *matCellDef="let payment"><img class="payment-method-icon" src="/assets/payment_method/{{paymentMethodIcon(payment) || 'undefined'}}.jpg" /></td>
         </ng-container>
 
         <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
