@@ -21,6 +21,7 @@ export class OrderDetailComponent {
   }
 
   public getPayment() {
+    this.processing = true;
     let orderId = this._activatedRoute.snapshot.params['orderId'] || this._activatedRoute.snapshot.queryParams['cko-session-id'];
     this._paymentsService.getPayment(orderId)
       .pipe(finalize(() => this.processing = false))
