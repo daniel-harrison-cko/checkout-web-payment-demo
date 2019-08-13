@@ -134,7 +134,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.standardPaymentFlow();
               };
               Frames.init({
-                publicKey: 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7',
+                publicKey: this._shopService.publicKey,
                 containerSelector: '.cko-container',
                 cardTokenised: function (event) {
                   cardTokenisedCallback(event);
@@ -207,7 +207,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                       tokenizationType: 'PAYMENT_GATEWAY',
                       parameters: {
                         'gateway': 'checkoutltd',
-                        'gatewayMerchantId': 'pk_test_3f148aa9-347a-450d-b940-0a8645b324e7'
+                        'gatewayMerchantId': this._shopService.publicKey
                       }
                     },
                     allowedPaymentMethods: allowedPaymentMethods,
