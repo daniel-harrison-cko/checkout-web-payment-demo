@@ -1,9 +1,9 @@
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { NgModule, APP_INITIALIZER, Injectable } from '@angular/core';
+import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { AngularMaterialModule } from './angular-material.module';
 import { AppComponent } from './app.component';
-import { HttpClientModule, HTTP_INTERCEPTORS, HttpClient } from '@angular/common/http';
+import { HttpClientModule, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { PaymentComponent } from './components/payment/payment.component';
 import { OrderDetailComponent } from './components/order-detail/order-detail.component';
@@ -20,7 +20,7 @@ import { RefundPromptComponent } from './components/refund-prompt/refund-prompt.
 import { APIInterceptor } from './services/api.interceptor';
 import { Routes, RouterModule } from '@angular/router';
 import { OKTA_CONFIG, OktaAuthModule, OktaCallbackComponent, OktaAuthGuard} from '@okta/okta-angular';
-import {Location, LocationStrategy, PathLocationStrategy} from '@angular/common';
+import { Location } from '@angular/common';
 import { AppConfigService } from './services/app-config.service';
 
 const routes: Routes = [
