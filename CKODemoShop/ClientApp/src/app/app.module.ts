@@ -14,7 +14,7 @@ import { ProductFormComponent } from './components/product-form/product-form.com
 import { PaymentMethodFormComponent } from './components/payment-method-form/payment-method-form.component';
 import { PaymentConfigurationFormComponent } from './components/payment-configuration-form/payment-configuration-form.component';
 import { CustomerDetailsFormComponent } from './components/customer-details-form/customer-details-form.component';
-import { LogoutComponent } from './components/logout/logout.component';
+import { LoginComponent } from './components/login/login.component';
 import { APP_BASE_HREF } from '@angular/common';
 import { RefundPromptComponent } from './components/refund-prompt/refund-prompt.component';
 import { APIInterceptor } from './services/api.interceptor';
@@ -49,8 +49,8 @@ const routes: Routes = [
     canActivate: [ OktaAuthGuard ]
   },
   {
-    path: 'logout',
-    component: LogoutComponent
+    path: 'login',
+    component: LoginComponent
   },
   {
     path: '**',
@@ -73,7 +73,7 @@ const routes: Routes = [
     PaymentMethodFormComponent,
     CustomerDetailsFormComponent,
     RefundPromptComponent,
-    LogoutComponent
+    LoginComponent
   ],
   entryComponents: [
     RefundPromptComponent

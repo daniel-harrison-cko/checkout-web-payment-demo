@@ -2,15 +2,11 @@ import { Component } from '@angular/core';
 import { OktaAuthService } from '@okta/okta-angular';
 
 @Component({
-  selector: 'logout',
-  templateUrl: './logout.component.html'
+  selector: 'app-login',
+  templateUrl: './login.component.html'
 })
-export class LogoutComponent {
-  constructor(
-    private oktaAuth: OktaAuthService
-  ) 
-  {
-  }
+export class LoginComponent {
+  constructor(private oktaAuth: OktaAuthService) { }
 
   login() {
     this.oktaAuth.loginRedirect('/');

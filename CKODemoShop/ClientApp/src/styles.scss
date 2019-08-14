@@ -116,6 +116,15 @@ body {
     }
   }
 
+  app-login {
+    display: flex;
+    flex: 1 1 auto;
+    padding: $padding;
+    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
   app-order-detail {
     display: flex;
     flex: 1 1 auto;

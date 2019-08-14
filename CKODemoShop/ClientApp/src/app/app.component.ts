@@ -78,6 +78,6 @@ export class AppComponent implements OnInit, OnDestroy {
   };
 
   logout() {
-    this.oktaAuth.logout('/logout');
+    this.oktaAuth.logout('/login');
   }
 }

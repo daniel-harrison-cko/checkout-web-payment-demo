@@ -1,42 +1,46 @@
 <mat-toolbar color="primary" class="mat-elevation-z4">
   <mat-toolbar-row>
-    <app-breadcrumbs [appTitle]="title"></app-breadcrumbs>
-    <span class="toolbar-spacer"></span>
-    <form [formGroup]="paymentDetails" class="toolbar-item country-currency-form">
-      <ng-container formGroupName="billing_address">
-        <mat-form-field form-field="country">
-          <mat-select formControlName="country" [(value)]="paymentDetails.value.billing_address.country" matTooltip="Select the (billing address) payment country.">
-            <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.nativeName}}&nbsp;({{country.alpha2Code}})">
-              <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.alpha2Code}}</span>
+    <span class="toolbar-title" *ngIf="!isAuthenticated">{{title}}</span>
+    <ng-container *ngIf="isAuthenticated">
+      <app-breadcrumbs [appTitle]="title"></app-breadcrumbs>
+      <span class="toolbar-spacer"></span>
+      <form [formGroup]="paymentDetails" class="toolbar-item country-currency-form">
+        <ng-container formGroupName="billing_address">
+          <mat-form-field form-field="country">
+            <mat-select formControlName="country" [(value)]="paymentDetails.value.billing_address.country" matTooltip="Select the (billing address) payment country.">
+              <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.nativeName}}&nbsp;({{country.alpha2Code}})">
+                <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.alpha2Code}}</span>
+              </mat-option>
+            </mat-select>
+          </mat-form-field>
+        </ng-container>
+        <mat-form-field form-field="currency">
+          <mat-select formControlName="currency" matTooltip="Select the payment currency.">
+            <mat-option *ngFor="let currency of currencies" [value]="currency.iso4217">
+              {{currency.iso4217}}
             </mat-option>
           </mat-select>
         </mat-form-field>
-      </ng-container>
-      <mat-form-field form-field="currency">
-        <mat-select formControlName="currency" matTooltip="Select the payment currency.">
-          <mat-option *ngFor="let currency of currencies" [value]="currency.iso4217">
-            {{currency.iso4217}}
-          </mat-option>
-        </mat-select>
-      </mat-form-field>
-    </form>
-    <button mat-icon-button [matMenuTriggerFor]="menu" class="toolbar-item">
-      <mat-icon>account_circle</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu">
-      <button mat-menu-item (click)="navigateTo('/user/orders')">	
-        <mat-icon>event</mat-icon>
-        <span>Past Orders</span>
+      </form>
+      <button mat-icon-button [matMenuTriggerFor]="menu" class="toolbar-item">
+        <mat-icon>account_circle</mat-icon>
       </button>
-      <button mat-menu-item (click)="$event.stopPropagation();" [disableRipple]="true">
-        <form [formGroup]="webhooksForm">
-          <mat-slide-toggle formControlName="hasWebhooks" (change)="toggleWebhooks($event)">Webhooks</mat-slide-toggle>
-        </form>        
-      </button>    
-      <button mat-menu-item *ngIf="isAuthenticated" (click)="logout()"> 
-        <span>Logout </span>
-      </button>
-    </mat-menu>
+      <mat-menu #menu="matMenu">
+        <button mat-menu-item (click)="navigateTo('/user/orders')">
+          <mat-icon>event</mat-icon>
+          <span>Past Orders</span>
+        </button>
+        <button mat-menu-item (click)="$event.stopPropagation();" [disableRipple]="true">
+          <form [formGroup]="webhooksForm">
+            <mat-slide-toggle formControlName="hasWebhooks" (change)="toggleWebhooks($event)">Webhooks</mat-slide-toggle>
+          </form>
+        </button>
+        <button mat-menu-item (click)="logout()">
+          <mat-icon>power_settings_new</mat-icon>
+          <span>Logout</span>
+        </button>
+      </mat-menu>
+    </ng-container>
   </mat-toolbar-row>
 </mat-toolbar>
 <router-outlet></router-outlet>
