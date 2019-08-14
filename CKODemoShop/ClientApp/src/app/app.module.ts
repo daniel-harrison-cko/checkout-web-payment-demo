@@ -21,6 +21,7 @@ import { APIInterceptor } from './services/api.interceptor';
 import { Routes, RouterModule } from '@angular/router';
 import { OKTA_CONFIG, OktaAuthModule, OktaCallbackComponent, OktaAuthGuard} from '@okta/okta-angular';
 import {Location, LocationStrategy, PathLocationStrategy} from '@angular/common';
+import { AppConfigService } from './services/app-config.service';
 
 const routes: Routes = [
   {
@@ -58,41 +59,6 @@ const routes: Routes = [
     canActivate: [ OktaAuthGuard ]
   }
 ];
-
-@Injectable()
-export class AppConfigService {
-  private _config: any;
-
-  constructor(private location: Location) { }
-
-  async loadConfiguration() {
-    
-    let configUrl = this.location.prepareExternalUrl("/api/config");
-
-    //don't really like to use window here, as it might be hard to unit-test
-    //but didn't really find anything else 
-    let redirectUrl = window.origin + this.location.prepareExternalUrl('/implicit/callback');
-    
-    //we're using fetch here instead of HttpClient, since otherwise the HttpClient interceptor kicks in,
-    //initializing Okta before we can actually read the settings. 
-    console.log(redirectUrl);
-    let config = await (await fetch(configUrl)).json();
-    
-    this._config = {
-      'clientId': config.client_id,
-      'issuer': config.issuer,
-      'redirectUri': redirectUrl
-    };
-  }
-
-  public getConfig(): object {
-    return this._config;
-  }
-
-  public get isLoaded(): boolean {
-    return this._config != null;
-  }
-}
 
 @NgModule({
   declarations: [
