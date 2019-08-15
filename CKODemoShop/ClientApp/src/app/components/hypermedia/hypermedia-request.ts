@@ -9,27 +9,23 @@ const RELATEDHTTPMETHODS = [
 ]
 
 export class HypermediaRequest {
-  public paymentMethod: string;
-  public relation: string;
   public link: string;
-  public httpMethod: string;
+  public http_method: string;
   public payload: object;
 
   constructor(paymentMethod: string, relation: string, link: string, payload: object = null) {
-    this.paymentMethod = paymentMethod;
-    this.relation = relation;
     this.link = link;
-    this.httpMethod = this.relatedHttpMethod;
+    this.http_method = this.relatedHttpMethod(paymentMethod, relation);
     this.payload = payload;
   }
 
-  private get relatedHttpMethod(): string {
+  private relatedHttpMethod(paymentMethodName: string, relationName: string): string {
     try {
-      let paymentMethod = RELATEDHTTPMETHODS.find(element => element.paymentMethod == this.paymentMethod);
-      if (!paymentMethod) throw Error(`Payment Method ${this.paymentMethod} is not set up.`);
+      let paymentMethod = RELATEDHTTPMETHODS.find(element => element.paymentMethod == paymentMethodName);
+      if (!paymentMethod) throw Error(`Payment Method ${paymentMethodName} is not set up.`);
       let relations = Object.keys(paymentMethod.relations);
-      let relation = relations.find(element => element == this.relation);
-      if (!relation) throw Error(`Relation ${this.relation} is not set up for ${this.paymentMethod}.`);
+      let relation = relations.find(element => element == relationName);
+      if (!relation) throw Error(`Relation ${relationName} is not set up for ${paymentMethodName}.`);
       return paymentMethod.relations[relation];
     } catch (e) {
       return 'POST';

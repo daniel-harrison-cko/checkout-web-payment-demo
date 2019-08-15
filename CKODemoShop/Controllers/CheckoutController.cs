@@ -112,7 +112,6 @@ namespace CKODemoShop.Controllers
     {
         public string Link { get; set; }
         public object Payload { get; set; }
-        [JsonProperty(PropertyName = "httpMethod")]
         public string HttpMethod { get; set; }
     }
 
@@ -482,7 +481,7 @@ namespace CKODemoShop.Controllers
 
         [HttpPost("[action]", Name = "RequestHypermedia")]
         [ActionName("Hypermedia")]
-        [ProducesResponseType(202, Type = typeof(GetPaymentResponse))]
+        [ProducesResponseType(202, Type = typeof(object))]
         [ProducesResponseType(400)]
         public async Task<IActionResult> RequestHypermedia(HypermediaRequest hypermediaRequest)
         {
@@ -505,7 +504,7 @@ namespace CKODemoShop.Controllers
                 }
                 if (!result.IsSuccessStatusCode) throw new Exception(result.ReasonPhrase);
                 string content = await result.Content.ReadAsStringAsync();
-                return AcceptedAtAction(nameof(RequestHypermedia), content);
+                return AcceptedAtAction(nameof(RequestHypermedia), JsonConvert.DeserializeObject(content));
             }
             catch (Exception e)
             {
