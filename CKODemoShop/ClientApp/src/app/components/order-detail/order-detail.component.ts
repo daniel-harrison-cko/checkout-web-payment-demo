@@ -1,23 +1,42 @@
-import { Component } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { IPayment } from '../../interfaces/payment.interface';
-import { finalize } from 'rxjs/operators';
+import { finalize, distinctUntilChanged } from 'rxjs/operators';
 import { PaymentsService } from 'src/app/services/payments.service';
+import { WebsocketsService } from '../../services/websockets.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-order-detail',
   templateUrl: './order-detail.component.html'
 })
-export class OrderDetailComponent {
+export class OrderDetailComponent implements OnInit, OnDestroy {
   processing: boolean = true;
   order: IPayment;
   orderNotFound: boolean;
+  private subscriptions: Subscription[] = [];
 
   constructor(
     private _paymentsService: PaymentsService,
+    private _websocketsService: WebsocketsService,
     private _activatedRoute: ActivatedRoute
   ) {
     this.getPayment();
+  }
+
+  ngOnInit() {
+    this.subscriptions.push(
+      this._websocketsService.webhooksHub$.pipe(distinctUntilChanged()).subscribe(webhook => {
+        if (webhook.data.id == this.order.id) {
+          this.getPayment();
+          console.log(webhook.data.id, 'received', webhook.type);
+        }
+      })
+    );
+  }
+
+  ngOnDestroy() {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
   public getPayment() {

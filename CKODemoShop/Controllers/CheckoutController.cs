@@ -13,6 +13,8 @@ using Checkout.Sources;
 using System.Text.RegularExpressions;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using CKODemoShop.Hubs;
 
 namespace CKODemoShop.Controllers
 {
@@ -549,12 +551,20 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class WebhooksController : Controller
     {
+        private IHubContext<WebhooksHub, ITypedHubClient> hubContext;
+
+        public WebhooksController(IHubContext<WebhooksHub, ITypedHubClient> hubContext)
+        {
+            this.hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
+        }
+
         [HttpPost("incoming/checkout", Name = "HandleCheckoutWebhook")]
         [ActionName("Webhooks")]
         [ProducesResponseType(200)]
-        public IActionResult HandleCheckoutWebhook(CheckoutWebhook webhook)
+        public async Task<IActionResult> HandleCheckoutWebhook(CheckoutWebhook webhook)
         {
             Console.WriteLine($"\nWEBHOOK\n{webhook.CreatedOn} - {webhook.Data["id"]} ({webhook.Type})\n");
+            await hubContext.Clients.All.WebhookReceived(webhook);
             return Ok();
         }
     }
