@@ -182,6 +182,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         this.source.removeControl(key);
       }
     });
+    this.paymentDetails.get('amount').setValue(100);
   }
 
   private routePaymentMethod(paymentMethod: IPaymentMethod) {
@@ -215,6 +216,51 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
             })
           );
 
+          break;
+        }
+        case 'ach': {
+          this.paymentMethodRequiresAdditionalInformation = true;
+          this.paymentDetails.get('amount').setValue(154);
+
+          this.source.addControl('reference', new FormControl(`cko_demo_${uuid()}`));
+          this.source.addControl(
+            'billing_address',
+            this._formBuilder.group({
+              address_line1: null,
+              address_line2: null,
+              city: null,
+              state: null,
+              zip: null,
+              country: null
+            })
+          );
+          this.source.addControl('customer', new FormControl(this.paymentDetails.value.customer));
+          this.source.addControl(
+            'source_data',
+            this._formBuilder.group({
+              account_holder_name: [{ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required],
+              account_type: [{ value: 'Checking', disabled: false }, Validators.required],
+              company_name: [{ value: null, disabled: true }, Validators.required],
+              account_number: [{ value: '0123456789', disabled: false }, Validators.required],
+              // 211370545 is the required value for routing_number in Sandbox
+              routing_number: [{ value: '211370545', disabled: true }, Validators.required],
+              billing_descriptor: [{ value: 'ACH Demo', disabled: false }, Validators.compose([Validators.required, Validators.maxLength(15)])]
+            })
+          );
+
+          this.source.get('billing_address').setValue(this.paymentDetails.get('billing_address').value);
+
+          this.paymentMethodSubsriptions.push(
+            this.paymentDetails.get('source.source_data.account_type').valueChanges.pipe(distinctUntilChanged()).subscribe(account_type => {
+              let companyNameController = this.paymentDetails.get('source.source_data.company_name');
+              if ((account_type as string).toLowerCase().startsWith('corp')) {
+                companyNameController.enable();
+              } else {
+                companyNameController.reset();
+                companyNameController.disable();
+              }
+            })
+          );
           break;
         }
         case 'alipay': {

@@ -39,7 +39,6 @@ export class CountriesService {
       return response.ok ? response.body : null;
     }
     let getCountries = async () => {
-      this.alpha2CountryCodes.push('US');
       this.alpha2CountryCodes.sort();
       for (let alpha2CountryCode of this.alpha2CountryCodes) {
         let country = await getCountryByAlpha2Code(alpha2CountryCode);

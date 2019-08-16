@@ -46,6 +46,43 @@
             </mat-form-field>
           </div>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'ach'">
+          <div formGroupName="source_data" class="row">
+            <div class="row">
+              <mat-form-field form-field="ach_source_data_account_holder_name">
+                <input matInput placeholder="Account Holder Name" formControlName="account_holder_name" required />
+              </mat-form-field>
+            </div>
+            <div class="row">
+              <mat-form-field form-field="ach_source_data_account_type">
+                <mat-label>Account Type</mat-label>
+                <mat-select formControlName="account_type">
+                  <mat-option *ngFor="let account_type of ['Checking', 'Savings', 'Corporate', 'CorpSavings']" [value]="account_type">
+                    {{account_type}}
+                  </mat-option>
+                </mat-select>
+              </mat-form-field>
+              <mat-form-field form-field="ach_source_data_company_name">
+                <input matInput placeholder="Company Name" formControlName="company_name" required />
+              </mat-form-field>
+            </div>
+            <div class="row">
+              <mat-form-field form-field="ach_source_data_account_number">
+                <input matInput placeholder="Account Number" formControlName="account_number" required />
+              </mat-form-field>
+              <mat-form-field form-field="ach_source_data_routing_number">
+                <input matInput placeholder="Routing Number" formControlName="routing_number" required />
+              </mat-form-field>
+            </div>
+          </div>
+          <div formGroupName="source_data" class="row">
+            <div class="row">
+              <mat-form-field form-field="ach_source_data_billing_descriptor">
+                <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />
+              </mat-form-field>
+            </div>
+          </div>
+        </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'bancontact'">
           <mat-form-field form-field="bancontact_account_holder_name">
             <input matInput placeholder="Account Holder Name" formControlName="account_holder_name" required />

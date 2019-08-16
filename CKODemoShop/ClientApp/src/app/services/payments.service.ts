@@ -38,6 +38,13 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     restrictedCurrencyCountryPairings: null
   },
   {
+    name: 'ACH',
+    type: 'ach',
+    restrictedCurrencyCountryPairings: {
+      'USD': ['US']
+    }
+  },
+  {
     name: 'Alipay',
     type: 'alipay',
     restrictedCurrencyCountryPairings: {

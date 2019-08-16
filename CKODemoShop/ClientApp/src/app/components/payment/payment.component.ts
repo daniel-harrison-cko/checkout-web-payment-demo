@@ -155,6 +155,21 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
           this.setupPaymentMethod(this.standardPaymentFlow, true, true);
           break;
         }
+        case 'ach': {
+          this.autoCapture = false;
+          this.threeDs = false;
+
+          this.makePayment = () => {
+            this.processing = true;
+            this._sourcesService.requestSource(this.paymentRequest.source).subscribe(
+              response => this.handleSourceResponse(response),
+              error => {
+                console.warn(error);
+                this.processing = null;
+              });
+          };
+          break;
+        }
         case 'alipay': {
           this.setupPaymentMethod(this.standardPaymentFlow);
           break;

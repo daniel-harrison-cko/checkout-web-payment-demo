@@ -10,7 +10,7 @@
     <div [formGroup]="customer">
       <mat-form-field form-field="title">
         <mat-label>Title</mat-label>
-        <mat-select formControlName="title" name="food">
+        <mat-select formControlName="title">
           <mat-option *ngFor="let title of ['Mr', 'Ms']" [value]="title">
             {{title}}
           </mat-option>

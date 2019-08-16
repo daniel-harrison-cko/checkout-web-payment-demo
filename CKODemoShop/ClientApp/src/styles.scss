@@ -343,6 +343,14 @@ body {
         [form-field="card_expiry_month"], [form-field="card_expiry_year"], [form-field="card_cvv"] {
           flex: 1 0 auto;
         }
+        /*ACH*/
+        [form-field="ach_source_data_account_holder_name"], [form-field="ach_source_data_billing_descriptor"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="ach_source_data_account_type"], [form-field="ach_source_data_company_name"], [form-field="ach_source_data_account_number"], [form-field="ach_source_data_routing_number"] {
+          flex: 1 0 auto;
+        }
         /*BANCONTACT*/
         [form-field="bancontact_account_holder_name"], [form-field="bancontact_payment_country"], [form-field="bancontact_billing_descriptor"] {
           flex: 1 0 100%;
