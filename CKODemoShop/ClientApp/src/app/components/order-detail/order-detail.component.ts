@@ -36,10 +36,12 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
         }
       })
     );
+    this._websocketsService.startConnection();
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    this._websocketsService.stopConnection();
   }
 
   public getPayment() {

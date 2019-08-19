@@ -6,7 +6,6 @@ import * as signalR from "@aspnet/signalr";
 const connection = new signalR.HubConnectionBuilder()
   .withUrl('/api/webhooks/hub')
   .build();
-connection.start().catch(e => console.error(e));
 
 @Injectable({
   providedIn: 'root'
@@ -15,6 +14,7 @@ export class WebsocketsService {
 
   constructor() {
     connection.on("webhookReceived", webhook => this.receivedWebhook(webhook));
+    connection.on("connectionIdMappedToGroup", (connectionId, groupName) => console.log(`Mapped Websocket Connection ${connectionId} to ${groupName}.`));
   }
 
   // Subjects
@@ -26,5 +26,13 @@ export class WebsocketsService {
   // Methods
   private receivedWebhook(webhook: any) {
     this.webhooksHubSource.next(webhook);
+  }
+
+  public startConnection(): void {
+    connection.start().catch(error => console.error(error));
+  }
+
+  public stopConnection(): void {
+    connection.stop().catch(error => console.error(error));
   }
 }

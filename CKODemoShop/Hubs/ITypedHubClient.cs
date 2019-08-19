@@ -3,8 +3,9 @@ using System.Threading.Tasks;
 
 namespace CKODemoShop.Hubs
 {
-    public interface ITypedHubClient
+    public interface IWebhooksHubClient
     {
         Task WebhookReceived(CheckoutWebhook checkoutWebhook);
+        Task ConnectionIdMappedToGroup(string connectionId, string groupName);
     }
 }

@@ -553,10 +553,10 @@ namespace CKODemoShop.Controllers
     public class WebhooksController : Controller
     {
         private const string WEBHOOK_AUTH_TOKEN = "384021d9-c1ac-4ead-b0d2-b8a8430f409b";
-        private IHubContext<WebhooksHub, ITypedHubClient> hubContext;
+        private IHubContext<WebhooksHub, IWebhooksHubClient> hubContext;
         private StringValues authorizationToken;
 
-        public WebhooksController(IHubContext<WebhooksHub, ITypedHubClient> hubContext)
+        public WebhooksController(IHubContext<WebhooksHub, IWebhooksHubClient> hubContext)
         {
             this.hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
         }
@@ -578,7 +578,8 @@ namespace CKODemoShop.Controllers
             Console.WriteLine($"[{webhook.CreatedOn} WEBHOOK] {webhook.Data["id"]} ({webhook.Type})\n");
             try
             {
-                await hubContext.Clients.All.WebhookReceived(webhook);
+                // broadcasts "WebhookReceived" event to all connections in the group
+                await hubContext.Clients.Group(Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY")).WebhookReceived(webhook);
                 return Ok();
             }
             catch(Exception e)
