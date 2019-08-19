@@ -16,6 +16,7 @@ using CKODemoShop.Checkout;
 using Serilog;
 using Okta.AspNetCore;
 using CKODemoShop.Configuration;
+using CKODemoShop.Hubs;
 
 namespace CKODemoShop
 {
@@ -69,6 +70,7 @@ namespace CKODemoShop
             });
 
             services.AddHttpClient();
+            services.AddSignalR();
             services.AddTransient<HttpClient>(provider => provider.GetService<System.Net.Http.IHttpClientFactory>().CreateClient());
             services.AddSingleton<CheckoutApi>(_ => CheckoutApiFactory.ConfiguredFromEnvironment());
 
@@ -101,6 +103,11 @@ namespace CKODemoShop
                 routes.MapRoute(
                     name: "default",
                     template: "{controller}/{action=Index}/{id?}");
+            });
+
+            app.UseSignalR(options =>
+            {
+                options.MapHub<WebhooksHub>("/api/webhooks/hub");
             });
 
             app.UseSpa(spa =>

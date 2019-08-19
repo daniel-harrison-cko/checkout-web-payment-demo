@@ -22,6 +22,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { OKTA_CONFIG, OktaAuthModule, OktaCallbackComponent, OktaAuthGuard} from '@okta/okta-angular';
 import { Location } from '@angular/common';
 import { AppConfigService } from './services/app-config.service';
+import { WebsocketsService } from './services/websockets.service';
 
 const routes: Routes = [
   {
@@ -90,6 +91,7 @@ const routes: Routes = [
   ],
   providers: [
     Location,
+    WebsocketsService,
     AppConfigService,
     {
       provide: APP_INITIALIZER,

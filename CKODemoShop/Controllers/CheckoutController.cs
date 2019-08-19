@@ -13,6 +13,9 @@ using Checkout.Sources;
 using System.Text.RegularExpressions;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using CKODemoShop.Hubs;
+using Microsoft.Extensions.Primitives;
 
 namespace CKODemoShop.Controllers
 {
@@ -206,7 +209,7 @@ namespace CKODemoShop.Controllers
             }
             catch(Exception e)
             {
-                return NotFound(e);
+                return NotFound(e.Message);
             }
         }
 
@@ -223,7 +226,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e);
+                return UnprocessableEntity(e.Message);
             }
         }
 
@@ -240,7 +243,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e);
+                return UnprocessableEntity(e.Message);
             }
         }
 
@@ -295,7 +298,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return NotFound(e);
+                return NotFound(e.Message);
             }
         }
 
@@ -323,7 +326,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return NotFound(e);
+                return NotFound(e.Message);
             }
         }
 
@@ -334,8 +337,8 @@ namespace CKODemoShop.Controllers
         [ProducesResponseType(422)]
         public async Task<IActionResult> AddWebhook([FromBody] List<string> eventTypes)
         {
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
-            var webhookRequest = new WebhookRequest(baseUrl, "1234", eventTypes);
+            var baseUrl = $"https://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
+            var webhookRequest = new WebhookRequest(baseUrl, "384021d9-c1ac-4ead-b0d2-b8a8430f409b", eventTypes);
 
             client.DefaultRequestHeaders.Clear();
             try
@@ -359,7 +362,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, e);
+                return StatusCode(500, e.Message);
             }
         }
 
@@ -389,7 +392,7 @@ namespace CKODemoShop.Controllers
                 }
                 catch (Exception e)
                 {
-                    return UnprocessableEntity(e);
+                    return UnprocessableEntity(e.Message);
                 }
             };
             var webhooks = await GetWebhooks();
@@ -428,7 +431,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e);
+                return UnprocessableEntity(e.Message);
             }
         }
 
@@ -475,7 +478,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e);
+                return UnprocessableEntity(e.Message);
             }
         }
 
@@ -549,13 +552,39 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class WebhooksController : Controller
     {
+        private const string WEBHOOK_AUTH_TOKEN = "384021d9-c1ac-4ead-b0d2-b8a8430f409b";
+        private IHubContext<WebhooksHub, ITypedHubClient> hubContext;
+        private StringValues authorizationToken;
+
+        public WebhooksController(IHubContext<WebhooksHub, ITypedHubClient> hubContext)
+        {
+            this.hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
+        }
+
         [HttpPost("incoming/checkout", Name = "HandleCheckoutWebhook")]
         [ActionName("Webhooks")]
         [ProducesResponseType(200)]
-        public IActionResult HandleCheckoutWebhook(CheckoutWebhook webhook)
+        public async Task<IActionResult> HandleCheckoutWebhook(CheckoutWebhook webhook)
         {
-            Console.WriteLine($"\nWEBHOOK\n{webhook.CreatedOn} - {webhook.Data["id"]} ({webhook.Type})\n");
-            return Ok();
+            try
+            {
+                if (!HttpContext.Request.Headers.TryGetValue("authorization", out authorizationToken)) throw new UnauthorizedAccessException("No Authorization HEADER found.");
+                if (authorizationToken != WEBHOOK_AUTH_TOKEN) throw new UnauthorizedAccessException("Incorrect Authorization HEADER.");
+            }
+            catch(Exception e)
+            {
+                return Unauthorized(e.Message);
+            }
+            Console.WriteLine($"[{webhook.CreatedOn} WEBHOOK] {webhook.Data["id"]} ({webhook.Type})\n");
+            try
+            {
+                await hubContext.Clients.All.WebhookReceived(webhook);
+                return Ok();
+            }
+            catch(Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
     }
 
@@ -574,7 +603,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, e);
+                return StatusCode(500, e.Message);
             }
         }
     }
