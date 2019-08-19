@@ -338,7 +338,7 @@ namespace CKODemoShop.Controllers
         public async Task<IActionResult> AddWebhook([FromBody] List<string> eventTypes)
         {
             var baseUrl = $"https://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
-            var webhookRequest = new WebhookRequest(baseUrl, "1234", eventTypes);
+            var webhookRequest = new WebhookRequest(baseUrl, "384021d9-c1ac-4ead-b0d2-b8a8430f409b", eventTypes);
 
             client.DefaultRequestHeaders.Clear();
             try
@@ -552,7 +552,7 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class WebhooksController : Controller
     {
-        private const string AUTHORIZATION_TOKEN = "1234";
+        private const string WEBHOOK_AUTH_TOKEN = "384021d9-c1ac-4ead-b0d2-b8a8430f409b";
         private IHubContext<WebhooksHub, ITypedHubClient> hubContext;
         private StringValues authorizationToken;
 
@@ -569,7 +569,7 @@ namespace CKODemoShop.Controllers
             try
             {
                 if (!HttpContext.Request.Headers.TryGetValue("authorization", out authorizationToken)) throw new UnauthorizedAccessException("No Authorization HEADER found.");
-                if (authorizationToken != AUTHORIZATION_TOKEN) throw new UnauthorizedAccessException("Incorrect Authorization HEADER.");
+                if (authorizationToken != WEBHOOK_AUTH_TOKEN) throw new UnauthorizedAccessException("Incorrect Authorization HEADER.");
             }
             catch(Exception e)
             {
