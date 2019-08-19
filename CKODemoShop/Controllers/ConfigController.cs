@@ -12,12 +12,17 @@ namespace CKODemoShop.Controllers
     {
         private readonly ILogger _logger;
         private readonly OktaWebClientOptions _options;
+        private readonly CheckoutApiOptions _apiOptions;
 
-        public ConfigController(ILogger logger, IOptions<OktaWebClientOptions> options)
+        public ConfigController(ILogger logger, 
+            IOptions<OktaWebClientOptions> options, 
+            IOptions<CheckoutApiOptions> apiOptions
+            )
         {
             
             _logger = logger.ForContext<ConfigController>();
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
+            _apiOptions = apiOptions?.Value ?? throw new ArgumentNullException(nameof(apiOptions));
         }
 
         public IActionResult GetConfig()
@@ -25,7 +30,8 @@ namespace CKODemoShop.Controllers
             var model = new 
             {
                 Issuer = _options.Issuer,
-                ClientId = _options.ClientId
+                ClientId = _options.ClientId,
+                PublicKey = _apiOptions.PublicKey
             };
             return Ok(model);
         }

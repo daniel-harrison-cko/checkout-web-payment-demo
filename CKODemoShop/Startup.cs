@@ -46,7 +46,8 @@ namespace CKODemoShop
             });
  
             services.AddOptions()
-                .Configure<OktaWebClientOptions>(Configuration.GetSection("OktaWebClient"));
+                .Configure<OktaWebClientOptions>(Configuration.GetSection("OktaWebClient"))
+                .Configure<CheckoutApiOptions>(Configuration.GetSection("CheckoutApiOptions"));
 
             services
                 .AddMvcCore()
@@ -68,10 +69,13 @@ namespace CKODemoShop
                 configuration.RootPath = "ClientApp/dist/ClientApp";
             });
 
+
+            var apiOptions = new CheckoutApiOptions();
+            Configuration.Bind("CheckoutApiOptions", apiOptions);
+
             services.AddHttpClient();
             services.AddTransient<HttpClient>(provider => provider.GetService<System.Net.Http.IHttpClientFactory>().CreateClient());
-            services.AddSingleton<CheckoutApi>(_ => CheckoutApiFactory.ConfiguredFromEnvironment());
-
+            services.AddSingleton<CheckoutApi>(_ => CheckoutApiFactory.ConfiguredFromOptions(apiOptions));
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

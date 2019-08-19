@@ -1,5 +1,6 @@
 ﻿using System;
 using Checkout;
+using CKODemoShop.Configuration;
 
 namespace CKODemoShop.Checkout
 {
@@ -15,6 +16,15 @@ namespace CKODemoShop.Checkout
                useSandbox: !liveMode
             );
             return api;
+        }
+
+        public static CheckoutApi ConfiguredFromOptions(CheckoutApiOptions options)
+        {
+            return CheckoutApi.Create(
+               secretKey: options.SecretKey,
+               publicKey: options.PublicKey,
+               uri: options.GatewayUri
+            );
         }
     }
 }
