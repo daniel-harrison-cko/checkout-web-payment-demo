@@ -19,7 +19,6 @@ export class AppConfigService {
 
     //we're using fetch here instead of HttpClient, since otherwise the HttpClient interceptor kicks in,
     //initializing Okta before we can actually read the settings. 
-    console.log(redirectUrl);
     let config = await (await fetch(configUrl)).json();
 
     this._config = {

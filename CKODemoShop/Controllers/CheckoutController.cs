@@ -337,7 +337,7 @@ namespace CKODemoShop.Controllers
         [ProducesResponseType(422)]
         public async Task<IActionResult> AddWebhook([FromBody] List<string> eventTypes)
         {
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
+            var baseUrl = $"https://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
             var webhookRequest = new WebhookRequest(baseUrl, "1234", eventTypes);
 
             client.DefaultRequestHeaders.Clear();
