@@ -24,11 +24,12 @@ export class AppConfigService {
     this._config = {
       'clientId': config.client_id,
       'issuer': config.issuer,
-      'redirectUri': redirectUrl
+      'redirectUri': redirectUrl,
+      'publicKey': config.public_key
     };
   }
 
-  public getConfig(): object {
+  public get config(): any {
     return this._config;
   }
 

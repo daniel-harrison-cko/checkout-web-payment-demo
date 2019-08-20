@@ -107,7 +107,7 @@ const routes: Routes = [
     { 
       provide: OKTA_CONFIG, 
       useFactory: (settingsService: AppConfigService) => {
-        return settingsService.getConfig();
+        return settingsService.config;
       }, 
       deps: [AppConfigService] 
     },
