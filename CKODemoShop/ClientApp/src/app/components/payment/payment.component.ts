@@ -9,6 +9,7 @@ import { IPayment } from 'src/app/interfaces/payment.interface';
 import { SourcesService } from 'src/app/services/sources.service';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { distinctUntilChanged, filter, finalize } from 'rxjs/operators';
+import { AppConfigService } from '../../services/app-config.service';
 import { ShopService } from '../../services/shop.service';
 
 declare var Frames: any;
@@ -31,6 +32,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
   makePayment: Function;
 
   constructor(
+    private _appConfigService: AppConfigService,
     private _shopService: ShopService,
     private _paymentDetailsService: PaymentDetailsService,
     private _paymentService: PaymentsService,
@@ -134,7 +136,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.standardPaymentFlow();
               };
               Frames.init({
-                publicKey: this._shopService.publicKey,
+                publicKey: this._appConfigService.config.publicKey,
                 containerSelector: '.cko-container',
                 cardTokenised: function (event) {
                   cardTokenisedCallback(event);
@@ -222,7 +224,7 @@ export class PaymentComponent implements OnInit, OnDestroy, AfterViewInit {
                       tokenizationType: 'PAYMENT_GATEWAY',
                       parameters: {
                         'gateway': 'checkoutltd',
-                        'gatewayMerchantId': this._shopService.publicKey
+                        'gatewayMerchantId': this._appConfigService.config.publicKey
                       }
                     },
                     allowedPaymentMethods: allowedPaymentMethods,
