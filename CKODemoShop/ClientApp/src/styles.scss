@@ -436,6 +436,14 @@ body {
       .mandate-content {
         display: flex;
         flex-wrap: wrap;
+        /*ACH*/
+        [form-field="ach_form_financial_institution_name"],
+        [form-field="ach_form_financial_institution_address"],
+        [form-field="ach_form_financial_institution_account"],
+        [form-field="ach_form_account_holder_name"],
+        [form-field="ach_form_account_holder_id"] {
+          flex: 1 0 100%;
+        }
       }
 
       .creditor, .debitor, .address {
