@@ -1,25 +1,27 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { ICustomer } from '../interfaces/customer.interface';
-
-const USER: ICustomer = {
-  id: '12345',
-  name: 'Bruce Wayne',
-  email: 'bruce@wayne-enterprises.com'
-}
+import { OktaAuthService, UserClaims } from '@okta/okta-angular';
+import { BehaviorSubject } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
-  constructor(private _http: HttpClient) { }
+  constructor(private _oktaAuthService: OktaAuthService) {
+    this.getOktaUser().then(oktaUser => this.setOktaUser(oktaUser));
+  }
 
-  /*getUser(id: string): Observable<HttpResponse<any>> {
-    return this._http.get<ICustomer>(`/api/checkout/customer/${id}`, {observe: 'response'});
-  }*/
+  // Subjects
+  private oktaUserSource = new BehaviorSubject<UserClaims>(null);
 
-  getUser(): ICustomer {
-    return USER;
+  // Observables
+  public oktaUser$ = this.oktaUserSource.asObservable();
+
+  // Methods
+  private setOktaUser(oktaUser: UserClaims) {
+    this.oktaUserSource.next(oktaUser);
+  }
+
+  private async getOktaUser(): Promise<UserClaims> {
+    return await this._oktaAuthService.getUser();
   }
 }

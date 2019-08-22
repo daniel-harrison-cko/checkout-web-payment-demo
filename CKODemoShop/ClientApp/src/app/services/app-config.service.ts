@@ -19,17 +19,17 @@ export class AppConfigService {
 
     //we're using fetch here instead of HttpClient, since otherwise the HttpClient interceptor kicks in,
     //initializing Okta before we can actually read the settings. 
-    console.log(redirectUrl);
     let config = await (await fetch(configUrl)).json();
 
     this._config = {
       'clientId': config.client_id,
       'issuer': config.issuer,
-      'redirectUri': redirectUrl
+      'redirectUri': redirectUrl,
+      'publicKey': config.public_key
     };
   }
 
-  public getConfig(): object {
+  public get config(): any {
     return this._config;
   }
 
