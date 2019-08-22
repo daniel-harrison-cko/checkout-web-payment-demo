@@ -17,6 +17,10 @@ body {
     font-family: monospace;
   }
 
+  .underlined {
+    text-decoration: underline;
+  }
+
   img.flag {
     width: 1.5 * $margin;
     border: 1px solid #000;
@@ -441,7 +445,8 @@ body {
         [form-field="ach_form_financial_institution_address"],
         [form-field="ach_form_financial_institution_account"],
         [form-field="ach_form_account_holder_name"],
-        [form-field="ach_form_account_holder_id"] {
+        [form-field="ach_form_account_holder_id"],
+        [form-field="ach_form_account_type"] {
           flex: 1 0 100%;
         }
       }

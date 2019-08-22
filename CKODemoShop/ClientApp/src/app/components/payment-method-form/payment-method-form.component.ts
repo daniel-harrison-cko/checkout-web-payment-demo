@@ -104,6 +104,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  private currencyBaseAmount(currencyCode: string): number {
+    return this._paymentsService.currencies.find(currency => currency.iso4217 == currencyCode).base;
+  }
+
   get source(): FormGroup {
     return <FormGroup>this.paymentDetails.get('source');
   }

@@ -352,7 +352,7 @@
         <mat-card-title><h3>Authorization Agreement Direct Payments (ACH)</h3></mat-card-title>
       </mat-card-header>
       <mat-card-content class="mandate-content">
-        <p>I (we) hereby authorize <em>{{'Checkout Ltd.'}}</em>, hereinafter called COMPANY, to debit entries to my (our) account indicated below and the Financial Institution named below, hereinafter called FINANCIAL INSTITUTION, to debit same to such account. I (we) acknowledge the origination of ACH transactions to my (our) account must comply with the provisions of U.S. law.</p>
+        <p>I (we) hereby authorize <em class="underlined">{{'Checkout Ltd.'}}</em>, hereinafter called COMPANY, to debit entries to my (our) account indicated below and the Financial Institution named below, hereinafter called FINANCIAL INSTITUTION, to debit same to such account. I (we) acknowledge the origination of ACH transactions to my (our) account must comply with the provisions of U.S. law.</p>
         <mat-form-field form-field="ach_form_financial_institution_name">
           <input matInput [value]="xxx" [disabled]="true">
           <mat-hint>(Financial Institution Name) (Branch)</mat-hint>
@@ -365,13 +365,11 @@
           <input matInput [value]="source.value.source_data.routing_number + ' ' + source.value.source_data.account_number" [disabled]="true">
           <mat-hint>(Routing/Transit Number) (Account Number)</mat-hint>
         </mat-form-field>
-        <mat-radio-group [value]="Checking" [disabled]="true">
-          <label>Type of Account</label>
-          <mat-radio-button *ngFor="let accountType of ['Checking', 'Savings']" [value]="accountType">
-            <span>{{accountType}}</span>
-          </mat-radio-button>
-        </mat-radio-group>
-        <p>Recurring Set Amount?</p>
+        <mat-form-field form-field="ach_form_account_type">
+          <input matInput [value]="source.value.source_data.account_type" [disabled]="true">
+          <mat-hint>(Account Type)</mat-hint>
+        </mat-form-field>
+        <p>Recurring Set Amount <em class="underlined">{{paymentDetails.value.amount / currencyBaseAmount(paymentDetails.value.currency) | currency:paymentDetails.value.currency:'symbol'}}</em> Range: Minimum <em class="underlined">xxx</em> Maximum <em class="underlined">xxx</em></p>
         <p>This authority is to remain in full force and effect until COMPANY has received written notification from me (or either of us) of its termination in such time and manner as to afford COMPANY and FINANCIAL INSTITUTION a reasonable opportunity to act on it.</p>
         <mat-form-field form-field="ach_form_account_holder_name">
           <input matInput [value]="source.getRawValue().source_data.account_holder_name" [disabled]="true">
