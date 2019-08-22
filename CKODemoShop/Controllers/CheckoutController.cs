@@ -13,6 +13,10 @@ using Checkout.Sources;
 using System.Text.RegularExpressions;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using CKODemoShop.Hubs;
+using Microsoft.Extensions.Primitives;
+using CKODemoShop.Configuration;
 
 namespace CKODemoShop.Controllers
 {
@@ -153,11 +157,13 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class CheckoutController : Controller
     {
+        private CheckoutApiOptions apiOptions;
         private CheckoutApi api;
         private HttpClient client;
 
-        public CheckoutController(CheckoutApi api, HttpClient client)
+        public CheckoutController(CheckoutApiOptions apiOptions, CheckoutApi api, HttpClient client)
         {
+            this.apiOptions = apiOptions ?? throw new ArgumentNullException(nameof(apiOptions));
             this.api = api ?? throw new ArgumentNullException(nameof(api));
             this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
@@ -174,8 +180,8 @@ namespace CKODemoShop.Controllers
                 if (lppId == "eps")
                 {
                     client.DefaultRequestHeaders.Clear();
-                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
-                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/eps/banks");
+                    client.DefaultRequestHeaders.Add("Authorization", apiOptions.PublicKey);
+                    HttpResponseMessage result = await client.GetAsync($"{apiOptions.GatewayUri}/giropay/eps/banks");
                     string content = await result.Content.ReadAsStringAsync();
                     BanksResponse banksResponse = JsonConvert.DeserializeObject<BanksResponse>(content);
                     response = banksResponse;
@@ -183,8 +189,8 @@ namespace CKODemoShop.Controllers
                 else if (lppId == "giropay")
                 {
                     client.DefaultRequestHeaders.Clear();
-                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
-                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/giropay/banks");
+                    client.DefaultRequestHeaders.Add("Authorization", apiOptions.PublicKey);
+                    HttpResponseMessage result = await client.GetAsync($"{apiOptions.GatewayUri}/giropay/banks");
                     string content = await result.Content.ReadAsStringAsync();
                     BanksResponse banksResponse = JsonConvert.DeserializeObject<BanksResponse>(content);
                     response = banksResponse;
@@ -192,8 +198,8 @@ namespace CKODemoShop.Controllers
                 else if (lppId == "ideal")
                 {
                     client.DefaultRequestHeaders.Clear();
-                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
-                    HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/ideal-external/issuers");
+                    client.DefaultRequestHeaders.Add("Authorization", apiOptions.PublicKey);
+                    HttpResponseMessage result = await client.GetAsync($"{apiOptions.GatewayUri}/ideal-external/issuers");
                     string content = await result.Content.ReadAsStringAsync();
                     IssuersResponse issuersResponse = JsonConvert.DeserializeObject<IssuersResponse>(content);
                     response = issuersResponse;
@@ -206,7 +212,7 @@ namespace CKODemoShop.Controllers
             }
             catch(Exception e)
             {
-                return NotFound(e);
+                return NotFound(e.Message);
             }
         }
 
@@ -223,7 +229,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e);
+                return UnprocessableEntity(e.Message);
             }
         }
 
@@ -240,7 +246,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e);
+                return UnprocessableEntity(e.Message);
             }
         }
 
@@ -287,15 +293,15 @@ namespace CKODemoShop.Controllers
             client.DefaultRequestHeaders.Clear();
             try
             {
-                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
-                HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/event-types");
+                client.DefaultRequestHeaders.Add("Authorization", apiOptions.SecretKey);
+                HttpResponseMessage result = await client.GetAsync($"{apiOptions.GatewayUri}/event-types");
                 string content = await result.Content.ReadAsStringAsync();
                 var response = JsonConvert.DeserializeObject(content);
                 return Ok(response);
             }
             catch (Exception e)
             {
-                return NotFound(e);
+                return NotFound(e.Message);
             }
         }
 
@@ -308,8 +314,8 @@ namespace CKODemoShop.Controllers
             client.DefaultRequestHeaders.Clear();
             try
             {
-                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
-                HttpResponseMessage result = await client.GetAsync("https://api.sandbox.checkout.com/webhooks");
+                client.DefaultRequestHeaders.Add("Authorization", apiOptions.SecretKey);
+                HttpResponseMessage result = await client.GetAsync($"{apiOptions.GatewayUri}/webhooks");
                 if(result.StatusCode == System.Net.HttpStatusCode.NoContent)
                 {
                     return NoContent();
@@ -323,7 +329,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return NotFound(e);
+                return NotFound(e.Message);
             }
         }
 
@@ -334,14 +340,14 @@ namespace CKODemoShop.Controllers
         [ProducesResponseType(422)]
         public async Task<IActionResult> AddWebhook([FromBody] List<string> eventTypes)
         {
-            var baseUrl = $"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
-            var webhookRequest = new WebhookRequest(baseUrl, "1234", eventTypes);
+            var baseUrl = $"https://{HttpContext.Request.Host}{HttpContext.Request.PathBase}";
+            var webhookRequest = new WebhookRequest(baseUrl, "384021d9-c1ac-4ead-b0d2-b8a8430f409b", eventTypes);
 
             client.DefaultRequestHeaders.Clear();
             try
             {
-                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
-                HttpResponseMessage result = await client.PostAsJsonAsync("https://api.sandbox.checkout.com/webhooks", webhookRequest);
+                client.DefaultRequestHeaders.Add("Authorization", apiOptions.SecretKey);
+                HttpResponseMessage result = await client.PostAsJsonAsync($"{apiOptions.GatewayUri}/webhooks", webhookRequest);
                 string content = await result.Content.ReadAsStringAsync();
                 object response = JsonConvert.DeserializeObject<object>(content);
                 if (result.StatusCode == System.Net.HttpStatusCode.UnprocessableEntity)
@@ -359,7 +365,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, e);
+                return StatusCode(500, e.Message);
             }
         }
 
@@ -376,8 +382,8 @@ namespace CKODemoShop.Controllers
                 client.DefaultRequestHeaders.Clear();
                 try
                 {
-                    client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
-                    HttpResponseMessage result = await client.DeleteAsync($"https://api.sandbox.checkout.com/webhooks/{webhookId}");
+                    client.DefaultRequestHeaders.Add("Authorization", apiOptions.SecretKey);
+                    HttpResponseMessage result = await client.DeleteAsync($"{apiOptions.GatewayUri}/webhooks/{webhookId}");
                     if (result.IsSuccessStatusCode)
                     {
                         return Ok();
@@ -389,7 +395,7 @@ namespace CKODemoShop.Controllers
                 }
                 catch (Exception e)
                 {
-                    return UnprocessableEntity(e);
+                    return UnprocessableEntity(e.Message);
                 }
             };
             var webhooks = await GetWebhooks();
@@ -428,7 +434,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e);
+                return UnprocessableEntity(e.Message);
             }
         }
 
@@ -475,7 +481,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e);
+                return UnprocessableEntity(e.Message);
             }
         }
 
@@ -488,7 +494,7 @@ namespace CKODemoShop.Controllers
             try
             {
                 client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_SECRET_KEY"));
+                client.DefaultRequestHeaders.Add("Authorization", apiOptions.SecretKey);
                 HttpResponseMessage result;
                 switch (hypermediaRequest.HttpMethod)
                 {
@@ -517,10 +523,12 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class KlarnaController : Controller
     {
+        private CheckoutApiOptions apiOptions;
         private HttpClient client;
 
-        public KlarnaController(HttpClient client)
+        public KlarnaController(CheckoutApiOptions apiOptions, HttpClient client)
         {
+            this.apiOptions = apiOptions ?? throw new ArgumentNullException(nameof(apiOptions));
             this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
@@ -533,8 +541,8 @@ namespace CKODemoShop.Controllers
             try
             {
                 client.DefaultRequestHeaders.Clear();
-                client.DefaultRequestHeaders.Add("Authorization", Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"));
-                HttpResponseMessage result = await client.PostAsJsonAsync("https://sbapi.ckotech.co/klarna-external/credit-sessions", sessionRequest);
+                client.DefaultRequestHeaders.Add("Authorization", apiOptions.PublicKey);
+                HttpResponseMessage result = await client.PostAsJsonAsync($"{apiOptions.GatewayUri}/klarna-external/credit-sessions", sessionRequest);
                 string content = await result.Content.ReadAsStringAsync();
                 return CreatedAtAction(nameof(RequestCreditSession), content);
             }
@@ -549,13 +557,39 @@ namespace CKODemoShop.Controllers
     [ApiController]
     public class WebhooksController : Controller
     {
+        private const string WEBHOOK_AUTH_TOKEN = "384021d9-c1ac-4ead-b0d2-b8a8430f409b";
+        private IHubContext<WebhooksHub, ITypedHubClient> hubContext;
+        private StringValues authorizationToken;
+
+        public WebhooksController(IHubContext<WebhooksHub, ITypedHubClient> hubContext)
+        {
+            this.hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
+        }
+
         [HttpPost("incoming/checkout", Name = "HandleCheckoutWebhook")]
         [ActionName("Webhooks")]
         [ProducesResponseType(200)]
-        public IActionResult HandleCheckoutWebhook(CheckoutWebhook webhook)
+        public async Task<IActionResult> HandleCheckoutWebhook(CheckoutWebhook webhook)
         {
-            Console.WriteLine($"\nWEBHOOK\n{webhook.CreatedOn} - {webhook.Data["id"]} ({webhook.Type})\n");
-            return Ok();
+            try
+            {
+                if (!HttpContext.Request.Headers.TryGetValue("authorization", out authorizationToken)) throw new UnauthorizedAccessException("No Authorization HEADER found.");
+                if (authorizationToken != WEBHOOK_AUTH_TOKEN) throw new UnauthorizedAccessException("Incorrect Authorization HEADER.");
+            }
+            catch(Exception e)
+            {
+                return Unauthorized(e.Message);
+            }
+            Console.WriteLine($"[{webhook.CreatedOn} WEBHOOK] {webhook.Data["id"]} ({webhook.Type})\n");
+            try
+            {
+                await hubContext.Clients.All.WebhookReceived(webhook);
+                return Ok();
+            }
+            catch(Exception e)
+            {
+                return StatusCode(500, e.Message);
+            }
         }
     }
 
@@ -574,7 +608,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return StatusCode(500, e);
+                return StatusCode(500, e.Message);
             }
         }
     }

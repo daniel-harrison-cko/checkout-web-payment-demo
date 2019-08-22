@@ -1,17 +1,17 @@
 import { Component, ViewChild } from '@angular/core';
-import { ICustomer } from '../../interfaces/customer.interface';
 import { IPayment } from '../../interfaces/payment.interface';
 import { MatTableDataSource, MatSort, MatSortable } from '@angular/material';
 import { UserService } from '../../services/user.service';
 import { PaymentsService } from 'src/app/services/payments.service';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
+import { UserClaims } from '@okta/okta-angular';
 
 @Component({
   selector: 'app-orders',
   templateUrl: './orders.component.html'
 })
 export class OrdersComponent {
-  user: ICustomer;
+  oktaUser: UserClaims;
   orders: IPayment[];
   displayedColumns: string[] = ['requestedOn', 'id', 'amount', 'status', 'source'];
   dataSource = new MatTableDataSource(this.orders);
@@ -23,7 +23,7 @@ export class OrdersComponent {
     private _paymentsService: PaymentsService,
     private _paymentDetailsService: PaymentDetailsService,
   ) {
-    this.user = _userService.getUser();
+    this._userService.oktaUser$.subscribe(oktaUser => this.oktaUser = oktaUser);
     let recordedOrders: string[] = JSON.parse(localStorage.getItem('payments'));
     if (recordedOrders !== null) {
       recordedOrders.forEach(paymentId => {
@@ -45,10 +45,6 @@ export class OrdersComponent {
         })
       });
     }    
-  }
-
-  openPayment(id: string) {
-    alert(id);
   }
 
   private paymentMethodIcon(payment: IPayment): string {
