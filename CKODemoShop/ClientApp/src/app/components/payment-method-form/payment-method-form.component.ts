@@ -104,6 +104,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     return false;
   }
 
+  private currencyBaseAmount(currencyCode: string): number {
+    return this._paymentsService.currencies.find(currency => currency.iso4217 == currencyCode).base;
+  }
+
   get source(): FormGroup {
     return <FormGroup>this.paymentDetails.get('source');
   }
@@ -220,6 +224,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         }
         case 'ach': {
           this.paymentMethodRequiresAdditionalInformation = true;
+          this.paymentConsent.enable();
           this.paymentDetails.get('amount').setValue(154);
 
           this.source.addControl('reference', new FormControl(`cko_demo_${uuid()}`));
@@ -243,7 +248,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
               company_name: [{ value: null, disabled: true }, Validators.required],
               account_number: [{ value: '0123456789', disabled: false }, Validators.required],
               // 211370545 is the required value for routing_number in Sandbox
-              routing_number: [{ value: '211370545', disabled: true }, Validators.required],
+              routing_number: [{ value: '211370545', disabled: false }, Validators.required],
               billing_descriptor: [{ value: 'ACH Demo', disabled: false }, Validators.compose([Validators.required, Validators.maxLength(15)])]
             })
           );

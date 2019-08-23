@@ -78,6 +78,7 @@ namespace CKODemoShop
             services.AddSignalR();
             services.AddTransient<HttpClient>(provider => provider.GetService<System.Net.Http.IHttpClientFactory>().CreateClient());
             services.AddSingleton<CheckoutApi>(_ => CheckoutApiFactory.ConfiguredFromOptions(apiOptions));
+            services.AddSingleton<CheckoutApiOptions>(_ => apiOptions);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
