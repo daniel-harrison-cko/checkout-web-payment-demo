@@ -6,6 +6,6 @@ namespace CKODemoShop.Hubs
     public interface IWebhooksHubClient
     {
         Task WebhookReceived(CheckoutWebhook checkoutWebhook);
-        Task ConnectionIdMappedToGroup(string connectionId, string groupName);
+        Task ConnectionMappedToPayment(string connectionId, string paymentId);
     }
 }

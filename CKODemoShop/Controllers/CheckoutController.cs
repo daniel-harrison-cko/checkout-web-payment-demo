@@ -560,6 +560,7 @@ namespace CKODemoShop.Controllers
         private const string WEBHOOK_AUTH_TOKEN = "384021d9-c1ac-4ead-b0d2-b8a8430f409b";
         private IHubContext<WebhooksHub, IWebhooksHubClient> hubContext;
         private StringValues authorizationToken;
+        private string paymentId;
 
         public WebhooksController(IHubContext<WebhooksHub, IWebhooksHubClient> hubContext)
         {
@@ -580,11 +581,23 @@ namespace CKODemoShop.Controllers
             {
                 return Unauthorized(e.Message);
             }
-            Console.WriteLine($"[{webhook.CreatedOn} WEBHOOK] {webhook.Data["id"]} ({webhook.Type})\n");
+            try
+            {
+                object outPaymentId;
+                if (!webhook.Data.ContainsKey("id")) throw new ArgumentNullException("The webhook is missing the data.id field");
+                if (!webhook.Data.TryGetValue("id", out outPaymentId)) throw new ArgumentNullException("The data.id field does not contain a string");
+                paymentId = (string)outPaymentId;
+                if (paymentId == null) throw new ArgumentNullException("The data.id field must not be null");
+            }
+            catch(Exception e)
+            {
+                return UnprocessableEntity(e.Message);
+            }
+            Console.WriteLine($"[{webhook.CreatedOn} WEBHOOK] {paymentId} ({webhook.Type})\n");
             try
             {
                 // broadcasts "WebhookReceived" event to all connections in the group
-                await hubContext.Clients.Group(Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY")).WebhookReceived(webhook);
+                await hubContext.Clients.Group(paymentId).WebhookReceived(webhook);
                 return Ok();
             }
             catch(Exception e)
