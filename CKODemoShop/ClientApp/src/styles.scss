@@ -70,7 +70,8 @@ body {
   app-orders {
     display: flex;
     flex: 1 1 auto;
-    padding: $padding;
+    padding-top: $padding;
+    padding-bottom: $padding;
     justify-content: center;
     flex-direction: column;
     overflow: hidden;
@@ -123,7 +124,8 @@ body {
   app-login {
     display: flex;
     flex: 1 1 auto;
-    padding: $padding;
+    padding-top: $padding;
+    padding-bottom: $padding;
     justify-content: center;
     flex-direction: column;
     overflow: hidden;
@@ -132,7 +134,8 @@ body {
   app-order-detail {
     display: flex;
     flex: 1 1 auto;
-    padding: $padding;
+    padding-top: $padding;
+    padding-bottom: $padding;
     justify-content: center;
     flex-direction: column;
     overflow: hidden;
@@ -218,7 +221,8 @@ body {
   app-payment-component {
     display: flex;
     flex: 1 1 auto;
-    padding: $padding;
+    padding-top: $padding;
+    padding-bottom: $padding;
     justify-content: center;
     flex-direction: column;
     overflow: hidden;

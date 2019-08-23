@@ -24,29 +24,31 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
     private _ngZone: NgZone,
     private _snackBar: MatSnackBar
   ) {
-    this.getPayment();
+    this.getPayment(true);
   }
 
   ngOnInit() {
     this.subscriptions.push(
       this._websocketsService.webhooksHub$.pipe(distinctUntilChanged()).subscribe(webhook => {
-        if (webhook.data.id == this.order.id) {
-          this.getPayment();
-          this._ngZone.run(() => this._snackBar.open('Incoming Webhook', webhook.type, {duration: 1000}));
-        }
+        this.getPayment();
+        this._ngZone.run(() => this._snackBar.open('Incoming Webhook', webhook.type, { duration: 1000 }));
       })
     );
   }
 
   ngOnDestroy() {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    this._websocketsService.stopConnection();
   }
 
-  public getPayment() {
+  public getPayment(isStartup: boolean = false) {
     this.processing = true;
     let orderId = this._activatedRoute.snapshot.params['orderId'] || this._activatedRoute.snapshot.queryParams['cko-session-id'];
     this._paymentsService.getPayment(orderId)
-      .pipe(finalize(() => this.processing = false))
+      .pipe(finalize(() => {
+        this.processing = false;
+        if (isStartup) this._websocketsService.startConnection(this.order.id);
+      }))
       .subscribe(
         response => this.order = response.body,
         error => this.orderNotFound = true
