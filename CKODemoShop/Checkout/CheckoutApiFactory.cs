@@ -20,6 +20,8 @@ namespace CKODemoShop.Checkout
 
         public static CheckoutApi ConfiguredFromOptions(CheckoutApiOptions options)
         {
+            if (string.IsNullOrEmpty(options.SecretKey)) options.SecretKey = Environment.GetEnvironmentVariable("CKO_SECRET_KEY");
+            if (string.IsNullOrEmpty(options.PublicKey)) options.PublicKey = Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY");
             return CheckoutApi.Create(
                secretKey: options.SecretKey,
                publicKey: options.PublicKey,
