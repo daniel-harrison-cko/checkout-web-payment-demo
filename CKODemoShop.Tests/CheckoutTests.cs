@@ -5,7 +5,6 @@ using CKODemoShop.Controllers;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
-using CKODemoShop.Checkout;
 using Microsoft.AspNetCore.Http;
 using Checkout.Common;
 using System;
