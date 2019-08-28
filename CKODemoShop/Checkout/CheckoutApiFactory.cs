@@ -8,12 +8,10 @@ namespace CKODemoShop.Checkout
     {
         public static CheckoutApi ConfiguredFromEnvironment()
         {
-            var liveMode = false;
-            bool.TryParse(Environment.GetEnvironmentVariable("CKO_LIVE_MODE"), out liveMode);
             var api = CheckoutApi.Create(
-               secretKey: Environment.GetEnvironmentVariable("CKO_SECRET_KEY"),
-               publicKey: Environment.GetEnvironmentVariable("CKO_PUBLIC_KEY"),
-               useSandbox: !liveMode
+               secretKey: Environment.GetEnvironmentVariable("CHECKOUTAPIOPTIONS__SECRETKEY"),
+               publicKey: Environment.GetEnvironmentVariable("CHECKOUTAPIOPTIONS__PUBLICKEY"),
+               uri: Environment.GetEnvironmentVariable("CHECKOUTAPIOPTIONS__GATEWAYURI")
             );
             return api;
         }
