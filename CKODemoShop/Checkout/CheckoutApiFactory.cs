@@ -1,5 +1,4 @@
-﻿using System;
-using Checkout;
+﻿using Checkout;
 using CKODemoShop.Configuration;
 
 namespace CKODemoShop.Checkout
