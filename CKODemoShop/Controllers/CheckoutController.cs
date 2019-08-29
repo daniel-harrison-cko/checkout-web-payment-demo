@@ -381,26 +381,12 @@ namespace CKODemoShop.Controllers
                 return BadRequest(e.Message);
             }
         }
-    }
 
-    [Route("api/[controller]")]
-    [ApiController]
-    public class KlarnaController : Controller
-    {
-        private CheckoutApiOptions apiOptions;
-        private HttpClient client;
-
-        public KlarnaController(CheckoutApiOptions apiOptions, HttpClient client)
-        {
-            this.apiOptions = apiOptions ?? throw new ArgumentNullException(nameof(apiOptions));
-            this.client = client ?? throw new ArgumentNullException(nameof(client));
-        }
-
-        [HttpPost("[action]", Name = "RequestCreditSession")]
-        [ActionName("CreditSessions")]
+        [HttpPost("[action]", Name = "RequestKlarnaCreditSession")]
+        [ActionName("KlarnaCreditSessions")]
         [ProducesResponseType(201, Type = typeof(GetPaymentResponse))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> RequestCreditSession(KlarnaSessionRequest sessionRequest)
+        public async Task<IActionResult> RequestKlarnaCreditSession(KlarnaSessionRequest sessionRequest)
         {
             try
             {
@@ -408,7 +394,7 @@ namespace CKODemoShop.Controllers
                 client.DefaultRequestHeaders.Add("Authorization", apiOptions.PublicKey);
                 HttpResponseMessage result = await client.PostAsJsonAsync($"{apiOptions.GatewayUri}/klarna-external/credit-sessions", sessionRequest);
                 string content = await result.Content.ReadAsStringAsync();
-                return CreatedAtAction(nameof(RequestCreditSession), content);
+                return CreatedAtAction(nameof(RequestKlarnaCreditSession), content);
             }
             catch (Exception e)
             {
