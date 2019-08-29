@@ -63,7 +63,7 @@ export class PaymentDetailsService {
   get paymentDetailsTemplate(): FormGroup {
     let paymentDetailsTemplate = this._formBuilder.group({
       amount: [100, [Validators.required, Validators.min(0)]],
-      currency: ['EUR', Validators.required],
+      currency: ['GBP', Validators.required],
       reference: [null],
       source: this._formBuilder.group({
         type: [null, Validators.required]
@@ -79,7 +79,7 @@ export class PaymentDetailsService {
         city: ['Gotham City', Validators.required],
         state: ['NJ'],
         zip: ['12345', Validators.required],
-        country: ['US', Validators.required]
+        country: ['GB', Validators.required]
       }),
       shipping: this._formBuilder.group({
         address: this._formBuilder.group({
@@ -88,7 +88,7 @@ export class PaymentDetailsService {
           city: ['Gotham City', Validators.required],
           state: ['NJ'],
           zip: ['12345', Validators.required],
-          country: ['US', Validators.required]
+          country: ['GB', Validators.required]
         }),
         phone: this._formBuilder.group({
           country_code: null,
