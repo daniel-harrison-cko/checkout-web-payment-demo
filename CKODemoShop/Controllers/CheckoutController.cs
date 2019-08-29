@@ -10,7 +10,6 @@ using System.Net.Http;
 using Checkout.Tokens;
 using Newtonsoft.Json;
 using Checkout.Sources;
-using System.Text.RegularExpressions;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
@@ -20,138 +19,6 @@ using CKODemoShop.Configuration;
 
 namespace CKODemoShop.Controllers
 {
-    public class IssuingBank
-    {
-        public string Bic { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class IssuingCountry
-    {
-        public string Name { get; set; }
-        public List<IssuingBank> Issuers { get; set; } 
-    }
-
-    public class IssuersResponse : Resource
-    {
-        public List<IssuingCountry> Countries { get; set; }
-    }
-
-    public class BanksResponse : Resource
-    {
-        public Dictionary<string, string> Banks { get; set; }
-
-        public bool HasBanks { get { return Banks.Count > 0; } }
-    }
-
-    public class CheckoutWebhook
-    {
-        public string Id { get; set; }
-        public string Type { get; set; }
-        [JsonProperty(PropertyName = "created_on")]
-        public string CreatedOn { get; set; }
-        public IDictionary<string, object> Data { get; set; }
-    }
-
-    public class WebhookRequest
-    {
-        private const string webhooksUrl = "/api/webhooks/incoming/checkout";
-
-        public WebhookRequest(
-            string baseUrl,
-            string authorization,
-            List<string> eventTypes
-            )
-        {
-            //fallback for webhook configuration from localhost which gets rejected from Gateway as invalid URL: https://webhook.site/#!/8c914904-fe43-4f2b-b2fe-07cbc6962968
-            Url = Regex.Match(baseUrl, @"^http[s]{0,1}:\/\/localhost.*$").Success ? $"https://webhook.site/8c914904-fe43-4f2b-b2fe-07cbc6962968" : $"{baseUrl}{webhooksUrl}";
-            Headers.Add("Authorization", authorization);
-            EventTypes = eventTypes;
-        }
-
-        public string Url { get; }
-        public bool Active { get; } = true;
-        public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
-        [JsonProperty(PropertyName = "content_type")]
-        public string ContentType { get; } = "json";
-        [JsonProperty(PropertyName = "event_types")]
-        public List<string> EventTypes { get; }
-    }
-
-    public class PaymentRequest
-    {
-        public PaymentRequest(
-            Source source,
-            int amount,
-            string currency,
-            string reference = null,
-            string description = null,
-            bool capture = true,
-            ShippingDetails shipping = null,
-            ThreeDSRequest threeDs = null
-            )
-        {
-            Source = source;
-            Amount = amount;
-            Currency = currency;
-            Reference = reference;
-            Description = description;
-            Capture = capture;
-            Shipping = shipping;
-            ThreeDs = threeDs;
-        }
-
-        public Source Source { get; }
-        public int Amount { get; }
-        public string Currency { get; }
-        public string Reference { get; }
-        public string Description { get; set; }
-        public bool Capture { get; set; }
-        public ShippingDetails Shipping { get; set; }
-        [JsonProperty(PropertyName = "3ds")]
-        public ThreeDSRequest ThreeDs { get; set; }
-    }
-
-    public class HypermediaRequest
-    {
-        public string Link { get; set; }
-        public object Payload { get; set; }
-        public string HttpMethod { get; set; }
-    }
-
-    public class Source : Dictionary<string, object>, IRequestSource
-    {
-        public string Type { get; }
-    }
-
-    public class SessionRequest
-    {
-        [JsonProperty(PropertyName = "purchase_country")]
-        public string PurchaseCountry { get; set; }
-        public string Currency { get; set; }
-        public string Locale { get; set; }
-        public int Amount { get; set; }
-        [JsonProperty(PropertyName = "tax_amount")]
-        public int TaxAmount { get; set; }
-        public IEnumerable<KlarnaProduct> Products { get; set; }
-    }
-
-    public class KlarnaProduct
-    {
-        [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
-        [JsonProperty(PropertyName = "quantity")]
-        public int Quantity { get; set; }
-        [JsonProperty(PropertyName = "unit_price")]
-        public int UnitPrice { get; set; }
-        [JsonProperty(PropertyName = "tax_rate")]
-        public int TaxRate { get; set; }
-        [JsonProperty(PropertyName = "total_amount")]
-        public int TotalAmount { get; set; }
-        [JsonProperty(PropertyName = "total_tax_amount")]
-        public int TotalTaxAmount { get; set; }
-    }
-
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
@@ -170,7 +37,7 @@ namespace CKODemoShop.Controllers
 
         [HttpGet("{lppId}/[action]", Name = "GetBanks")]
         [ActionName("Banks")]
-        [ProducesResponseType(200, Type = typeof(IList<IIBank>))]
+        [ProducesResponseType(200, Type = typeof(IList<IBank>))]
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetBanks(string lppId)
         {
@@ -536,7 +403,7 @@ namespace CKODemoShop.Controllers
         [ActionName("CreditSessions")]
         [ProducesResponseType(201, Type = typeof(GetPaymentResponse))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> RequestCreditSession(SessionRequest sessionRequest)
+        public async Task<IActionResult> RequestCreditSession(KlarnaSessionRequest sessionRequest)
         {
             try
             {
@@ -570,7 +437,7 @@ namespace CKODemoShop.Controllers
         [HttpPost("incoming/checkout", Name = "HandleCheckoutWebhook")]
         [ActionName("Webhooks")]
         [ProducesResponseType(200)]
-        public async Task<IActionResult> HandleCheckoutWebhook(CheckoutWebhook webhook)
+        public async Task<IActionResult> HandleCheckoutWebhook(Webhook webhook)
         {
             try
             {
