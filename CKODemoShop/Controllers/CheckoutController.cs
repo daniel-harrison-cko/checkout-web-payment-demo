@@ -10,148 +10,12 @@ using System.Net.Http;
 using Checkout.Tokens;
 using Newtonsoft.Json;
 using Checkout.Sources;
-using System.Text.RegularExpressions;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.SignalR;
-using CKODemoShop.Hubs;
-using Microsoft.Extensions.Primitives;
 using CKODemoShop.Configuration;
 
 namespace CKODemoShop.Controllers
 {
-    public class IssuingBank
-    {
-        public string Bic { get; set; }
-        public string Name { get; set; }
-    }
-
-    public class IssuingCountry
-    {
-        public string Name { get; set; }
-        public List<IssuingBank> Issuers { get; set; } 
-    }
-
-    public class IssuersResponse : Resource
-    {
-        public List<IssuingCountry> Countries { get; set; }
-    }
-
-    public class BanksResponse : Resource
-    {
-        public Dictionary<string, string> Banks { get; set; }
-
-        public bool HasBanks { get { return Banks.Count > 0; } }
-    }
-
-    public class CheckoutWebhook
-    {
-        public string Id { get; set; }
-        public string Type { get; set; }
-        [JsonProperty(PropertyName = "created_on")]
-        public string CreatedOn { get; set; }
-        public IDictionary<string, object> Data { get; set; }
-    }
-
-    public class WebhookRequest
-    {
-        private const string webhooksUrl = "/api/webhooks/incoming/checkout";
-
-        public WebhookRequest(
-            string baseUrl,
-            string authorization,
-            List<string> eventTypes
-            )
-        {
-            //fallback for webhook configuration from localhost which gets rejected from Gateway as invalid URL: https://webhook.site/#!/8c914904-fe43-4f2b-b2fe-07cbc6962968
-            Url = Regex.Match(baseUrl, @"^http[s]{0,1}:\/\/localhost.*$").Success ? $"https://webhook.site/8c914904-fe43-4f2b-b2fe-07cbc6962968" : $"{baseUrl}{webhooksUrl}";
-            Headers.Add("Authorization", authorization);
-            EventTypes = eventTypes;
-        }
-
-        public string Url { get; }
-        public bool Active { get; } = true;
-        public Dictionary<string, string> Headers { get; } = new Dictionary<string, string>();
-        [JsonProperty(PropertyName = "content_type")]
-        public string ContentType { get; } = "json";
-        [JsonProperty(PropertyName = "event_types")]
-        public List<string> EventTypes { get; }
-    }
-
-    public class PaymentRequest
-    {
-        public PaymentRequest(
-            Source source,
-            int amount,
-            string currency,
-            string reference = null,
-            string description = null,
-            bool capture = true,
-            ShippingDetails shipping = null,
-            ThreeDSRequest threeDs = null
-            )
-        {
-            Source = source;
-            Amount = amount;
-            Currency = currency;
-            Reference = reference;
-            Description = description;
-            Capture = capture;
-            Shipping = shipping;
-            ThreeDs = threeDs;
-        }
-
-        public Source Source { get; }
-        public int Amount { get; }
-        public string Currency { get; }
-        public string Reference { get; }
-        public string Description { get; set; }
-        public bool Capture { get; set; }
-        public ShippingDetails Shipping { get; set; }
-        [JsonProperty(PropertyName = "3ds")]
-        public ThreeDSRequest ThreeDs { get; set; }
-    }
-
-    public class HypermediaRequest
-    {
-        public string Link { get; set; }
-        public object Payload { get; set; }
-        public string HttpMethod { get; set; }
-    }
-
-    public class Source : Dictionary<string, object>, IRequestSource
-    {
-        public string Type { get; }
-    }
-
-    public class SessionRequest
-    {
-        [JsonProperty(PropertyName = "purchase_country")]
-        public string PurchaseCountry { get; set; }
-        public string Currency { get; set; }
-        public string Locale { get; set; }
-        public int Amount { get; set; }
-        [JsonProperty(PropertyName = "tax_amount")]
-        public int TaxAmount { get; set; }
-        public IEnumerable<KlarnaProduct> Products { get; set; }
-    }
-
-    public class KlarnaProduct
-    {
-        [JsonProperty(PropertyName = "name")]
-        public string Name { get; set; }
-        [JsonProperty(PropertyName = "quantity")]
-        public int Quantity { get; set; }
-        [JsonProperty(PropertyName = "unit_price")]
-        public int UnitPrice { get; set; }
-        [JsonProperty(PropertyName = "tax_rate")]
-        public int TaxRate { get; set; }
-        [JsonProperty(PropertyName = "total_amount")]
-        public int TotalAmount { get; set; }
-        [JsonProperty(PropertyName = "total_tax_amount")]
-        public int TotalTaxAmount { get; set; }
-    }
-
     [Route("api/[controller]")]
     [Authorize]
     [ApiController]
@@ -170,7 +34,7 @@ namespace CKODemoShop.Controllers
 
         [HttpGet("{lppId}/[action]", Name = "GetBanks")]
         [ActionName("Banks")]
-        [ProducesResponseType(200, Type = typeof(IList<IIBank>))]
+        [ProducesResponseType(200, Type = typeof(IList<IBank>))]
         [ProducesResponseType(404)]
         public async Task<IActionResult> GetBanks(string lppId)
         {
@@ -517,26 +381,12 @@ namespace CKODemoShop.Controllers
                 return BadRequest(e.Message);
             }
         }
-    }
 
-    [Route("api/[controller]")]
-    [ApiController]
-    public class KlarnaController : Controller
-    {
-        private CheckoutApiOptions apiOptions;
-        private HttpClient client;
-
-        public KlarnaController(CheckoutApiOptions apiOptions, HttpClient client)
-        {
-            this.apiOptions = apiOptions ?? throw new ArgumentNullException(nameof(apiOptions));
-            this.client = client ?? throw new ArgumentNullException(nameof(client));
-        }
-
-        [HttpPost("[action]", Name = "RequestCreditSession")]
-        [ActionName("CreditSessions")]
+        [HttpPost("[action]", Name = "RequestKlarnaCreditSession")]
+        [ActionName("KlarnaCreditSessions")]
         [ProducesResponseType(201, Type = typeof(GetPaymentResponse))]
         [ProducesResponseType(400)]
-        public async Task<IActionResult> RequestCreditSession(SessionRequest sessionRequest)
+        public async Task<IActionResult> RequestKlarnaCreditSession(KlarnaSessionRequest sessionRequest)
         {
             try
             {
@@ -544,85 +394,11 @@ namespace CKODemoShop.Controllers
                 client.DefaultRequestHeaders.Add("Authorization", apiOptions.PublicKey);
                 HttpResponseMessage result = await client.PostAsJsonAsync($"{apiOptions.GatewayUri}/klarna-external/credit-sessions", sessionRequest);
                 string content = await result.Content.ReadAsStringAsync();
-                return CreatedAtAction(nameof(RequestCreditSession), content);
+                return CreatedAtAction(nameof(RequestKlarnaCreditSession), content);
             }
             catch (Exception e)
             {
                 return BadRequest(e.Message);
-            }
-        }
-    }
-
-    [Route("api/[controller]")]
-    [ApiController]
-    public class WebhooksController : Controller
-    {
-        private const string WEBHOOK_AUTH_TOKEN = "384021d9-c1ac-4ead-b0d2-b8a8430f409b";
-        private IHubContext<WebhooksHub, IWebhooksHubClient> hubContext;
-        private StringValues authorizationToken;
-        private string paymentId;
-
-        public WebhooksController(IHubContext<WebhooksHub, IWebhooksHubClient> hubContext)
-        {
-            this.hubContext = hubContext ?? throw new ArgumentNullException(nameof(hubContext));
-        }
-
-        [HttpPost("incoming/checkout", Name = "HandleCheckoutWebhook")]
-        [ActionName("Webhooks")]
-        [ProducesResponseType(200)]
-        public async Task<IActionResult> HandleCheckoutWebhook(CheckoutWebhook webhook)
-        {
-            try
-            {
-                if (!HttpContext.Request.Headers.TryGetValue("authorization", out authorizationToken)) throw new UnauthorizedAccessException("No Authorization HEADER found.");
-                if (authorizationToken != WEBHOOK_AUTH_TOKEN) throw new UnauthorizedAccessException("Incorrect Authorization HEADER.");
-            }
-            catch(Exception e)
-            {
-                return Unauthorized(e.Message);
-            }
-            try
-            {
-                object outPaymentId;
-                if (!webhook.Data.ContainsKey("id")) throw new ArgumentNullException("The webhook is missing the data.id field");
-                if (!webhook.Data.TryGetValue("id", out outPaymentId)) throw new ArgumentNullException("The data.id field does not contain a string");
-                paymentId = (string)outPaymentId;
-                if (paymentId == null) throw new ArgumentNullException("The data.id field must not be null");
-            }
-            catch(Exception e)
-            {
-                return UnprocessableEntity(e.Message);
-            }
-            Console.WriteLine($"[{webhook.CreatedOn} WEBHOOK] {paymentId} ({webhook.Type})\n");
-            try
-            {
-                // broadcasts "WebhookReceived" event to all connections in the group
-                await hubContext.Clients.Group(paymentId).WebhookReceived(webhook);
-                return Ok();
-            }
-            catch(Exception e)
-            {
-                return StatusCode(500, e.Message);
-            }
-        }
-    }
-
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ShopController : Controller
-    {
-        [HttpGet("[action]", Name = "GetReference")]
-        [ActionName("References")]
-        [ProducesResponseType(201, Type = typeof(string))]
-        public IActionResult GetReference()
-        {
-            try
-            {
-                return CreatedAtAction(nameof(GetReference), new Dictionary<string, string>() { {"reference", $"cko_demo_{Guid.NewGuid()}" } });
-            }
-            catch (Exception e)
-            {
-                return StatusCode(500, e.Message);
             }
         }
     }

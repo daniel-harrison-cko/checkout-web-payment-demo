@@ -225,7 +225,7 @@ export class PaymentsService {
   }
 
   requestKlarnaSession(creditSessionRequest): Observable<HttpResponse<any>> {
-    return this._http.post<any>(`/api/klarna/creditSessions`, creditSessionRequest, { observe: 'response' });
+    return this._http.post<any>(`/api/checkout/klarnaCreditSessions`, creditSessionRequest, { observe: 'response' });
   }
 
   getPayment(id: string): Observable<HttpResponse<IPayment>> {

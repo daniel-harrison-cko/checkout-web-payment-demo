@@ -13,6 +13,7 @@ using Checkout.Tokens;
 using Checkout.Sources;
 using System.Net.Http;
 using CKODemoShop.Configuration;
+using CKODemoShop.Checkout;
 
 namespace CKODemoShop.Tests
 {

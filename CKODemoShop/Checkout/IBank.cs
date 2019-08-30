@@ -1,6 +1,6 @@
 ﻿namespace CKODemoShop.Checkout
 {
-    public interface IIBank
+    public interface IBank
     {
         string Key { get; set; }
         string Value { get; set; }
