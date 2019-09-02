@@ -13,6 +13,7 @@ using Checkout.Sources;
 using System.Linq;
 using Microsoft.AspNetCore.Authorization;
 using CKODemoShop.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace CKODemoShop.Controllers
 {
@@ -25,9 +26,9 @@ namespace CKODemoShop.Controllers
         private CheckoutApi api;
         private HttpClient client;
 
-        public CheckoutController(CheckoutApiOptions apiOptions, CheckoutApi api, HttpClient client)
+        public CheckoutController(IOptions<CheckoutApiOptions> apiOptions, CheckoutApi api, HttpClient client)
         {
-            this.apiOptions = apiOptions ?? throw new ArgumentNullException(nameof(apiOptions));
+            this.apiOptions = apiOptions.Value ?? throw new ArgumentNullException(nameof(apiOptions));
             this.api = api ?? throw new ArgumentNullException(nameof(api));
             this.client = client ?? throw new ArgumentNullException(nameof(client));
         }
