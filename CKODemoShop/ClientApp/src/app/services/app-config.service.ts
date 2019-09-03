@@ -25,7 +25,8 @@ export class AppConfigService {
       'clientId': config.client_id,
       'issuer': config.issuer,
       'redirectUri': redirectUrl,
-      'publicKey': config.public_key
+      'publicKey': config.public_key,
+      'environment': config.environment
     };
   }
 
