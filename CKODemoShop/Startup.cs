@@ -74,11 +74,15 @@ namespace CKODemoShop
             var apiOptions = new CheckoutApiOptions();
             Configuration.Bind("CheckoutApiOptions", apiOptions);
 
+            var serverOptions = new ServerOptions();
+            Configuration.Bind("AspNetCore", serverOptions);
+
             services.AddHttpClient();
             services.AddSignalR();
             services.AddTransient<HttpClient>(provider => provider.GetService<System.Net.Http.IHttpClientFactory>().CreateClient());
             services.AddSingleton<CheckoutApi>(_ => CheckoutApiFactory.ConfiguredFromOptions(apiOptions));
             services.AddSingleton<CheckoutApiOptions>(_ => apiOptions);
+            services.AddSingleton<ServerOptions>(_ => serverOptions);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

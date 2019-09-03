@@ -1,5 +1,16 @@
+<ng-template #qa>
+  <mat-icon class="toolbar-icon" matTooltip="QA Environment">build</mat-icon>
+</ng-template>
+<ng-template #sandbox>
+  <mat-icon class="toolbar-icon" matTooltip="Sandbox Environment">explore</mat-icon>
+</ng-template>
+<ng-template #production>
+  <mat-icon class="toolbar-icon" matTooltip="Production Environment">storefront</mat-icon>
+</ng-template>
+
 <mat-toolbar color="primary" class="mat-elevation-z4">
   <mat-toolbar-row>
+    <ng-container *ngTemplateOutlet="environmentTemplateReference"></ng-container>
     <span class="toolbar-title" *ngIf="!isAuthenticated">{{title}}</span>
     <ng-container *ngIf="isAuthenticated">
       <app-breadcrumbs [appTitle]="title"></app-breadcrumbs>

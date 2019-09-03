@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, TemplateRef } from '@angular/core';
 import { ICurrency } from './interfaces/currency.interface';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
 import { Subscription } from 'rxjs';
@@ -13,6 +13,7 @@ import { MatSlideToggleChange } from '@angular/material';
 
 import { OktaAuthService } from '@okta/okta-angular';
 import { Title } from '@angular/platform-browser';
+import { AppConfigService } from './services/app-config.service';
 
 @Component({
   selector: 'app-root',
@@ -21,6 +22,9 @@ import { Title } from '@angular/platform-browser';
 })
 
 export class AppComponent implements OnInit, OnDestroy {
+  @ViewChild('qa') qaLabel: TemplateRef<any>;
+  @ViewChild('sandbox') sandboxLabel: TemplateRef<any>;
+  @ViewChild('production') productionLabel: TemplateRef<any>;
   subscriptions: Subscription[] = [];
   title: string = 'Payment Demo';
   currencies: ICurrency[] = this._paymentsService.currencies;
@@ -28,6 +32,7 @@ export class AppComponent implements OnInit, OnDestroy {
   webhooksForm: FormGroup;
   countries: ICountry[];
   isAuthenticated: boolean;
+  private environment: string;
 
   constructor(
     private _countriesService: CountriesService,
@@ -37,9 +42,11 @@ export class AppComponent implements OnInit, OnDestroy {
     private _router: Router,
     private _formBuilder: FormBuilder,
     private _titleService: Title,
+    private _appConfigService: AppConfigService,
     public oktaAuth: OktaAuthService
   ) {
-    this._titleService.setTitle(this.title);
+    this.environment = this._appConfigService.config.environment.toLowerCase();
+    this._titleService.setTitle(this.composeAppTitle());
     // Subscribe to authentication state changes
     this.oktaAuth.$authenticationState.subscribe(
       (isAuthenticated: boolean)  => {
@@ -82,5 +89,25 @@ export class AppComponent implements OnInit, OnDestroy {
 
   logout() {
     this.oktaAuth.logout('/login');
+  }
+
+  public get environmentTemplateReference(): TemplateRef<any> {
+    switch (this.environment) {
+      case 'qa': return this.qaLabel;
+      case 'sandbox': return this.sandboxLabel;
+      case 'production': return this.productionLabel;
+      default: {
+        console.warn('Undefined environment variable.');
+        return null;
+      };
+    }
+  }
+
+  private composeAppTitle(): string {
+    let appTitle = this.title;
+    if (this.environment) {
+      appTitle = `${appTitle} - ${this.environment.toUpperCase()}`;
+    }
+    return appTitle;
   }
 }
