@@ -1,4 +1,4 @@
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserModule, Title } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NgModule, APP_INITIALIZER } from '@angular/core';
 import { AngularMaterialModule } from './angular-material.module';
@@ -93,6 +93,7 @@ const routes: Routes = [
     Location,
     WebsocketsService,
     AppConfigService,
+    Title,
     {
       provide: APP_INITIALIZER,
       useFactory: (settingsService: AppConfigService) => {

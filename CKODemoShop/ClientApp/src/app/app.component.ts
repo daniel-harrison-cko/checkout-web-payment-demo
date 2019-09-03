@@ -12,6 +12,7 @@ import { WebhooksService } from './services/webhooks.service';
 import { MatSlideToggleChange } from '@angular/material';
 
 import { OktaAuthService } from '@okta/okta-angular';
+import { Title } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-root',
@@ -21,7 +22,7 @@ import { OktaAuthService } from '@okta/okta-angular';
 
 export class AppComponent implements OnInit, OnDestroy {
   subscriptions: Subscription[] = [];
-  title: string = 'CKO Demo';
+  title: string = 'Payment Demo';
   currencies: ICurrency[] = this._paymentsService.currencies;
   paymentDetails: FormGroup;
   webhooksForm: FormGroup;
@@ -35,8 +36,10 @@ export class AppComponent implements OnInit, OnDestroy {
     private _paymentsService: PaymentsService,
     private _router: Router,
     private _formBuilder: FormBuilder,
+    private _titleService: Title,
     public oktaAuth: OktaAuthService
-  ) { 
+  ) {
+    this._titleService.setTitle(this.title);
     // Subscribe to authentication state changes
     this.oktaAuth.$authenticationState.subscribe(
       (isAuthenticated: boolean)  => {
