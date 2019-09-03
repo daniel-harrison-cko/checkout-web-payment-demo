@@ -91,7 +91,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.oktaAuth.logout('/login');
   }
 
-  private get environmentTemplateReference(): TemplateRef<any> {
+  public get environmentTemplateReference(): TemplateRef<any> {
     switch (this.environment) {
       case 'qa': return this.qaLabel;
       case 'sandbox': return this.sandboxLabel;
