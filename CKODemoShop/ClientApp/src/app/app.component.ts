@@ -46,7 +46,7 @@ export class AppComponent implements OnInit, OnDestroy {
     public oktaAuth: OktaAuthService
   ) {
     this.environment = this._appConfigService.config.environment.toLowerCase();
-    this._titleService.setTitle(`${this.title} - ${this.environment.toUpperCase()}`);
+    this._titleService.setTitle(this.composeAppTitle());
     // Subscribe to authentication state changes
     this.oktaAuth.$authenticationState.subscribe(
       (isAuthenticated: boolean)  => {
@@ -96,7 +96,18 @@ export class AppComponent implements OnInit, OnDestroy {
       case 'qa': return this.qaLabel;
       case 'sandbox': return this.sandboxLabel;
       case 'production': return this.productionLabel;
-      default: return this.qaLabel;
+      default: {
+        console.warn('Undefined environment variable.');
+        return null;
+      };
     }
+  }
+
+  private composeAppTitle(): string {
+    let appTitle = this.title;
+    if (this.environment) {
+      appTitle = `${appTitle} - ${this.environment.toUpperCase()}`;
+    }
+    return appTitle;
   }
 }

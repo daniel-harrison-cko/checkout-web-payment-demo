@@ -23,10 +23,10 @@ namespace CKODemoShop.Controllers
             )
         {
             
-            _logger = logger.ForContext<ConfigController>();
+            _logger = logger?.ForContext<ConfigController>() ?? throw new ArgumentNullException(nameof(logger));
             _options = options?.Value ?? throw new ArgumentNullException(nameof(options));
             _apiOptions = apiOptions?.Value ?? throw new ArgumentNullException(nameof(apiOptions));
-            _serverOptions = serverOptions.Value ?? throw new ArgumentNullException(nameof(serverOptions));
+            _serverOptions = serverOptions?.Value ?? throw new ArgumentNullException(nameof(serverOptions));
         }
 
         public IActionResult GetConfig()
