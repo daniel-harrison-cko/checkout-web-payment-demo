@@ -22,6 +22,7 @@ import { AppConfigService } from './services/app-config.service';
 })
 
 export class AppComponent implements OnInit, OnDestroy {
+  @ViewChild('dev') devLabel: TemplateRef<any>;
   @ViewChild('qa') qaLabel: TemplateRef<any>;
   @ViewChild('sandbox') sandboxLabel: TemplateRef<any>;
   @ViewChild('production') productionLabel: TemplateRef<any>;
@@ -93,6 +94,7 @@ export class AppComponent implements OnInit, OnDestroy {
 
   public get environmentTemplateReference(): TemplateRef<any> {
     switch (this.environment) {
+      case 'development': return this.devLabel;
       case 'qa': return this.qaLabel;
       case 'sandbox': return this.sandboxLabel;
       case 'production': return this.productionLabel;
