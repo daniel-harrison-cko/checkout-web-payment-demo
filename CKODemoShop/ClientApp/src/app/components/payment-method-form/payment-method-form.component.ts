@@ -256,8 +256,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.get('billing_address').setValue(this.paymentDetails.get('billing_address').value);
 
           this.paymentMethodSubsriptions.push(
+            this.paymentDetails.get('customer').valueChanges.pipe(distinctUntilChanged()).subscribe(customer => {
+              this.source.get('customer').patchValue(customer);
+              this.source.get('source_data.account_holder_name').setValue(customer.name);
+            }),
+            this.paymentDetails.get('billing_address').valueChanges.pipe(distinctUntilChanged()).subscribe(billingAddress => this.source.get('billing_address').patchValue(billingAddress)),
             this.paymentDetails.get('source.source_data.account_type').valueChanges.pipe(distinctUntilChanged()).subscribe(account_type => {
-              let companyNameController = this.paymentDetails.get('source.source_data.company_name');
+              let companyNameController = this.source.get('source_data.company_name');
               if ((account_type as string).toLowerCase().startsWith('corp')) {
                 companyNameController.enable();
               } else {
@@ -293,6 +298,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl('cpf', new FormControl({ value: '00003456789', disabled: false }, Validators.required));
           this.source.addControl('customerName', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
 
+          this.paymentMethodSubsriptions.push(
+            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('customerName').setValue(customerName))
+          );
           break;
         }
         case 'eps': {
@@ -538,6 +546,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl('account_holder_email', new FormControl({ value: this.paymentDetails.value.customer.email, disabled: true }, Validators.compose([Validators.required, Validators.email])));
           this.source.addControl('billing_descriptor', new FormControl({ value: 'P24 Demo Payment', disabled: false }));
 
+          this.paymentMethodSubsriptions.push(
+            this.paymentDetails.get('customer').valueChanges.pipe(distinctUntilChanged()).subscribe(customer => this.source.patchValue({account_holder_name: customer.name, account_holder_email: customer.email}))
+          );
           break;
         }
         case 'qpay': {
