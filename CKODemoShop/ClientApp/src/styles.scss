@@ -71,6 +71,16 @@ body {
     }
   }
 
+  app-environment-alert {
+    .mat-card-header-text {
+      margin: unset;
+    }
+
+    button {
+      margin: 0 6px !important;
+    }
+  }
+
   app-orders {
     display: flex;
     flex: 1 1 auto;
