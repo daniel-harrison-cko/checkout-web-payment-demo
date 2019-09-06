@@ -1,27 +1,14 @@
-<ng-template #dev>
-  <mat-icon class="toolbar-icon" matTooltip="DEV Environment">code</mat-icon>
-</ng-template>
-<ng-template #qa>
-  <mat-icon class="toolbar-icon" matTooltip="QA Environment">assignment_turned_in</mat-icon>
-</ng-template>
-<ng-template #sandbox>
-  <mat-icon class="toolbar-icon" matTooltip="Sandbox Environment">sports_esports</mat-icon>
-</ng-template>
-<ng-template #production>
-  <mat-icon class="toolbar-icon" matTooltip="Production Environment">storefront</mat-icon>
-</ng-template>
-
 <mat-toolbar color="primary" class="mat-elevation-z4">
   <mat-toolbar-row>
-    <ng-container *ngTemplateOutlet="environmentTemplateReference"></ng-container>
+    <mat-icon class="toolbar-icon" [matTooltip]="getWebPaymentDemoEnvironment().name + ' Environment'">{{getWebPaymentDemoEnvironment().matIcon}}</mat-icon>
     <span class="toolbar-title" *ngIf="!isAuthenticated">{{title}}</span>
     <ng-container *ngIf="isAuthenticated">
       <app-breadcrumbs [appTitle]="title"></app-breadcrumbs>
       <span class="toolbar-spacer"></span>
-      <form [formGroup]="paymentDetails" class="toolbar-item country-currency-form">
-        <ng-container formGroupName="billing_address">
+      <form [formGroup]="paymentDetails" class="toolbar-item country-currency-form">  
+        <ng-container formGroupName="billing_address" *ngIf="countries">
           <mat-form-field form-field="country">
-            <mat-select formControlName="country" [(value)]="paymentDetails.value.billing_address.country" matTooltip="Select the (billing address) payment country.">
+            <mat-select formControlName="country" [(value)]="paymentDetails.value.billing_address.country" matTooltip="Select the (billing address) payment country">
               <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.nativeName}}&nbsp;({{country.alpha2Code}})">
                 <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.alpha2Code}}</span>
               </mat-option>
@@ -29,7 +16,7 @@
           </mat-form-field>
         </ng-container>
         <mat-form-field form-field="currency">
-          <mat-select formControlName="currency" matTooltip="Select the payment currency.">
+          <mat-select formControlName="currency" matTooltip="Select the payment currency">
             <mat-option *ngFor="let currency of currencies" [value]="currency.iso4217">
               {{currency.iso4217}}
             </mat-option>
@@ -49,10 +36,21 @@
             <mat-slide-toggle formControlName="hasWebhooks" (change)="toggleWebhooks($event)">Webhooks</mat-slide-toggle>
           </form>
         </button>
+        <button mat-menu-item [matMenuTriggerFor]="environments">Environments</button>
         <button mat-menu-item (click)="logout()">
           <mat-icon>power_settings_new</mat-icon>
           <span>Logout</span>
         </button>
+      </mat-menu>
+      <mat-menu #environments="matMenu">
+        <ng-container *ngFor="let webPaymentDemoEnvironment of webPaymentDemoEnvironments">
+          <ng-container *ngIf="isAvailableEnvironment(webPaymentDemoEnvironment)">
+            <button mat-menu-item (click)="switchEnvironment(webPaymentDemoEnvironment)">
+              <mat-icon>{{webPaymentDemoEnvironment.matIcon}}</mat-icon>
+              <span>{{webPaymentDemoEnvironment.name}} <mat-icon>exit_to_app</mat-icon></span>
+            </button>
+          </ng-container>
+        </ng-container>
       </mat-menu>
     </ng-container>
   </mat-toolbar-row>
