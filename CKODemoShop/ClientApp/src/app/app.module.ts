@@ -23,6 +23,7 @@ import { OKTA_CONFIG, OktaAuthModule, OktaCallbackComponent, OktaAuthGuard} from
 import { Location } from '@angular/common';
 import { AppConfigService } from './services/app-config.service';
 import { WebsocketsService } from './services/websockets.service';
+import { EnvironmentAlertComponent } from './components/environment-alert/environment-alert.component';
 
 const routes: Routes = [
   {
@@ -74,10 +75,12 @@ const routes: Routes = [
     PaymentMethodFormComponent,
     CustomerDetailsFormComponent,
     RefundPromptComponent,
+    EnvironmentAlertComponent,
     LoginComponent
   ],
   entryComponents: [
-    RefundPromptComponent
+    RefundPromptComponent,
+    EnvironmentAlertComponent
   ],
   imports: [
     HttpClientModule,

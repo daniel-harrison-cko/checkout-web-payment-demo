@@ -31,7 +31,7 @@ export class OrderDetailComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this._websocketsService.webhooksHub$.pipe(distinctUntilChanged()).subscribe(webhook => {
         this.getPayment();
-        this._ngZone.run(() => this._snackBar.open('Incoming Webhook', webhook.type, { duration: 1000 }));
+        this._ngZone.run(() => this._snackBar.open('Incoming Webhook', webhook.type, { duration: 3000 }));
       })
     );
   }

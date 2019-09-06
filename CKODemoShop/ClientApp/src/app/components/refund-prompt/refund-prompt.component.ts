@@ -21,7 +21,8 @@ export class RefundPromptComponent implements OnInit{
   constructor(
     public dialogRef: MatDialogRef<RefundPromptComponent>,
     @Inject(MAT_DIALOG_DATA) public data: DialogData,
-    private _formBuilder: FormBuilder) { }
+    private _formBuilder: FormBuilder
+  ) { }
 
   ngOnInit() {
     this.refundPromptDetails = this._formBuilder.group({

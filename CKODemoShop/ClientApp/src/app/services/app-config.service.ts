@@ -1,5 +1,29 @@
 import { Injectable } from '@angular/core';
 import { Location } from '@angular/common';
+import { IWebPaymentDemoEnvironment } from '../interfaces/web-payment-demo-environment.interface';
+
+const WEBPAYMENTDEMOENVIRONMENTS: IWebPaymentDemoEnvironment[] = [
+  {
+    name: 'Development',
+    url: null,
+    matIcon: 'code'
+  },
+  {
+    name: 'QA',
+    url: 'https://payment-demo-qa.ckotech.co',
+    matIcon: 'assignment_turned_in'
+  },
+  {
+    name: 'Sandbox',
+    url: 'https://payment-demo-sb.ckotech.co',
+    matIcon: 'sports_esports'
+  },
+  {
+    name: 'Production',
+    url: 'https://payment-demo.ckotech.co',
+    matIcon: 'storefront'
+  }
+];
 
 @Injectable({
   providedIn: 'root'
@@ -36,5 +60,17 @@ export class AppConfigService {
 
   public get isLoaded(): boolean {
     return this._config != null;
+  }
+
+  public get webPaymentDemoEnvironments(): IWebPaymentDemoEnvironment[] {
+    return WEBPAYMENTDEMOENVIRONMENTS;
+  }
+
+  public switchEnvironment(webPaymentDemoEnvironment: IWebPaymentDemoEnvironment): void {
+    window.location.href = webPaymentDemoEnvironment.url;
+  }
+
+  public isCurrentEnvironment(webPaymentDemoEnvironment: IWebPaymentDemoEnvironment): boolean {
+    return this.config.environment.toLowerCase() == webPaymentDemoEnvironment.name.toLowerCase();
   }
 }
