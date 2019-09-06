@@ -4,8 +4,8 @@
     <mat-card-subtitle>Made with ❤ by Checkout.com</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <p>You have opened the Payment Demo in <b>{{environment | titlecase}}</b> mode.</p>
-    <p *ngIf="environment === 'production'"><b>Be aware that payments perfomed here will imply real transactions and real costs!</b></p>
+    <p>You have opened the Payment Demo in <b>{{getWebPaymentDemoEnvironment().name}}</b> mode.</p>
+    <p *ngIf="environment === 'production'"><b>Be aware that payments performed here will imply real transactions and real costs!</b></p>
     <p>If you want, you can either switch to another environment or continue here.</p>
   </mat-card-content>
   <mat-card-actions>
