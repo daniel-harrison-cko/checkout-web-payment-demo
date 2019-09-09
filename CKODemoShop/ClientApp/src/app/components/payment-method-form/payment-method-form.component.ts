@@ -8,7 +8,6 @@ import { startWith, map, distinctUntilChanged, debounceTime, filter } from 'rxjs
 import { HttpResponse } from '@angular/common/http';
 import { ScriptService } from 'src/app/services/script.service';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
-import { v4 as uuid } from 'uuid';
 import { CountriesService } from '../../services/countries.service';
 import { ICountry } from '../../interfaces/country.interface';
 
@@ -39,7 +38,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   countries: ICountry[];
   country: ICountry;
   listenToValueChanges: boolean;
-  paymentMethodRequiresAdditionalInformation: boolean;
   selectedSourceType: string;
   creditCardForm: FormGroup;
   klarnaCreditSession: FormGroup;
@@ -106,6 +104,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
   private currencyBaseAmount(currencyCode: string): number {
     return this._paymentsService.currencies.find(currency => currency.iso4217 == currencyCode).base;
+  }
+
+  get sourceFieldsCount(): number {
+    return Object.keys(this.source.controls).length;
   }
 
   get source(): FormGroup {
@@ -176,7 +178,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   }
 
   private resetPaymentMethod = () => {
-    this.paymentMethodRequiresAdditionalInformation = null;
     this.paymentConsent.disable();
     this.banks = null;
     this.filteredBanks = null;
@@ -196,15 +197,11 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     try {
       switch (paymentMethod.type) {
         case 'cko-frames': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('token', new FormControl({ value: null, disabled: false }));
 
           break;
         }
         case 'card': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('number', new FormControl({ value: '4242424242424242', disabled: false }, Validators.required));
           this.source.addControl('expiry_month', new FormControl({ value: 12, disabled: false }, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])));
           this.source.addControl('expiry_year', new FormControl({ value: 2022, disabled: false }, Validators.required));
@@ -223,11 +220,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'ach': {
-          this.paymentMethodRequiresAdditionalInformation = true;
           this.paymentConsent.enable();
           this.paymentDetails.get('amount').setValue(154);
 
-          this.source.addControl('reference', new FormControl(`cko_demo_${uuid()}`));
+          this.source.addControl('reference', new FormControl(this.paymentDetails.value.reference));
           this.source.addControl(
             'billing_address',
             this._formBuilder.group({
@@ -274,13 +270,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'alipay': {
-          this.paymentMethodRequiresAdditionalInformation = false;
-
           break;
         }
         case 'bancontact': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
           this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.get('billing_address.country').value, disabled: true }, Validators.required));
           this.source.addControl('billing_descriptor', new FormControl({ value: 'Bancontact Demo Payment', disabled: false }));
@@ -292,8 +284,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'boleto': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('birthDate', new FormControl({ value: '1939-02-19', disabled: false}, Validators.required));
           this.source.addControl('cpf', new FormControl({ value: '00003456789', disabled: false }, Validators.required));
           this.source.addControl('customerName', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
@@ -304,8 +294,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'eps': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('purpose', new FormControl({ value: 'EPS Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
@@ -313,8 +301,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'fawry': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('description', new FormControl({ value: 'Fawry Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('customer_mobile', new FormControl({ value: '0102800991193847299', disabled: false }, Validators.required));
           this.source.addControl('customer_email', new FormControl({ value: this.paymentDetails.value.customer.email, disabled: false }, Validators.compose([Validators.email, Validators.required])));
@@ -341,8 +327,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'giropay': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('purpose', new FormControl({ value: 'Giropay Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
@@ -351,13 +335,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'googlepay': {
-          this.paymentMethodRequiresAdditionalInformation = false;
-
           break;
         }
         case 'ideal': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('description', new FormControl({ value: 'iDEAL Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }, Validators.required));
           this.source.addControl('language', new FormControl({ value: 'NL', disabled: false }));
@@ -367,8 +347,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'klarna': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           let requestKlarnaCreditSession = () => this._paymentsService.requestKlarnaSession(this.klarnaCreditSession.value).subscribe(klarnaCreditSessionResponse => handleKlarnaCreditSessionResponse(klarnaCreditSessionResponse));
           let handleKlarnaCreditSessionResponse = async (klarnaCreditSessionResponse: HttpResponse<any>) => {
             if (klarnaCreditSessionResponse.ok) {
@@ -506,8 +484,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'knet': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('language', new FormControl({ value: 'en', disabled: false }, Validators.required));
           this.source.addControl('user_defined_field1', new FormControl({ value: 'First user defined field', disabled: false }));
           this.source.addControl('user_defined_field2', new FormControl({ value: 'Second user defined field', disabled: false }));
@@ -527,20 +503,14 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'paypal': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('invoice_number', new FormControl({ value: this.paymentDetails.value.reference, disabled: true }, Validators.required));
 
           break;
         }
         case 'poli': {
-          this.paymentMethodRequiresAdditionalInformation = false;
-
           break;
         }
         case 'p24': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
           this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
           this.source.addControl('account_holder_email', new FormControl({ value: this.paymentDetails.value.customer.email, disabled: true }, Validators.compose([Validators.required, Validators.email])));
@@ -552,8 +522,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'qpay': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('language', new FormControl({ value: 'en', disabled: false }));
           this.source.addControl('description', new FormControl({ value: 'QPay Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('quantity', new FormControl({ value: 1, disabled: true }));
@@ -562,10 +530,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'sepa': {
-          this.paymentMethodRequiresAdditionalInformation = true;
           this.paymentConsent.enable();
 
-          this.source.addControl('reference', new FormControl(`cko_demo_${uuid()}`));
+          this.source.addControl('reference', new FormControl(this.paymentDetails.value.reference));
           this.source.addControl(
             'billing_address',
             this._formBuilder.group({
@@ -611,8 +578,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           break;
         }
         case 'sofort': {
-          this.paymentMethodRequiresAdditionalInformation = true;
-
           this.source.addControl('country_code', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
           this.source.addControl('language_code', new FormControl({ value: (this.country.languages[0].iso639_1 as string).toUpperCase(), disabled: false }, Validators.required));
 

@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { Injectable, NgZone } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
@@ -7,8 +7,17 @@ import { IPayment } from '../interfaces/payment.interface';
 import { ICurrency } from '../interfaces/currency.interface';
 import { ILink } from '../interfaces/link.interface';
 import { HypermediaRequest } from '../components/hypermedia/hypermedia-request';
+import { Router } from '@angular/router';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { PaymentDetailsService } from './payment-details.service';
+import { distinctUntilChanged, finalize } from 'rxjs/operators';
+import { ScriptService } from './script.service';
+import { AppConfigService } from './app-config.service';
+import { ShopService } from './shop.service';
 
-const DEFAULT_AMOUNT: number = 100;
+declare var Frames: any;
+declare var google: any;
+declare var Klarna: any;
 
 const CURRENCIES: ICurrency[] = [
   { iso4217: 'AUD', base: 100 },
@@ -25,7 +34,6 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'SEK', base: 100 },
   { iso4217: 'USD', base: 100 }
 ];
-
 const PAYMENT_METHODS: IPaymentMethod[] = [
   {
     name: 'Credit Card (Frames)',
@@ -161,57 +169,373 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
   }
 ]
 
-
 @Injectable({
   providedIn: 'root'
 })
 
 export class PaymentsService {
+  private paymentDetails: FormGroup;
+  private paymentConsent: FormGroup;
+  private paymentRequest: any;
+  private _makePayment: Function;
+  private _processing: boolean;
 
-  constructor(private _http: HttpClient) { }
+  constructor(
+    private _appConfigService: AppConfigService,
+    private _http: HttpClient,
+    private _paymentDetailsService: PaymentDetailsService,
+    private _shopService: ShopService,
+    private _scriptService: ScriptService,
+    private _router: Router,
+    private _ngZone: NgZone
+  ) {
+    this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails);
+    this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent);
+    this.processing$.pipe(distinctUntilChanged()).subscribe(processing => this._processing = processing);
+    this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.setupPaymentMethod(sourceType));
+    this.paymentDetails.valueChanges.pipe(distinctUntilChanged()).subscribe(() => this.paymentRequest = this.paymentDetails.getRawValue());
+  }
 
   // Subjects
-  private currencySource = new BehaviorSubject<ICurrency>(CURRENCIES.find(currency => currency.iso4217 == 'EUR'));
-  private amountSource = new BehaviorSubject<number>(DEFAULT_AMOUNT);
+  private processingSource = new BehaviorSubject<boolean>(false);
 
   // Observables
-  public currency$ = this.currencySource.asObservable();
-  public amount$ = this.amountSource.asObservable();
+  public processing$ = this.processingSource.asObservable();
 
-  // Methods
-  public setCurrency(currency: ICurrency) {
-    this.currencySource.next(currency);
+  // Subjects Methods
+  public setProcessing(isProcessing: boolean) {
+    this.processingSource.next(isProcessing);
   }
 
-  get currencies(): ICurrency[] {
-    return CURRENCIES;
+  // Payment Flow Methods
+  public makePayment(): void {
+    this.setProcessing(true);
+    this._makePayment();
   }
 
-  get paymentMethods(): IPaymentMethod[] {
-    return PAYMENT_METHODS;
+  private addPaymentToLocalStorage(id: string) {
+    let payments: string[] = JSON.parse(localStorage.getItem('payments'));
+    if (!payments) {
+      localStorage.setItem('payments', JSON.stringify([id]));
+    } else {
+      payments.push(id);
+      localStorage.setItem('payments', JSON.stringify(payments));
+    }
   }
 
-  public setAmount(amount: number) {
-    this.amountSource.next(amount);
+  private paymentRoute(payment: IPayment) {
+    this.addPaymentToLocalStorage(payment.id);
+    this._ngZone.run(() => this._router.navigate([`/user/orders/${payment.id}`]));
   }
 
-  paymentMethodIcon(payment: IPayment): string {
-    return payment.source.type == 'card' ? (<string>payment.source["scheme"]).toLowerCase() : payment.source.type;
+  private paymentRedirect(payment: IPayment) {
+    if (payment._links.redirect) {
+      this.addPaymentToLocalStorage(payment.id);
+      this.redirect(payment._links.redirect);
+    } else {
+      this.paymentRoute(payment);
+    }    
   }
 
-  redirect(redirection: ILink): void {
-    window.location.href = redirection.href;
+  public handleSourceResponse(response: HttpResponse<any>) {
+    let source: any;
+    try {
+      if (response.body.id) {
+        source = {
+          type: 'id',
+          id: response.body.id
+        }
+      } else if (response.body.token) {
+        source = {
+          type: 'token',
+          token: response.body.token
+        }
+      }
+      else {
+        throw new Error('Unkown Source Type');
+      }
+    }
+    catch (e) {
+      console.error(e);
+    }
+    try {
+      switch (response.status) {
+        case 201: {
+          this.requestPayment({
+            currency: this.paymentDetails.value.currency,
+            amount: this.paymentDetails.value.amount,
+            source: source
+          })
+            .subscribe(
+            response => this.handlePaymentResponse(response),
+            error => {
+              console.warn(error);
+              this.resetPayment();
+            });
+          break;
+        }
+        default: {
+          this.resetPayment();
+          throw new Error(`Handling of response status ${response.status} is not implemented!`);
+        }
+      }
+    }
+    catch (e) {
+      console.error(e);
+    }
   }
 
-  getMonth(expiryDate: string): number {
-    return Number.parseInt(expiryDate.slice(0, 2));
+  public handlePaymentResponse(response: HttpResponse<any>) {
+    this.resetPayment();
+    try {
+      switch (response.status) {
+        case 201: {
+          if (response.body._links.redirect) {
+            this.paymentRedirect(response.body);
+          } else {
+            this.paymentRoute(response.body);
+          }
+          break;
+        }
+        case 202: {
+          this.paymentRedirect(response.body);
+          break;
+        }
+        default: {
+          throw new Error(`Handling of response status ${response.status} is not implemented!`);
+        }
+      }
+    } catch (e) {
+      console.error(e);
+    }
   }
 
-  getYear(expiryDate: string): number {
-    return Number.parseInt(expiryDate.slice(2, 6));
+  private setupPaymentAction(makePaymentAction: Function, autoCapture?: boolean, threeDs?: boolean, paymentConfirmationRequired?: boolean) {
+    this._makePayment = makePaymentAction;
+    this.autoCapture = autoCapture;
+    this.threeDs = threeDs;
   }
 
-  // API
+  private standardPaymentFlow = () => {
+    this.requestPayment(this.paymentRequest)
+      .pipe(finalize(() => this.resetReference()))
+      .subscribe(
+        response => this.handlePaymentResponse(response),
+        error => {
+          console.warn(error);
+          this.resetPayment();
+        });
+  };
+
+  private sourcesPaymentFlow = () => {
+    this.requestSource(this.paymentRequest.source).subscribe(
+      response => this.handleSourceResponse(response),
+      error => {
+        console.warn(error);
+        this.resetPayment();
+      });
+  };
+
+  private klarnaPaymentFlow = async () => {
+    let klarnaPaymentsAuthorize = async (data: any = {}) => new Promise<any>(resolve => {
+      Klarna.Payments.authorize(
+        {
+          instance_id: 'klarna-payments-instance',
+          auto_finalize: true
+        },
+        data,
+        function (response) {
+          resolve(response);
+        }
+      )
+    });
+    let klarnaPaymentsAuthorizeResponse = await klarnaPaymentsAuthorize();
+    if (klarnaPaymentsAuthorizeResponse.approved) {
+      (this.paymentDetails.get('source') as FormGroup).addControl('authorization_token', new FormControl(klarnaPaymentsAuthorizeResponse.authorization_token, Validators.required));
+      this.standardPaymentFlow();
+    }
+  };
+
+  private setupPaymentMethod(sourceType: string) {
+    try {
+      switch (sourceType) {
+        case 'cko-frames': {
+          this.paymentDetails.get('capture').setValue(true);
+          this.setupPaymentAction(() => { Frames.submitCard(); }, true, true);
+
+          let initializeCkoFrames = async () => {
+            let loadedScripts = await this._scriptService.load('cko-frames');
+            if (loadedScripts.every(script => script.loaded)) {
+              let cardTokenisedCallback = (event) => {
+                this.paymentRequest.source.type = 'token';
+                this.paymentRequest.source.token = event.data.cardToken;
+                this.standardPaymentFlow();
+              };
+              Frames.init({
+                publicKey: this._appConfigService.config.publicKey,
+                containerSelector: '.cko-container',
+                cardTokenised: function (event) {
+                  cardTokenisedCallback(event);
+                },
+                cardTokenisationFailed: function (event) {
+                  // catch the error
+                }
+              });
+            }
+          }
+
+          initializeCkoFrames();
+
+          break;
+        }
+        case 'card': {
+          this.paymentDetails.get('capture').setValue(true);
+          this.setupPaymentAction(this.standardPaymentFlow, true, true);
+          break;
+        }
+        case 'ach': {
+          this.setupPaymentAction(this.sourcesPaymentFlow, false, false);
+          break;
+        }
+        case 'alipay': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'bancontact': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'boleto': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'eps': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'fawry': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'giropay': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'googlepay': {
+          this.autoCapture = false;
+          this.threeDs = false;
+
+          let googleClient;
+          let allowedPaymentMethods = ['CARD', 'TOKENIZED_CARD'];
+          this._scriptService.load('googlepay')
+            .then(data => {
+              let isReadyToPayCallback = () => {
+                this._makePayment = () => {
+                  let processPayment = (paymentData) => {
+                    this.requestToken({
+                      wallet_type: this.paymentDetails.value.source.type,
+                      token_data: JSON.parse(paymentData.paymentMethodToken.token)
+                    }).subscribe(
+                      response => this.handleSourceResponse(response),
+                      error => {
+                        console.warn(error);
+                        this.resetPayment();
+                      });
+                  };
+                  let paymentDataRequest = {
+                    merchantId: '01234567890123456789',
+                    paymentMethodTokenizationParameters: {
+                      tokenizationType: 'PAYMENT_GATEWAY',
+                      parameters: {
+                        'gateway': 'checkoutltd',
+                        'gatewayMerchantId': this._appConfigService.config.publicKey
+                      }
+                    },
+                    allowedPaymentMethods: allowedPaymentMethods,
+                    cardRequirements: {
+                      allowedCardNetworks: ['MASTERCARD', 'VISA']
+                    },
+                    transactionInfo: {
+                      currencyCode: this.paymentDetails.value.currency,
+                      totalPriceStatus: 'FINAL',
+                      totalPrice: this.paymentDetails.value.amount
+                    }
+                  };
+
+                  googleClient.loadPaymentData(paymentDataRequest)
+                    .then(paymentData => processPayment(paymentData))
+                    .catch(error => {
+                      console.error(error);
+                      this.resetPayment();
+                    });
+                };
+              };
+              googleClient = new google.payments.api.PaymentsClient({
+                environment: 'TEST'
+              });
+              googleClient.isReadyToPay({
+                allowedPaymentMethods: allowedPaymentMethods
+              })
+                .then(response => {
+                  if (response.result) {
+                    isReadyToPayCallback();
+                  }
+                })
+                .catch(error => console.error(error));
+            });
+          break;
+        }
+        case 'ideal': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'klarna': {
+          this.paymentDetails.get('capture').setValue(false);
+          this.setupPaymentAction(this.klarnaPaymentFlow);
+          break;
+        }
+        case 'knet': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'paypal': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'poli': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'p24': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'qpay': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case 'sepa': {
+          this.setupPaymentAction(this.sourcesPaymentFlow, false, false);
+          break;
+        }
+        case 'sofort': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+          break;
+        }
+        case null: {
+          break;
+        }
+        default: {
+          this._makePayment = () => { throw new Error(`${sourceType} payment is not implemented yet!`) };
+          throw new Error(`No ${sourceType} specific action was defined!`);
+        }
+      }
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  // API Methods
   getLegacyBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<any>> {
     return this._http.get<any>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
   }
@@ -236,11 +560,65 @@ export class PaymentsService {
     return this._http.post<any>(`/api/checkout/payments`, paymentRequest, { observe: 'response' });
   }
 
+  requestSource(source: any): Observable<HttpResponse<any>> {
+    return this._http.post<any>('/api/checkout/sources', source, { observe: 'response' });
+  }
+
   getPaymentActions(id: string): Observable<HttpResponse<any>> {
     return this._http.get<any>(`/api/checkout/payments/${id}/actions`, { observe: 'response' })
   }
 
   performHypermediaAction(hypermediaRequest: HypermediaRequest): Observable<HttpResponse<any>> {
     return this._http.post<any>(`/api/checkout/hypermedia`, hypermediaRequest, { observe: 'response' });
+  }
+
+  // Getters and Setters
+  get paymentButtonIsDisabled(): boolean {
+    return (this.paymentDetails ? this.paymentDetails.invalid : false) || (this.paymentConsent ? this.paymentConsent.invalid : false) || this._processing;
+  }
+
+  get currencies(): ICurrency[] {
+    return CURRENCIES;
+  }
+
+  get paymentMethods(): IPaymentMethod[] {
+    return PAYMENT_METHODS;
+  }
+
+  set autoCapture(autoCapture: boolean) {
+    let captureField = this.paymentDetails.get('capture');
+    autoCapture ? captureField.enable() : captureField.disable();
+  }
+
+  set threeDs(threeDs: boolean) {
+    let threeDsEnabledField = this.paymentDetails.get('3ds');
+    threeDs ? threeDsEnabledField.enable() : threeDsEnabledField.disable();
+  }
+
+  // Syntactic Sugar
+  public paymentMethodIcon(payment: IPayment): string {
+    return payment.source.type == 'card' ? (<string>payment.source["scheme"]).toLowerCase() : payment.source.type;
+  }
+
+  private redirect(redirection: ILink): void {
+    window.location.href = redirection.href;
+  }
+
+  public resetPayment(): void {
+    this.paymentDetails.get('source').reset();
+    this.autoCapture = true;
+    this.threeDs = true;
+    this.paymentConsent.reset();
+    this.setProcessing(false);
+  }
+
+  private resetReference() {
+    this.paymentDetails.get('reference').reset();
+  }
+
+  public setReferenceIfMissing() {
+    if (!this.paymentDetails.value.reference) {
+      this._shopService.getReference().subscribe(response => this.paymentDetails.get('reference').setValue(response.body.reference));
+    }
   }
 }

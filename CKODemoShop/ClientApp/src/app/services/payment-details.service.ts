@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { ShopService } from './shop.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +8,6 @@ import { ShopService } from './shop.service';
 
 export class PaymentDetailsService {
   constructor(
-    private _shopService: ShopService,
     private _formBuilder: FormBuilder
   ) { }
 

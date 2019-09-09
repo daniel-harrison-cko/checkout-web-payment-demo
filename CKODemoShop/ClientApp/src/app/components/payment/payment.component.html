@@ -7,7 +7,7 @@
   </div>
   <div class="row">
     <mat-card>
-      <mat-vertical-stepper [linear]="isLinear" #stepper>
+      <mat-vertical-stepper [linear]="true" #stepper>
         <mat-step>
           <ng-template matStepLabel>Customer Details</ng-template>
           <app-customer-details-form></app-customer-details-form>
@@ -27,7 +27,7 @@
     </mat-card>
   </div>
 </div>
-<div class="column" *ngIf="false">
+<div class="column" *ngIf="true">
   <div class="row">
     <mat-card>
       <pre>{{paymentDetails.valid}}</pre>
