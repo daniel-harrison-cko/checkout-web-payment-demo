@@ -8,7 +8,7 @@ import { ICurrency } from '../interfaces/currency.interface';
 import { ILink } from '../interfaces/link.interface';
 import { HypermediaRequest } from '../components/hypermedia/hypermedia-request';
 import { Router } from '@angular/router';
-import { FormGroup, FormControl, Validators } from '@angular/forms';
+import { FormGroup, FormControl, Validators, AbstractControl } from '@angular/forms';
 import { PaymentDetailsService } from './payment-details.service';
 import { distinctUntilChanged, finalize } from 'rxjs/operators';
 import { ScriptService } from './script.service';
@@ -17,6 +17,7 @@ import { ShopService } from './shop.service';
 
 declare var Frames: any;
 declare var google: any;
+var googleClient: any;
 declare var Klarna: any;
 
 const CURRENCIES: ICurrency[] = [
@@ -336,6 +337,46 @@ export class PaymentsService {
       });
   };
 
+  private googlePayPaymentFlow = () => {
+    let processPayment = (paymentData) => {
+      this.requestToken({
+        wallet_type: this.paymentDetails.value.source.type,
+        token_data: JSON.parse(paymentData.paymentMethodToken.token)
+      }).subscribe(
+        response => this.handleSourceResponse(response),
+        error => {
+          console.warn(error);
+          this.resetPayment();
+        });
+    };
+    let paymentDataRequest = {
+      merchantId: '01234567890123456789',
+      paymentMethodTokenizationParameters: {
+        tokenizationType: 'PAYMENT_GATEWAY',
+        parameters: {
+          'gateway': 'checkoutltd',
+          'gatewayMerchantId': this._appConfigService.config.publicKey
+        }
+      },
+      allowedPaymentMethods: ['CARD', 'TOKENIZED_CARD'],
+      cardRequirements: {
+        allowedCardNetworks: ['MASTERCARD', 'VISA']
+      },
+      transactionInfo: {
+        currencyCode: this.paymentDetails.value.currency,
+        totalPriceStatus: 'FINAL',
+        totalPrice: this.paymentDetails.value.amount
+      }
+    };
+
+    googleClient.loadPaymentData(paymentDataRequest)
+      .then(paymentData => processPayment(paymentData))
+      .catch(error => {
+        console.error(error);
+        this.resetPayment();
+      });
+  };
+  
   private klarnaPaymentFlow = async () => {
     let klarnaPaymentsAuthorize = async (data: any = {}) => new Promise<any>(resolve => {
       Klarna.Payments.authorize(
@@ -425,64 +466,26 @@ export class PaymentsService {
           this.autoCapture = false;
           this.threeDs = false;
 
-          let googleClient;
-          let allowedPaymentMethods = ['CARD', 'TOKENIZED_CARD'];
-          this._scriptService.load('googlepay')
-            .then(data => {
-              let isReadyToPayCallback = () => {
-                this._makePayment = () => {
-                  let processPayment = (paymentData) => {
-                    this.requestToken({
-                      wallet_type: this.paymentDetails.value.source.type,
-                      token_data: JSON.parse(paymentData.paymentMethodToken.token)
-                    }).subscribe(
-                      response => this.handleSourceResponse(response),
-                      error => {
-                        console.warn(error);
-                        this.resetPayment();
-                      });
-                  };
-                  let paymentDataRequest = {
-                    merchantId: '01234567890123456789',
-                    paymentMethodTokenizationParameters: {
-                      tokenizationType: 'PAYMENT_GATEWAY',
-                      parameters: {
-                        'gateway': 'checkoutltd',
-                        'gatewayMerchantId': this._appConfigService.config.publicKey
-                      }
-                    },
-                    allowedPaymentMethods: allowedPaymentMethods,
-                    cardRequirements: {
-                      allowedCardNetworks: ['MASTERCARD', 'VISA']
-                    },
-                    transactionInfo: {
-                      currencyCode: this.paymentDetails.value.currency,
-                      totalPriceStatus: 'FINAL',
-                      totalPrice: this.paymentDetails.value.amount
-                    }
-                  };
-
-                  googleClient.loadPaymentData(paymentDataRequest)
-                    .then(paymentData => processPayment(paymentData))
-                    .catch(error => {
-                      console.error(error);
-                      this.resetPayment();
-                    });
-                };
-              };
+          let initializeGooglePay = async () => {
+            let loadedScripts = await this._scriptService.load('googlepay');
+            if (loadedScripts.every(script => script.loaded)) {
               googleClient = new google.payments.api.PaymentsClient({
                 environment: 'TEST'
               });
               googleClient.isReadyToPay({
-                allowedPaymentMethods: allowedPaymentMethods
+                allowedPaymentMethods: ['CARD', 'TOKENIZED_CARD']
               })
                 .then(response => {
                   if (response.result) {
-                    isReadyToPayCallback();
+                    this.setupPaymentAction(this.googlePayPaymentFlow);
                   }
                 })
                 .catch(error => console.error(error));
-            });
+            }
+          }
+
+          initializeGooglePay();
+
           break;
         }
         case 'ideal': {
@@ -573,6 +576,10 @@ export class PaymentsService {
   }
 
   // Getters and Setters
+  get source(): FormGroup {
+    return <FormGroup>this.paymentDetails.get('source');
+  }
+
   get paymentButtonIsDisabled(): boolean {
     return (this.paymentDetails ? this.paymentDetails.invalid : false) || (this.paymentConsent ? this.paymentConsent.invalid : false) || this._processing;
   }
@@ -605,7 +612,13 @@ export class PaymentsService {
   }
 
   public resetPayment(): void {
-    this.paymentDetails.get('source').reset();
+    Object.keys(this.source.controls).forEach(key => {
+      if (key != 'type') {
+        this.source.removeControl(key);
+      } else {
+        this.source.get(key).setValue(null);
+      }
+    });
     this.autoCapture = true;
     this.threeDs = true;
     this.paymentConsent.reset();
