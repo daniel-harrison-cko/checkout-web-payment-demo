@@ -36,15 +36,6 @@
             <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
             <mat-error *ngIf="paymentDetails.get('source.cvv').hasError('minlength') || paymentDetails.get('source.cvv').hasError('maxlength')">Your CVV must have 3-4 digits</mat-error>
           </mat-form-field>
-          <div formGroupName="phone" class="row">
-            <mat-form-field form-field="card_phone_country_code">
-              <span matPrefix>Phone&nbsp;</span>
-              <input matInput placeholder="Country Code" formControlName="country_code">
-            </mat-form-field>
-            <mat-form-field form-field="card_phone_number">
-              <input matInput placeholder="Number" formControlName="number">
-            </mat-form-field>
-          </div>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'ach'">
           <div formGroupName="source_data" class="row">
@@ -109,14 +100,14 @@
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'eps'">
           <mat-form-field [formGroup]="bankForm" form-field="eps_bank">
-            <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bankSearchInput" [matAutocomplete]="auto" (input)="selectedBankControl.reset()">
+            <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bankSearchInput" [matAutocomplete]="auto" (input)="clearBankForm(selectedBankControl)">
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged($event)">
               <mat-option>--</mat-option>
               <mat-option *ngFor="let bank of filteredBanks" [value]="bank">
                 <span class="monospace">{{bank.bic}}</span>&nbsp;{{bank.name}}
               </mat-option>
             </mat-autocomplete>
-            <button mat-button *ngIf="bankSearchInput.value" matSuffix mat-icon-button aria-label="Clear" (click)="bankSearchInput.reset(); selectedBankControl.reset()">
+            <button mat-button *ngIf="bankSearchInput.value" matSuffix mat-icon-button aria-label="Clear" (click)="clearBankForm(bankSearchInput, selectedBankControl)">
               <mat-icon>close</mat-icon>
             </button>
             <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list (<span class="monospace">HYPTAT22XXX</span> for Sandbox)</mat-hint>

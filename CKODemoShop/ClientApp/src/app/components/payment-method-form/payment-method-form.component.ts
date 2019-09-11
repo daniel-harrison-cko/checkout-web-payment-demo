@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
+import { FormGroup, FormBuilder, Validators, FormControl, FormArray, AbstractControl } from '@angular/forms';
 import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Subscription } from 'rxjs';
@@ -29,7 +29,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   paymentConsent: FormGroup;
   countries: ICountry[];
   country: ICountry;
-  listenToValueChanges: boolean;
   selectedSourceType: string;
   creditCardForm: FormGroup;
   klarnaCreditSession: FormGroup;
@@ -51,7 +50,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this._banksService.bankForm$.pipe().subscribe(bankForm => this.bankForm = bankForm),
       this._countriesService.countries$.pipe(distinctUntilChanged()).subscribe(countries => this.countries = countries),
-      this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
       this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customer = customerFullName),
       this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent),
@@ -59,14 +57,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         let sourceType = this.paymentDetails.get('source.type').value;
         if (sourceType) {
           if (!this.sourceTypeSupportsCurrencyCountryPairing(sourceType)) {
-            this.resetPaymentMethod();
+            //this.resetPaymentMethod();
             this.paymentDetails.get('source.type').setValue(null);
           }
         }        
       }),
-      this.source.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.routePaymentMethod(source)),
+      //this.source.valueChanges.pipe(distinctUntilChanged()).subscribe(source => this.routePaymentMethod(source)),
       this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(alpha2Code => this.country = this.countries.find(country => country.alpha2Code == alpha2Code)),
-      this.selectedBankControl.get('bic').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(bic => this.paymentDetails.get('source.bic').setValue(bic)),
       this.bankSearchInput.valueChanges.pipe(distinctUntilChanged()).subscribe(banksSearchInput => this._banksService.updateFilteredBanks(banksSearchInput))
     );
   }
@@ -125,7 +122,13 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       let selectedBank: IBank = event.option.value;
       this.selectedBankControl.setValue(selectedBank);
       this.bankSearchInput.setValue(`${selectedBank.bic} ${selectedBank.name}`);
-    }    
+      this.source.get('bic').setValue(selectedBank.bic);
+    }
+  }
+
+  private clearBankForm(...abstractControls: AbstractControl[]) {
+    abstractControls.forEach(abstractControl => abstractControl.reset());
+    this.source.get('bic').setValue(null);
   }
 
   private resetPaymentMethod = () => {
@@ -133,43 +136,14 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this._banksService.resetBanks();
     this.bankForm.reset();
     this.paymentMethodSubsriptions.forEach(subscription => subscription.unsubscribe());
-    Object.keys(this.source.controls).forEach(key => {
-      if (key != 'type') {
-        this.source.removeControl(key);
-      }
-    });
     this.paymentDetails.get('amount').setValue(100);
   }
 
   private routePaymentMethod = async (paymentMethod: IPaymentMethod) => {
     if (paymentMethod.type == this.paymentDetails.value.source.type) return;
-    this._paymentDetailsService.stopListeningToValueChanges();
-    this.resetPaymentMethod();
+    //this.resetPaymentMethod();
     try {
       switch (paymentMethod.type) {
-        case 'cko-frames': {
-          this.source.addControl('token', new FormControl({ value: null, disabled: false }));
-
-          break;
-        }
-        case 'card': {
-          this.source.addControl('number', new FormControl({ value: '4242424242424242', disabled: false }, Validators.required));
-          this.source.addControl('expiry_month', new FormControl({ value: 12, disabled: false }, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])));
-          this.source.addControl('expiry_year', new FormControl({ value: 2022, disabled: false }, Validators.required));
-          this.source.addControl('name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }));
-          this.source.addControl('cvv', new FormControl({ value: '100', disabled: false }, Validators.compose([Validators.minLength(3), Validators.maxLength(4)])));
-          this.source.addControl('stored', new FormControl({ value: null, disabled: false }));
-          this.source.addControl('billing_address', new FormControl({ value: this.paymentDetails.value.billing_address, disabled: true }));
-          this.source.addControl(
-            'phone',
-            this._formBuilder.group({
-              country_code: null,
-              number: null
-            })
-          );
-
-          break;
-        }
         case 'ach': {
           this.paymentConsent.enable();
           this.paymentDetails.get('amount').setValue(154);
@@ -551,6 +525,5 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     } catch (e) {
       console.warn(e);
     }
-    this._paymentDetailsService.resumeListeningToValueChanges();
   }
 }

@@ -7,9 +7,9 @@ import { ICurrency } from '../interfaces/currency.interface';
 import { ILink } from '../interfaces/link.interface';
 import { HypermediaRequest } from '../components/hypermedia/hypermedia-request';
 import { Router } from '@angular/router';
-import { FormGroup, FormControl, Validators, AbstractControl } from '@angular/forms';
+import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { PaymentDetailsService } from './payment-details.service';
-import { distinctUntilChanged, finalize } from 'rxjs/operators';
+import { distinctUntilChanged, finalize, filter } from 'rxjs/operators';
 import { ScriptService } from './script.service';
 import { AppConfigService } from './app-config.service';
 import { ShopService } from './shop.service';
@@ -179,6 +179,7 @@ export class PaymentsService {
   private paymentRequest: any;
   private _makePayment: Function;
   private _processing: boolean;
+  private updateSourceType: boolean = true;
 
   constructor(
     private _appConfigService: AppConfigService,
@@ -192,7 +193,7 @@ export class PaymentsService {
     this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails);
     this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent);
     this.processing$.pipe(distinctUntilChanged()).subscribe(processing => this._processing = processing);
-    this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged()).subscribe(sourceType => this.setupPaymentMethod(sourceType));
+    this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.updateSourceType)).subscribe(sourceType => this.setupPaymentMethod(sourceType));
     this.paymentDetails.valueChanges.pipe(distinctUntilChanged()).subscribe(() => this.paymentRequest = this.paymentDetails.getRawValue());
   }
 
@@ -397,6 +398,9 @@ export class PaymentsService {
   };
 
   private setupPaymentMethod(sourceType: string) {
+    if (this.paymentDetails.value.source.type == sourceType) return;
+    this.updateSourceType = false;
+    this.resetPayment(false);
     try {
       switch (sourceType) {
         case 'cko-frames': {
@@ -426,11 +430,21 @@ export class PaymentsService {
 
           initializeCkoFrames();
 
+          this.source.addControl('token', new FormControl({ value: null, disabled: false }));
+
           break;
         }
         case 'card': {
           this.paymentDetails.get('capture').setValue(true);
           this.setupPaymentAction(this.standardPaymentFlow, true, true);
+
+          this.source.addControl('number', new FormControl({ value: '4242424242424242', disabled: false }, Validators.required));
+          this.source.addControl('expiry_month', new FormControl({ value: 12, disabled: false }, Validators.compose([Validators.required, Validators.min(1), Validators.max(12)])));
+          this.source.addControl('expiry_year', new FormControl({ value: 2022, disabled: false }, Validators.required));
+          this.source.addControl('name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }));
+          this.source.addControl('cvv', new FormControl({ value: '100', disabled: false }, Validators.compose([Validators.minLength(3), Validators.maxLength(4)])));
+          this.source.addControl('billing_address', new FormControl({ value: this.paymentDetails.value.billing_address, disabled: true }));
+
           break;
         }
         case 'ach': {
@@ -535,6 +549,7 @@ export class PaymentsService {
     } catch (e) {
       console.warn(e);
     }
+    this.updateSourceType = true;
   }
 
   // API Methods
@@ -602,17 +617,18 @@ export class PaymentsService {
     window.location.href = redirection.href;
   }
 
-  public resetPayment(): void {
+  public resetPayment(resetType: boolean = true): void {
     Object.keys(this.source.controls).forEach(key => {
       if (key != 'type') {
         this.source.removeControl(key);
-      } else {
+      } else if (resetType) {
         this.source.get(key).reset();
       }
     });
     this.autoCapture = true;
     this.threeDs = true;
     this.paymentConsent.reset();
+    this.paymentConsent.disable();
     this.setProcessing(false);
   }
 
