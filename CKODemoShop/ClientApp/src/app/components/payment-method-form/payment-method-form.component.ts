@@ -194,9 +194,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           );
           break;
         }
-        case 'alipay': {
-          break;
-        }
         case 'bancontact': {
           this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
           this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.get('billing_address.country').value, disabled: true }, Validators.required));
@@ -257,9 +254,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
           await this._banksService.getBanks(paymentMethod);
 
-          break;
-        }
-        case 'googlepay': {
           break;
         }
         case 'ideal': {
@@ -430,9 +424,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         case 'paypal': {
           this.source.addControl('invoice_number', new FormControl({ value: this.paymentDetails.value.reference, disabled: true }, Validators.required));
 
-          break;
-        }
-        case 'poli': {
           break;
         }
         case 'p24': {
