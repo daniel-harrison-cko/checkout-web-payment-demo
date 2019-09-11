@@ -215,13 +215,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           );
           break;
         }
-        case 'eps': {
-          this.source.addControl('purpose', new FormControl({ value: 'EPS Demo Payment', disabled: false }, Validators.required));
-          this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
-
-          await this._banksService.getBanks(paymentMethod);
-          break;
-        }
         case 'fawry': {
           this.source.addControl('description', new FormControl({ value: 'Fawry Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('customer_mobile', new FormControl({ value: '0102800991193847299', disabled: false }, Validators.required));
@@ -245,23 +238,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
             this.paymentDetails.get('customer.email').valueChanges.pipe(distinctUntilChanged()).subscribe(email => this.source.get('customer_email').setValue(email)),
             this.source.get('customer_email').valueChanges.pipe(distinctUntilChanged()).subscribe(email => this.paymentDetails.get('customer.email').setValue(email))
           );
-
-          break;
-        }
-        case 'giropay': {
-          this.source.addControl('purpose', new FormControl({ value: 'Giropay Demo Payment', disabled: false }, Validators.required));
-          this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
-
-          await this._banksService.getBanks(paymentMethod);
-
-          break;
-        }
-        case 'ideal': {
-          this.source.addControl('description', new FormControl({ value: 'iDEAL Demo Payment', disabled: false }, Validators.required));
-          this.source.addControl('bic', new FormControl({ value: null, disabled: false }, Validators.required));
-          this.source.addControl('language', new FormControl({ value: 'NL', disabled: false }));
-
-          await this._banksService.getBanks(paymentMethod);
 
           break;
         }

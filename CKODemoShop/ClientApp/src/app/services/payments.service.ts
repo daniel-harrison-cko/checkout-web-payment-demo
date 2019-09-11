@@ -13,6 +13,7 @@ import { distinctUntilChanged, finalize, filter } from 'rxjs/operators';
 import { ScriptService } from './script.service';
 import { AppConfigService } from './app-config.service';
 import { ShopService } from './shop.service';
+import { BanksService } from './banks.service';
 
 declare var Frames: any;
 declare var google: any;
@@ -184,6 +185,7 @@ export class PaymentsService {
   constructor(
     private _appConfigService: AppConfigService,
     private _http: HttpClient,
+    private _banksService: BanksService,
     private _paymentDetailsService: PaymentDetailsService,
     private _shopService: ShopService,
     private _scriptService: ScriptService,
@@ -397,7 +399,7 @@ export class PaymentsService {
     }
   };
 
-  private setupPaymentMethod(sourceType: string) {
+  private setupPaymentMethod = async (sourceType: string) => {
     if (this.paymentDetails.value.source.type == sourceType) return;
     this.updateSourceType = false;
     this.resetPayment(false);
@@ -465,6 +467,12 @@ export class PaymentsService {
         }
         case 'eps': {
           this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('purpose', new FormControl({ value: 'EPS Demo Payment', disabled: false }, Validators.required));
+          this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
+
+          await this._banksService.getBanks(sourceType);
+
           break;
         }
         case 'fawry': {
@@ -473,6 +481,12 @@ export class PaymentsService {
         }
         case 'giropay': {
           this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('purpose', new FormControl({ value: 'Giropay Demo Payment', disabled: false }, Validators.required));
+          this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
+
+          await this._banksService.getBanks(sourceType);
+
           break;
         }
         case 'googlepay': {
@@ -503,6 +517,13 @@ export class PaymentsService {
         }
         case 'ideal': {
           this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('description', new FormControl({ value: 'iDEAL Demo Payment', disabled: false }, Validators.required));
+          this.source.addControl('bic', new FormControl({ value: null, disabled: false }, Validators.required));
+          this.source.addControl('language', new FormControl({ value: 'NL', disabled: false }));
+
+          await this._banksService.getBanks(sourceType);
+
           break;
         }
         case 'klarna': {

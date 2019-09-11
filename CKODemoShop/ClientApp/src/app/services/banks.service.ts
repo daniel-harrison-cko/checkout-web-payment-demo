@@ -55,10 +55,10 @@ export class BanksService {
     this.bankForm.reset();
   }
 
-  public getBanks = async (paymentMethod: IPaymentMethod): Promise<any> => {
-    if (!this.banksOfScheme[paymentMethod.type]) {
+  public getBanks = async (sourceType: string): Promise<any> => {
+    if (!this.banksOfScheme[sourceType]) {
       let banksResponse;
-      banksResponse = await this._getBanks(paymentMethod);
+      banksResponse = await this._getBanks(sourceType);
       let isLegacyStructure = (banksResponse.body._links.self.href as string).includes('eps') || (banksResponse.body._links.self.href as string).includes('giropay')
       let banks: IBank[] = [];
       switch (isLegacyStructure) {
@@ -69,17 +69,17 @@ export class BanksService {
               name: banksResponse.body.banks[key]
             })
           });
-          this.banksOfScheme[paymentMethod.type] = banks;
+          this.banksOfScheme[sourceType] = banks;
           break;
         }
         case false: {
           banksResponse.body.countries.forEach(country => banks.push(country.issuers));
-          this.banksOfScheme[paymentMethod.type] = <IBank[]>flatten(banks);
+          this.banksOfScheme[sourceType] = <IBank[]>flatten(banks);
           break;
         }
       }
     }
-    this.currentBanks = this.banksOfScheme[paymentMethod.type];
+    this.currentBanks = this.banksOfScheme[sourceType];
     this.filteredBanks.setValue(this.currentBanks);
     this.bankFormSource.next(this.bankForm);
     return await this.currentBanks;
@@ -95,7 +95,7 @@ export class BanksService {
   }
 
   // API Methods
-  private _getBanks(paymentMethod: IPaymentMethod): Promise<HttpResponse<any>> {
-    return this._http.get<any>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' }).toPromise();
+  private _getBanks(sourceType: string): Promise<HttpResponse<any>> {
+    return this._http.get<any>(`/api/checkout/${sourceType}/banks`, { observe: 'response' }).toPromise();
   }
 }
