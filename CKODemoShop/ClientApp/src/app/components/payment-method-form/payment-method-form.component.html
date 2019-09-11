@@ -109,13 +109,16 @@
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'eps'">
           <mat-form-field [formGroup]="bankForm" form-field="eps_bank">
-            <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()">
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
+            <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bankSearchInput" [matAutocomplete]="auto" (input)="selectedBankControl.reset()">
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged($event)">
               <mat-option>--</mat-option>
-              <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+              <mat-option *ngFor="let bank of filteredBanks" [value]="bank">
                 <span class="monospace">{{bank.bic}}</span>&nbsp;{{bank.name}}
               </mat-option>
             </mat-autocomplete>
+            <button mat-button *ngIf="bankSearchInput.value" matSuffix mat-icon-button aria-label="Clear" (click)="bankSearchInput.reset(); selectedBankControl.reset()">
+              <mat-icon>close</mat-icon>
+            </button>
             <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list (<span class="monospace">HYPTAT22XXX</span> for Sandbox)</mat-hint>
           </mat-form-field>
           <mat-form-field form-field="eps_purpose">
@@ -152,13 +155,16 @@
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'giropay'">
           <mat-form-field [formGroup]="bankForm" form-field="giropay_bank">
-            <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()">
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
+            <input type="text" placeholder="Your bank (optional)" aria-label="Bank" matInput formControlName="bankSearchInput" [matAutocomplete]="auto" (input)="selectedBankControl.reset()">
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged($event)">
               <mat-option>--</mat-option>
-              <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+              <mat-option *ngFor="let bank of filteredBanks" [value]="bank">
                 <span class="monospace">{{bank.bic}}</span>&nbsp;{{bank.name}}
               </mat-option>
             </mat-autocomplete>
+            <button mat-button *ngIf="bankSearchInput.value" matSuffix mat-icon-button aria-label="Clear" (click)="bankSearchInput.reset(); selectedBankControl.reset()">
+              <mat-icon>close</mat-icon>
+            </button>
             <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list (<span class="monospace">TESTDETT421</span> for Sandbox)</mat-hint>
           </mat-form-field>
           <mat-form-field form-field="giropay_purpose">
@@ -168,15 +174,18 @@
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'ideal'">
           <mat-form-field [formGroup]="bankForm" form-field="ideal_bank">
-            <input type="text" placeholder="Your bank" aria-label="Bank" matInput formControlName="bank" [matAutocomplete]="auto" (input)="deselectBank()" required>
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged()">
+            <input type="text" placeholder="Your bank" aria-label="Bank" matInput formControlName="bankSearchInput" [matAutocomplete]="auto" (input)="selectedBankControl.reset()" required>
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged($event)">
               <mat-option>--</mat-option>
-              <mat-option *ngFor="let bank of filteredBanks | async" [value]="bank">
+              <mat-option *ngFor="let bank of filteredBanks" [value]="bank">
                 <span class="monospace">{{bank.bic}}</span> {{bank.name}}
               </mat-option>
             </mat-autocomplete>
+            <button mat-button *ngIf="bankSearchInput.value" matSuffix mat-icon-button aria-label="Clear" (click)="bankSearchInput.reset(); selectedBankControl.reset()">
+              <mat-icon>close</mat-icon>
+            </button>
             <mat-hint>Easily find a bank by starting to type its name or BIC, then select from the list (<span class="monospace">INGBNL2A</span> for Sandbox)</mat-hint>
-            <mat-error *ngIf="bankForm.get('bank').hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment</mat-error>
+            <mat-error *ngIf="selectedBankControl.hasError('required')">Please select the bank to be used in the {{selectedPaymentMethod?.name}} payment</mat-error>
           </mat-form-field>
           <mat-form-field form-field="ideal_description">
             <input matInput placeholder="Description" formControlName="description" required />
@@ -187,7 +196,7 @@
           </mat-form-field>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'klarna'">
-          <ng-container *ngIf="arrayIsNotEmpty(klarnaCreditSessionResponse.value.credit_session_response?.payment_method_categories)" [formGroup]="klarnaCreditSessionResponse">
+          <ng-container [formGroup]="klarnaCreditSessionResponse">
             <div class="row">
               <mat-radio-group class="klarna-radio-group" formControlName="selected_payment_method_category" required>
                 <mat-radio-button class="klarna-radio-button" *ngFor="let paymentOption of klarnaCreditSessionResponse.value.credit_session_response.payment_method_categories" [value]="paymentOption.identifier">

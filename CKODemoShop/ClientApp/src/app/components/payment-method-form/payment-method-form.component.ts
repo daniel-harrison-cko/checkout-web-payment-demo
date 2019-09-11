@@ -2,25 +2,17 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormBuilder, Validators, FormControl, FormArray } from '@angular/forms';
 import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
-import { Observable, Subscription } from 'rxjs';
+import { Subscription } from 'rxjs';
 import { PaymentsService } from 'src/app/services/payments.service';
-import { startWith, map, distinctUntilChanged, debounceTime, filter } from 'rxjs/operators';
+import { distinctUntilChanged, debounceTime, filter } from 'rxjs/operators';
 import { HttpResponse } from '@angular/common/http';
 import { ScriptService } from 'src/app/services/script.service';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { CountriesService } from '../../services/countries.service';
 import { ICountry } from '../../interfaces/country.interface';
+import { BanksService } from '../../services/banks.service';
 
 declare var Klarna: any;
-const flatten = <T = any>(arr: T[]) => {
-  const reducer = <T = any>(prev: T[], curr: T | T[]) => {
-    if (curr.constructor !== Array) {
-      return [...prev, curr];
-    }
-    return (<T[]>curr).reduce(reducer, prev);
-  };
-  return arr.reduce(reducer, []);
-};
 
 @Component({
   selector: 'app-payment-method-form',
@@ -43,28 +35,21 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   klarnaCreditSession: FormGroup;
   klarnaCreditSessionResponse: FormGroup = this._formBuilder.group({});
   bankForm: FormGroup;
-  banks: IBank[];
-  filteredBanks: Observable<IBank[]>;
 
   public paymentMethods = this._paymentsService.paymentMethods;
 
   constructor(
     private _formBuilder: FormBuilder,
     private _paymentsService: PaymentsService,
+    private _banksService: BanksService,
     private _scriptService: ScriptService,
     private _countriesService: CountriesService,
     private _paymentDetailsService: PaymentDetailsService
   ) { }
 
   ngOnInit() {
-    this.bankForm = this._formBuilder.group({
-      bank: null,
-      bankObject: this._formBuilder.group({
-        bic: null,
-        name: null
-      })
-    });
     this.subscriptions.push(
+      this._banksService.bankForm$.pipe().subscribe(bankForm => this.bankForm = bankForm),
       this._countriesService.countries$.pipe(distinctUntilChanged()).subscribe(countries => this.countries = countries),
       this._paymentDetailsService.listenToValueChanges$.subscribe(listenToValueChanges => this.listenToValueChanges = listenToValueChanges),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
@@ -79,9 +64,10 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           }
         }        
       }),
-      this.paymentDetails.get('source').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.routePaymentMethod(source)),
+      this.source.valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(source => this.routePaymentMethod(source)),
       this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(alpha2Code => this.country = this.countries.find(country => country.alpha2Code == alpha2Code)),
-      this.bankForm.get('bankObject.bic').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(bic => this.paymentDetails.get('source.bic').setValue(bic))
+      this.selectedBankControl.get('bic').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.listenToValueChanges)).subscribe(bic => this.paymentDetails.get('source.bic').setValue(bic)),
+      this.bankSearchInput.valueChanges.pipe(distinctUntilChanged()).subscribe(banksSearchInput => this._banksService.updateFilteredBanks(banksSearchInput))
     );
   }
 
@@ -110,6 +96,22 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     return Object.keys(this.source.controls).length;
   }
 
+  get bankSearchInput(): FormControl {
+    return <FormControl>this.bankForm.get('bankSearchInput');
+  }
+
+  get filteredBanks(): IBank[] {
+    return <IBank[]>this.bankForm.get('filteredBanks').value;
+  }
+
+  get selectedBankControl(): FormControl {
+    return <FormControl>this.bankForm.get('selectedBank');
+  }
+
+  get selectedBank(): IBank {
+    return this.selectedBankControl.value;
+  }
+
   get source(): FormGroup {
     return <FormGroup>this.paymentDetails.get('source');
   }
@@ -118,69 +120,18 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     return this.paymentDetails.value.source.type ? this.paymentMethods.find(element => element.type == this.paymentDetails.value.source.type).name : '';
   }
 
-  private deselectBank() {
-    let bankObject = this.bankForm.get('bankObject');
-    bankObject.reset();
-  }
-
-  private _bankFilter(value: string): IBank[] {
-    if (!value) {
-      return this.banks;
-    } else {
-      const filterValue = value.toString().toLowerCase();
-      return this.banks.filter(bank => { return `${bank.bic.toLowerCase()} ${bank.name.toLowerCase()}`.includes(filterValue) });
-    }    
-  }
-
-  getBanksLegacy(paymentMethod: IPaymentMethod) {
-    this._paymentsService.getLegacyBanks(paymentMethod).subscribe(response => {
-      let banks: IBank[] = [];
-      response.body.countries.forEach(country => banks.push(country.issuers));
-      this.banks = <IBank[]>flatten(banks);
-      let bank = <FormControl>this.bankForm.get('bank');
-      this.filteredBanks = bank.valueChanges.pipe(
-        startWith(''),
-        map(value => this._bankFilter(value))
-      );
-    });
-  }
-
-  getBanks(paymentMethod: IPaymentMethod) {
-    this._paymentsService.getBanks(paymentMethod).subscribe(response => {
-      let banks: IBank[] = [];
-      Object.keys(response.body.banks).forEach(function (key) {
-        banks.push({
-          bic: key,
-          name: response.body.banks[key]          
-        })
-      });
-      this.banks = banks;
-      let bank = <FormControl>this.bankForm.get('bank');
-      this.filteredBanks = bank.valueChanges.pipe(
-        startWith(''),
-        map(value => this._bankFilter(value))
-      );
-    });
-  }
-
-  private arrayIsNotEmpty(array: []) {
-    return array ? array.length > 0 : false;
-  }
-
-  private onBankSelectionChanged() {
-    let bankInput: FormControl = <FormControl>this.bankForm.get('bank');
-    if (bankInput.value) {
-      let currentBank: IBank = bankInput.value;
-      let bankObject = this.bankForm.get('bankObject');
-      bankObject.setValue(currentBank);
-      bankInput.setValue(`${currentBank.bic} ${currentBank.name}`);
+  private onBankSelectionChanged(event) {
+    if (event.option.value) {
+      let selectedBank: IBank = event.option.value;
+      this.selectedBankControl.setValue(selectedBank);
+      this.bankSearchInput.setValue(`${selectedBank.bic} ${selectedBank.name}`);
     }    
   }
 
   private resetPaymentMethod = () => {
     this.paymentConsent.disable();
-    this.banks = null;
-    this.filteredBanks = null;
+    this._banksService.resetBanks();
+    this.bankForm.reset();
     this.paymentMethodSubsriptions.forEach(subscription => subscription.unsubscribe());
     Object.keys(this.source.controls).forEach(key => {
       if (key != 'type') {
@@ -190,7 +141,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this.paymentDetails.get('amount').setValue(100);
   }
 
-  private routePaymentMethod(paymentMethod: IPaymentMethod) {
+  private routePaymentMethod = async (paymentMethod: IPaymentMethod) => {
     if (paymentMethod.type == this.paymentDetails.value.source.type) return;
     this._paymentDetailsService.stopListeningToValueChanges();
     this.resetPaymentMethod();
@@ -297,7 +248,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl('purpose', new FormControl({ value: 'EPS Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
-          this.getBanks(paymentMethod);
+          await this._banksService.getBanks(paymentMethod);
           break;
         }
         case 'fawry': {
@@ -330,7 +281,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl('purpose', new FormControl({ value: 'Giropay Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }));
 
-          this.getBanks(paymentMethod);
+          await this._banksService.getBanks(paymentMethod);
 
           break;
         }
@@ -342,7 +293,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           this.source.addControl('bic', new FormControl({ value: null, disabled: false }, Validators.required));
           this.source.addControl('language', new FormControl({ value: 'NL', disabled: false }));
 
-          this.getBanksLegacy(paymentMethod);
+          await this._banksService.getBanks(paymentMethod);
 
           break;
         }
@@ -363,7 +314,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
               if (document.querySelector('#klarna-container')) {
                 document.querySelector('#klarna-container').innerHTML = '';
               }
-              if (this.arrayIsNotEmpty(klarnaCreditSessionResponse.body.payment_method_categories)) {
+              if ((klarnaCreditSessionResponse.body.payment_method_categories as []).length > 0) {
                 this.klarnaCreditSessionResponse.get('selected_payment_method_category').setValue(klarnaCreditSessionResponse.body.payment_method_categories[0].identifier);
                 await this._scriptService.load('klarna');
                 await klarnaPaymentsInit(klarnaCreditSessionResponse.body.client_token);

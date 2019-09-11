@@ -2,7 +2,6 @@ import { Injectable, NgZone } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
-import { IBanks } from '../interfaces/banks.interface';
 import { IPayment } from '../interfaces/payment.interface';
 import { ICurrency } from '../interfaces/currency.interface';
 import { ILink } from '../interfaces/link.interface';
@@ -539,14 +538,6 @@ export class PaymentsService {
   }
 
   // API Methods
-  getLegacyBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<any>> {
-    return this._http.get<any>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
-  }
-
-  getBanks(paymentMethod: IPaymentMethod): Observable<HttpResponse<IBanks>> {
-    return this._http.get<IBanks>(`/api/checkout/${paymentMethod.type}/banks`, { observe: 'response' });
-  }
-
   requestToken(tokenRequest: any): any {
     return this._http.post<any>(`/api/checkout/tokens/source/wallet`, tokenRequest, { observe: 'response' });
   }
@@ -616,7 +607,7 @@ export class PaymentsService {
       if (key != 'type') {
         this.source.removeControl(key);
       } else {
-        this.source.get(key).setValue(null);
+        this.source.get(key).reset();
       }
     });
     this.autoCapture = true;
