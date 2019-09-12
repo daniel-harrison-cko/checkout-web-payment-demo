@@ -194,17 +194,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           );
           break;
         }
-        case 'bancontact': {
-          this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
-          this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.get('billing_address.country').value, disabled: true }, Validators.required));
-          this.source.addControl('billing_descriptor', new FormControl({ value: 'Bancontact Demo Payment', disabled: false }));
-
-          this.paymentMethodSubsriptions.push(
-            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('account_holder_name').setValue(customerName)),
-            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(country => this.source.get('payment_country').setValue(country))
-          );
-          break;
-        }
         case 'boleto': {
           this.source.addControl('birthDate', new FormControl({ value: '1939-02-19', disabled: false}, Validators.required));
           this.source.addControl('cpf', new FormControl({ value: '00003456789', disabled: false }, Validators.required));

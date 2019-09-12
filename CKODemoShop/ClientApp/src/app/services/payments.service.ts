@@ -1,6 +1,6 @@
 import { Injectable, NgZone } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
-import { Observable, BehaviorSubject } from 'rxjs';
+import { Observable, BehaviorSubject, Subscription } from 'rxjs';
 import { IPaymentMethod } from '../interfaces/payment-method.interface';
 import { IPayment } from '../interfaces/payment.interface';
 import { ICurrency } from '../interfaces/currency.interface';
@@ -175,6 +175,7 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
 })
 
 export class PaymentsService {
+  private subscriptions: Subscription[] = [];
   private paymentDetails: FormGroup;
   private paymentConsent: FormGroup;
   private paymentRequest: any;
@@ -459,6 +460,16 @@ export class PaymentsService {
         }
         case 'bancontact': {
           this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
+          this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.get('billing_address.country').value, disabled: true }, Validators.required));
+          this.source.addControl('billing_descriptor', new FormControl({ value: 'Bancontact Demo Payment', disabled: false }));
+
+          this.subscriptions.push(
+            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('account_holder_name').setValue(customerName)),
+            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(country => this.source.get('payment_country').setValue(country))
+          );
+
           break;
         }
         case 'boleto': {
@@ -639,6 +650,7 @@ export class PaymentsService {
   }
 
   public resetPayment(resetType: boolean = true): void {
+    this.subscriptions.forEach(subscription => subscription.unsubscribe());
     Object.keys(this.source.controls).forEach(key => {
       if (key != 'type') {
         this.source.removeControl(key);
