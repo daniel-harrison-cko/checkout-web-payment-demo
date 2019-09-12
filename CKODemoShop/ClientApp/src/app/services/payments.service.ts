@@ -474,6 +474,15 @@ export class PaymentsService {
         }
         case 'boleto': {
           this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('birthDate', new FormControl({ value: '1939-02-19', disabled: false }, Validators.required));
+          this.source.addControl('cpf', new FormControl({ value: '00003456789', disabled: false }, Validators.required));
+          this.source.addControl('customerName', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
+
+          this.subscriptions.push(
+            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('customerName').setValue(customerName))
+          );
+
           break;
         }
         case 'eps': {

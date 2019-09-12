@@ -194,16 +194,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           );
           break;
         }
-        case 'boleto': {
-          this.source.addControl('birthDate', new FormControl({ value: '1939-02-19', disabled: false}, Validators.required));
-          this.source.addControl('cpf', new FormControl({ value: '00003456789', disabled: false }, Validators.required));
-          this.source.addControl('customerName', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
-
-          this.paymentMethodSubsriptions.push(
-            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('customerName').setValue(customerName))
-          );
-          break;
-        }
         case 'fawry': {
           this.source.addControl('description', new FormControl({ value: 'Fawry Demo Payment', disabled: false }, Validators.required));
           this.source.addControl('customer_mobile', new FormControl({ value: '0102800991193847299', disabled: false }, Validators.required));
