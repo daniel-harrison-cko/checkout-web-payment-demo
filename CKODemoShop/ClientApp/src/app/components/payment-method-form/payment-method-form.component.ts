@@ -194,32 +194,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
           );
           break;
         }
-        case 'fawry': {
-          this.source.addControl('description', new FormControl({ value: 'Fawry Demo Payment', disabled: false }, Validators.required));
-          this.source.addControl('customer_mobile', new FormControl({ value: '0102800991193847299', disabled: false }, Validators.required));
-          this.source.addControl('customer_email', new FormControl({ value: this.paymentDetails.value.customer.email, disabled: false }, Validators.compose([Validators.email, Validators.required])));
-          this.source.addControl('customer_profile_id', new FormControl({ value: '00000001', disabled: false }));
-          this.source.addControl('expires_on', new FormControl({ value: '', disabled: false }));
-          this.source.addControl(
-            'products',
-            this._formBuilder.array([
-              this._formBuilder.group({
-                product_id: ['0123456789', Validators.required],
-                quantity: [1, Validators.required],
-                price: [this.paymentDetails.value.amount, Validators.required],
-                description: ['Demo Purchase Item', Validators.required]
-              })
-            ])
-          );
-
-          this.paymentMethodSubsriptions.push(
-            this.paymentDetails.get('amount').valueChanges.pipe(distinctUntilChanged()).subscribe(amount => (<FormArray>this.source.get('products')).controls[0].get('price').setValue(amount)),
-            this.paymentDetails.get('customer.email').valueChanges.pipe(distinctUntilChanged()).subscribe(email => this.source.get('customer_email').setValue(email)),
-            this.source.get('customer_email').valueChanges.pipe(distinctUntilChanged()).subscribe(email => this.paymentDetails.get('customer.email').setValue(email))
-          );
-
-          break;
-        }
         case 'klarna': {
           let requestKlarnaCreditSession = () => this._paymentsService.requestKlarnaSession(this.klarnaCreditSession.value).subscribe(klarnaCreditSessionResponse => handleKlarnaCreditSessionResponse(klarnaCreditSessionResponse));
           let handleKlarnaCreditSessionResponse = async (klarnaCreditSessionResponse: HttpResponse<any>) => {
