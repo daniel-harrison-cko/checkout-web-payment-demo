@@ -376,11 +376,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
           break;
         }
-        case 'paypal': {
-          this.source.addControl('invoice_number', new FormControl({ value: this.paymentDetails.value.reference, disabled: true }, Validators.required));
-
-          break;
-        }
         case 'p24': {
           this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
           this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));

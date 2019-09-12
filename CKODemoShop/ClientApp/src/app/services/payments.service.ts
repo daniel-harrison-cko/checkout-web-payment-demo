@@ -557,6 +557,9 @@ export class PaymentsService {
         }
         case 'paypal': {
           this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('invoice_number', new FormControl({ value: this.paymentDetails.value.reference, disabled: true }, Validators.required));
+
           break;
         }
         case 'poli': {
