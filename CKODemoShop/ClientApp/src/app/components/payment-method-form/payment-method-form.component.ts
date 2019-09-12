@@ -331,17 +331,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
           break;
         }
-        case 'p24': {
-          this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
-          this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
-          this.source.addControl('account_holder_email', new FormControl({ value: this.paymentDetails.value.customer.email, disabled: true }, Validators.compose([Validators.required, Validators.email])));
-          this.source.addControl('billing_descriptor', new FormControl({ value: 'P24 Demo Payment', disabled: false }));
-
-          this.paymentMethodSubsriptions.push(
-            this.paymentDetails.get('customer').valueChanges.pipe(distinctUntilChanged()).subscribe(customer => this.source.patchValue({account_holder_name: customer.name, account_holder_email: customer.email}))
-          );
-          break;
-        }
         case 'qpay': {
           this.source.addControl('language', new FormControl({ value: 'en', disabled: false }));
           this.source.addControl('description', new FormControl({ value: 'QPay Demo Payment', disabled: false }, Validators.required));

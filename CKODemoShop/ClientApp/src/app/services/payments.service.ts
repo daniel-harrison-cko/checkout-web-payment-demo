@@ -610,6 +610,16 @@ export class PaymentsService {
         }
         case 'p24': {
           this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
+          this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
+          this.source.addControl('account_holder_email', new FormControl({ value: this.paymentDetails.value.customer.email, disabled: true }, Validators.compose([Validators.required, Validators.email])));
+          this.source.addControl('billing_descriptor', new FormControl({ value: 'P24 Demo Payment', disabled: false }));
+
+          this.subscriptions.push(
+            this.paymentDetails.get('customer').valueChanges.pipe(distinctUntilChanged()).subscribe(customer => this.source.patchValue({ account_holder_name: customer.name, account_holder_email: customer.email }))
+          );
+
           break;
         }
         case 'qpay': {
