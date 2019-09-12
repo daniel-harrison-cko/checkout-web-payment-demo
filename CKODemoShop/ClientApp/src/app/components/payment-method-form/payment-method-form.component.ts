@@ -331,25 +331,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
 
           break;
         }
-        case 'knet': {
-          this.source.addControl('language', new FormControl({ value: 'en', disabled: false }, Validators.required));
-          this.source.addControl('user_defined_field1', new FormControl({ value: 'First user defined field', disabled: false }));
-          this.source.addControl('user_defined_field2', new FormControl({ value: 'Second user defined field', disabled: false }));
-          this.source.addControl('user_defined_field3', new FormControl({ value: '', disabled: false }));
-          this.source.addControl('user_defined_field4', new FormControl({ value: 'Fourth user defined field', disabled: false }));
-          this.source.addControl('user_defined_field5', new FormControl({ value: '', disabled: false }));
-          this.source.addControl('card_token', new FormControl({ value: '01234567', disabled: false }, Validators.pattern('[0-9]{8}')));
-          this.source.addControl('ptlf', new FormControl({ value: 'xxxx xxxxx xxxxx xxxxx', disabled: false }));
-
-          this.paymentMethodSubsriptions.push(
-            this.source.get('user_defined_field3').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('card_token').reset()),
-            this.source.get('card_token').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('user_defined_field3').reset()),
-            this.source.get('user_defined_field5').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('ptlf').reset()),
-            this.source.get('ptlf').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('user_defined_field5').reset())
-          );
-
-          break;
-        }
         case 'p24': {
           this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
           this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required));
