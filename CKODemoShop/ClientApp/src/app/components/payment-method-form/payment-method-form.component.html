@@ -336,15 +336,8 @@
             <mat-form-field form-field="sofort_country_code">
               <input matInput placeholder="Country" formControlName="country_code" required />
             </mat-form-field>
-            <mat-form-field form-field="sofort_language_code">
-              <mat-label>Language</mat-label>
-              <mat-select formControlName="language_code" required>
-                <mat-option *ngFor="let language of country.languages" [value]="language.iso639_1.toUpperCase()">{{language.name + ' (' + language.iso639_1 + '-' + paymentDetails.value.billing_address.country + ')'}}</mat-option>
-              </mat-select>
-            </mat-form-field>
           </div>
         </ng-container>
-
       </mat-card-content>
     </mat-card>
     <mat-card *ngIf="paymentDetails.value.source.type == 'ach'" class="mandate">

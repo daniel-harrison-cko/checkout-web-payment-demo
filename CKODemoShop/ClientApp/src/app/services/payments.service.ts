@@ -876,6 +876,15 @@ export class PaymentsService {
         }
         case 'sofort': {
           this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('country_code', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
+
+          this.subscriptions.push(
+            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(countryCode => {
+              this.source.get('country_code').setValue(countryCode);
+            })
+          );
+
           break;
         }
         case null: {

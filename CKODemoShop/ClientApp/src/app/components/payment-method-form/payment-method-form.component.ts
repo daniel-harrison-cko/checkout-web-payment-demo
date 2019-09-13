@@ -6,7 +6,6 @@ import { Subscription } from 'rxjs';
 import { PaymentsService } from 'src/app/services/payments.service';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
-import { CountriesService } from '../../services/countries.service';
 import { ICountry } from '../../interfaces/country.interface';
 import { BanksService } from '../../services/banks.service';
 
@@ -23,8 +22,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   paymentDetails: FormGroup;
   customer: FormGroup;
   paymentConsent: FormGroup;
-  countries: ICountry[];
-  country: ICountry;
   selectedSourceType: string;
   creditCardForm: FormGroup;  
   bankForm: FormGroup;
@@ -36,7 +33,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   constructor(
     private _paymentsService: PaymentsService,
     private _banksService: BanksService,
-    private _countriesService: CountriesService,
     private _paymentDetailsService: PaymentDetailsService
   ) { }
 
@@ -45,7 +41,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this.klarnaCreditSessionResponse = this._paymentsService.klarnaCreditSessionResponse;
     this.subscriptions.push(
       this._banksService.bankForm$.pipe().subscribe(bankForm => this.bankForm = bankForm),
-      this._countriesService.countries$.pipe(distinctUntilChanged()).subscribe(countries => this.countries = countries),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
       this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customer = customerFullName),
       this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent),
@@ -59,7 +54,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
         }        
       }),
       //this.source.valueChanges.pipe(distinctUntilChanged()).subscribe(source => this.routePaymentMethod(source)),
-      this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(alpha2Code => this.country = this.countries.find(country => country.alpha2Code == alpha2Code)),
       this.bankSearchInput.valueChanges.pipe(distinctUntilChanged()).subscribe(banksSearchInput => this._banksService.updateFilteredBanks(banksSearchInput))
     );
   }
@@ -140,19 +134,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     //this.resetPaymentMethod();
     try {
       switch (paymentMethod.type) {
-        case 'sofort': {
-          this.source.addControl('country_code', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
-          this.source.addControl('language_code', new FormControl({ value: (this.country.languages[0].iso639_1 as string).toUpperCase(), disabled: false }, Validators.required));
-
-          this.paymentMethodSubsriptions.push(
-            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(countryCode => {
-              this.source.get('country_code').setValue(countryCode);
-              this.source.get('language_code').setValue((this.country.languages[0].iso639_1 as string).toUpperCase());
-            })
-          );
-
-          break;
-        }
         case null: {
           break;
         }
