@@ -1,12 +1,10 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, Validators, FormControl, AbstractControl } from '@angular/forms';
-import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
+import { FormGroup, FormControl, AbstractControl } from '@angular/forms';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Subscription } from 'rxjs';
 import { PaymentsService } from 'src/app/services/payments.service';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
-import { ICountry } from '../../interfaces/country.interface';
 import { BanksService } from '../../services/banks.service';
 
 @Component({
@@ -15,15 +13,9 @@ import { BanksService } from '../../services/banks.service';
 })
 
 export class PaymentMethodFormComponent implements OnInit, OnDestroy {
-  titles = ['Mr', 'Ms'];
-  creditorIdentifier: string = 'DE36ZZZ00001690322';
   subscriptions: Subscription[] = [];
-  paymentMethodSubsriptions: Subscription[] = [];
   paymentDetails: FormGroup;
-  customer: FormGroup;
   paymentConsent: FormGroup;
-  selectedSourceType: string;
-  creditCardForm: FormGroup;  
   bankForm: FormGroup;
   klarnaCreditSession: FormGroup;
   klarnaCreditSessionResponse: FormGroup
@@ -42,18 +34,15 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this.subscriptions.push(
       this._banksService.bankForm$.pipe().subscribe(bankForm => this.bankForm = bankForm),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
-      this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customerFullName => this.customer = customerFullName),
       this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent),
-      this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => {
+      this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => {
         let sourceType = this.paymentDetails.get('source.type').value;
         if (sourceType) {
           if (!this.sourceTypeSupportsCurrencyCountryPairing(sourceType)) {
-            //this.resetPaymentMethod();
             this.paymentDetails.get('source.type').setValue(null);
           }
         }        
       }),
-      //this.source.valueChanges.pipe(distinctUntilChanged()).subscribe(source => this.routePaymentMethod(source)),
       this.bankSearchInput.valueChanges.pipe(distinctUntilChanged()).subscribe(banksSearchInput => this._banksService.updateFilteredBanks(banksSearchInput))
     );
   }
@@ -119,30 +108,5 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   private clearBankForm(...abstractControls: AbstractControl[]) {
     abstractControls.forEach(abstractControl => abstractControl.reset());
     this.source.get('bic').setValue(null);
-  }
-
-  private resetPaymentMethod = () => {
-    this.paymentConsent.disable();
-    this._banksService.resetBanks();
-    this.bankForm.reset();
-    this.paymentMethodSubsriptions.forEach(subscription => subscription.unsubscribe());
-    this.paymentDetails.get('amount').setValue(100);
-  }
-
-  private routePaymentMethod = async (paymentMethod: IPaymentMethod) => {
-    if (paymentMethod.type == this.paymentDetails.value.source.type) return;
-    //this.resetPaymentMethod();
-    try {
-      switch (paymentMethod.type) {
-        case null: {
-          break;
-        }
-        default: {
-          throw new Error(`Handling of Payment Method type ${paymentMethod.type} is not implemented!`);
-        }
-      }
-    } catch (e) {
-      console.warn(e);
-    }
   }
 }

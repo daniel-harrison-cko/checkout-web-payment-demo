@@ -387,9 +387,9 @@
           <h3>b4payment GmbH</h3>
           <p>Oberm&uuml;nsterstraße&nbsp;14</p>
           <p>93047&nbsp;Regensburg</p>
-          <p>{{'Germany' | uppercase}}</p>
+          <p>DE</p>
           <br />
-          <p class="monospace">Creditor ID: {{creditorIdentifier}}</p>
+          <p class="monospace">Creditor ID: DE36ZZZ00001690322</p>
         </div>
         <div class="debitor">
           <h2>Debtor</h2>
@@ -397,7 +397,7 @@
           <div class="address">
             <p *ngIf="source.value.billing_address.address_line2">{{source.getRawValue().billing_address.address_line2}}</p>
             <p>{{source.getRawValue().billing_address.zip}}&nbsp;{{source.getRawValue().billing_address.city}}, {{source.getRawValue().billing_address.state}}</p>
-            <p>{{country.name | uppercase}}</p>
+            <p>{{source.getRawValue().billing_address.country}}</p>
           </div>
           <br />
           <p class="monospace">IBAN:&nbsp;{{source.getRawValue().source_data.account_iban}}</p>
