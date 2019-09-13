@@ -144,56 +144,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     //this.resetPaymentMethod();
     try {
       switch (paymentMethod.type) {
-        case 'ach': {
-          this.paymentConsent.enable();
-          this.paymentDetails.get('amount').setValue(154);
-
-          this.source.addControl('reference', new FormControl(this.paymentDetails.value.reference));
-          this.source.addControl(
-            'billing_address',
-            this._formBuilder.group({
-              address_line1: null,
-              address_line2: null,
-              city: null,
-              state: null,
-              zip: null,
-              country: null
-            })
-          );
-          this.source.addControl('customer', new FormControl(this.paymentDetails.value.customer));
-          this.source.addControl(
-            'source_data',
-            this._formBuilder.group({
-              account_holder_name: [{ value: this.paymentDetails.value.customer.name, disabled: true }, Validators.required],
-              account_type: [{ value: 'Checking', disabled: false }, Validators.required],
-              company_name: [{ value: null, disabled: true }, Validators.required],
-              account_number: [{ value: '0123456789', disabled: false }, Validators.required],
-              // 211370545 is the required value for routing_number in Sandbox
-              routing_number: [{ value: '211370545', disabled: false }, Validators.required],
-              billing_descriptor: [{ value: 'ACH Demo', disabled: false }, Validators.compose([Validators.required, Validators.maxLength(15)])]
-            })
-          );
-
-          this.source.get('billing_address').setValue(this.paymentDetails.get('billing_address').value);
-
-          this.paymentMethodSubsriptions.push(
-            this.paymentDetails.get('customer').valueChanges.pipe(distinctUntilChanged()).subscribe(customer => {
-              this.source.get('customer').patchValue(customer);
-              this.source.get('source_data.account_holder_name').setValue(customer.name);
-            }),
-            this.paymentDetails.get('billing_address').valueChanges.pipe(distinctUntilChanged()).subscribe(billingAddress => this.source.get('billing_address').patchValue(billingAddress)),
-            this.paymentDetails.get('source.source_data.account_type').valueChanges.pipe(distinctUntilChanged()).subscribe(account_type => {
-              let companyNameController = this.source.get('source_data.company_name');
-              if ((account_type as string).toLowerCase().startsWith('corp')) {
-                companyNameController.enable();
-              } else {
-                companyNameController.reset();
-                companyNameController.disable();
-              }
-            })
-          );
-          break;
-        }
         case 'klarna': {
           let requestKlarnaCreditSession = () => this._paymentsService.requestKlarnaSession(this.klarnaCreditSession.value).subscribe(klarnaCreditSessionResponse => handleKlarnaCreditSessionResponse(klarnaCreditSessionResponse));
           let handleKlarnaCreditSessionResponse = async (klarnaCreditSessionResponse: HttpResponse<any>) => {
