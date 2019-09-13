@@ -9,7 +9,7 @@ import { HypermediaRequest } from '../components/hypermedia/hypermedia-request';
 import { Router } from '@angular/router';
 import { FormGroup, FormControl, Validators, FormArray, FormBuilder } from '@angular/forms';
 import { PaymentDetailsService } from './payment-details.service';
-import { distinctUntilChanged, finalize, filter } from 'rxjs/operators';
+import { distinctUntilChanged, finalize, filter, debounceTime } from 'rxjs/operators';
 import { ScriptService } from './script.service';
 import { AppConfigService } from './app-config.service';
 import { ShopService } from './shop.service';
@@ -183,6 +183,8 @@ export class PaymentsService {
   private _makePayment: Function;
   private _processing: boolean;
   private updateSourceType: boolean = true;
+  public klarnaCreditSession: FormGroup;
+  public klarnaCreditSessionResponse: FormGroup = this._formBuilder.group({});
 
   constructor(
     private _appConfigService: AppConfigService,
@@ -628,6 +630,141 @@ export class PaymentsService {
         case 'klarna': {
           this.paymentDetails.get('capture').setValue(false);
           this.setupPaymentAction(this.klarnaPaymentFlow);
+
+          let requestKlarnaCreditSession = () => this.requestKlarnaSession(this.klarnaCreditSession.value).subscribe(klarnaCreditSessionResponse => handleKlarnaCreditSessionResponse(klarnaCreditSessionResponse));
+          let handleKlarnaCreditSessionResponse = async (klarnaCreditSessionResponse: HttpResponse<any>) => {
+            if (klarnaCreditSessionResponse.ok) {
+              this.klarnaCreditSessionResponse.addControl('selected_payment_method_category', new FormControl(null, Validators.required));
+              this.klarnaCreditSessionResponse.addControl(
+                'credit_session_response',
+                this._formBuilder.group({
+                  session_id: [null, Validators.required],
+                  client_token: [null, Validators.required],
+                  payment_method_categories: [null, Validators.required]
+                })
+              );
+              this.klarnaCreditSessionResponse.get('credit_session_response').patchValue(klarnaCreditSessionResponse.body);
+              if (document.querySelector('#klarna-container')) {
+                document.querySelector('#klarna-container').innerHTML = '';
+              }
+              if ((klarnaCreditSessionResponse.body.payment_method_categories as []).length > 0) {
+                this.klarnaCreditSessionResponse.get('selected_payment_method_category').setValue(klarnaCreditSessionResponse.body.payment_method_categories[0].identifier);
+                await this._scriptService.load('klarna');
+                await klarnaPaymentsInit(klarnaCreditSessionResponse.body.client_token);
+                await klarnaPaymentsLoad();
+                this.subscriptions.push(
+                  this.paymentDetails.get('billing_address').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(_ => klarnaPaymentsLoad()),
+                  this.customer.valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(_ => klarnaPaymentsLoad())
+                );
+              }
+
+              this.subscriptions.push(
+                this.klarnaCreditSessionResponse.get('selected_payment_method_category').valueChanges.pipe(distinctUntilChanged(), debounceTime(500)).subscribe(_ => klarnaPaymentsLoad())
+              );
+            }
+          };
+          let klarnaPaymentsInit = async (client_token: string) => new Promise<any>(resolve => {
+            this.source.addControl('locale', new FormControl(null, Validators.required));
+            this.source.addControl('purchase_country', new FormControl(null, Validators.required));
+            this.source.addControl('tax_amount', new FormControl(null, Validators.required));
+            this.source.addControl('billing_address', new FormControl(null, Validators.required));
+            this.source.addControl('shipping_address', new FormControl(null));
+            this.source.addControl('customer', new FormControl(null));
+            this.source.addControl('products', new FormControl(null, Validators.required));
+            Klarna.Payments.init(
+              {
+                client_token: client_token
+              }
+            )
+              .then(resolve());
+          });
+          let klarnaPaymentsLoad = async (data: any = {}) => new Promise<any>(resolve => {
+            let paymentDetails = this.paymentDetails;
+            let customer = this.customer.value;
+            let source = this.source;
+            let klarnaCreditSession = this.klarnaCreditSession;
+            let billingAddress = paymentDetails.get('billing_address').value;
+            let billing_address = {
+              given_name: customer.given_name,
+              family_name: customer.family_name,
+              email: paymentDetails.get('customer.email').value,
+              title: customer.title,
+              street_address: billingAddress.address_line1,
+              street_address2: billingAddress.address_line2,
+              postal_code: billingAddress.zip,
+              city: billingAddress.city,
+              phone: `${customer.phone.country_code}${customer.phone.number}`,
+              country: billingAddress.country
+            };
+            data = {
+              purchase_country: klarnaCreditSession.value.purchase_country,
+              purchase_currency: paymentDetails.get('currency').value,
+              locale: 'en-gb',
+              billing_address: billing_address,
+              shipping_address: null,
+              order_amount: paymentDetails.get('amount').value,
+              order_tax_amount: 0,
+              order_lines: klarnaCreditSession.value.products,
+              customer: null
+            }
+            Klarna.Payments.load(
+              {
+                container: '#klarna-container',
+                payment_method_categories: [this.klarnaCreditSessionResponse.value.selected_payment_method_category],
+                instance_id: 'klarna-payments-instance'
+              },
+              data,
+              function (response) {
+                source.patchValue({
+                  locale: data.locale,
+                  purchase_country: data.purchase_country,
+                  tax_amount: data.order_tax_amount,
+                  billing_address: data.billing_address,
+                  shipping_address: data.shipping_address,
+                  customer: data.customer,
+                  products: data.order_lines
+                });
+                resolve(response);
+              }
+            )
+          });
+
+          this.klarnaCreditSession = this._formBuilder.group({});
+          this.klarnaCreditSession.addControl('purchase_country', new FormControl(this.paymentDetails.value.billing_address.country, Validators.required));
+          this.klarnaCreditSession.addControl('currency', new FormControl(this.paymentDetails.value.currency, Validators.required));
+          this.klarnaCreditSession.addControl('locale', new FormControl('en-gb', Validators.required));
+          this.klarnaCreditSession.addControl('amount', new FormControl(this.paymentDetails.value.amount, Validators.required));
+          this.klarnaCreditSession.addControl('tax_amount', new FormControl(0, Validators.required));
+          this.klarnaCreditSession.addControl(
+            'products',
+            this._formBuilder.array([
+              this._formBuilder.group({
+                name: ['Demo Purchase Item', Validators.required],
+                quantity: [1, Validators.required],
+                unit_price: [this.paymentDetails.value.amount, Validators.required],
+                tax_rate: [0, Validators.required],
+                total_amount: [this.paymentDetails.value.amount, Validators.required],
+                total_tax_amount: [0, Validators.required],
+              })
+            ])
+          );
+
+          this.subscriptions.push(
+            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(purchaseCountry => this.klarnaCreditSession.get('purchase_country').setValue(purchaseCountry)),
+            this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => this.klarnaCreditSession.get('currency').setValue(currency)),
+            this.paymentDetails.get('amount').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(amount => this.klarnaCreditSession.patchValue({ amount: amount, products: [{ unit_price: amount, total_amount: amount }] })),
+            this.klarnaCreditSession.valueChanges.pipe(distinctUntilChanged(), filter(_ => Klarna)).subscribe(klarnaCreditSession => klarnaPaymentsLoad({
+              purchase_country: klarnaCreditSession.purchase_country,
+              purchase_currency: klarnaCreditSession.currency,
+              locale: 'en-gb',
+              order_amount: klarnaCreditSession.amount,
+              order_tax_amount: 0,
+              order_lines: klarnaCreditSession.products
+            }))
+          );
+
+          requestKlarnaCreditSession();
+
           break;
         }
         case 'knet': {

@@ -1,18 +1,14 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
-import { FormGroup, FormBuilder, Validators, FormControl, FormArray, AbstractControl } from '@angular/forms';
+import { FormGroup, Validators, FormControl, AbstractControl } from '@angular/forms';
 import { IPaymentMethod } from 'src/app/interfaces/payment-method.interface';
 import { IBank } from 'src/app/interfaces/bank.interface';
 import { Subscription } from 'rxjs';
 import { PaymentsService } from 'src/app/services/payments.service';
-import { distinctUntilChanged, debounceTime, filter } from 'rxjs/operators';
-import { HttpResponse } from '@angular/common/http';
-import { ScriptService } from 'src/app/services/script.service';
+import { distinctUntilChanged } from 'rxjs/operators';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { CountriesService } from '../../services/countries.service';
 import { ICountry } from '../../interfaces/country.interface';
 import { BanksService } from '../../services/banks.service';
-
-declare var Klarna: any;
 
 @Component({
   selector: 'app-payment-method-form',
@@ -30,23 +26,23 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   countries: ICountry[];
   country: ICountry;
   selectedSourceType: string;
-  creditCardForm: FormGroup;
-  klarnaCreditSession: FormGroup;
-  klarnaCreditSessionResponse: FormGroup = this._formBuilder.group({});
+  creditCardForm: FormGroup;  
   bankForm: FormGroup;
+  klarnaCreditSession: FormGroup;
+  klarnaCreditSessionResponse: FormGroup
 
   public paymentMethods = this._paymentsService.paymentMethods;
 
   constructor(
-    private _formBuilder: FormBuilder,
     private _paymentsService: PaymentsService,
     private _banksService: BanksService,
-    private _scriptService: ScriptService,
     private _countriesService: CountriesService,
     private _paymentDetailsService: PaymentDetailsService
   ) { }
 
   ngOnInit() {
+    this.klarnaCreditSession = this._paymentsService.klarnaCreditSession;
+    this.klarnaCreditSessionResponse = this._paymentsService.klarnaCreditSessionResponse;
     this.subscriptions.push(
       this._banksService.bankForm$.pipe().subscribe(bankForm => this.bankForm = bankForm),
       this._countriesService.countries$.pipe(distinctUntilChanged()).subscribe(countries => this.countries = countries),
@@ -144,143 +140,6 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     //this.resetPaymentMethod();
     try {
       switch (paymentMethod.type) {
-        case 'klarna': {
-          let requestKlarnaCreditSession = () => this._paymentsService.requestKlarnaSession(this.klarnaCreditSession.value).subscribe(klarnaCreditSessionResponse => handleKlarnaCreditSessionResponse(klarnaCreditSessionResponse));
-          let handleKlarnaCreditSessionResponse = async (klarnaCreditSessionResponse: HttpResponse<any>) => {
-            if (klarnaCreditSessionResponse.ok) {
-              this.klarnaCreditSessionResponse.addControl('selected_payment_method_category', new FormControl(null, Validators.required));
-              this.klarnaCreditSessionResponse.addControl(
-                'credit_session_response',
-                this._formBuilder.group({
-                  session_id: [null, Validators.required],
-                  client_token: [null, Validators.required],
-                  payment_method_categories: [null, Validators.required]
-                })
-              );
-              this.klarnaCreditSessionResponse.get('credit_session_response').patchValue(klarnaCreditSessionResponse.body);
-              if (document.querySelector('#klarna-container')) {
-                document.querySelector('#klarna-container').innerHTML = '';
-              }
-              if ((klarnaCreditSessionResponse.body.payment_method_categories as []).length > 0) {
-                this.klarnaCreditSessionResponse.get('selected_payment_method_category').setValue(klarnaCreditSessionResponse.body.payment_method_categories[0].identifier);
-                await this._scriptService.load('klarna');
-                await klarnaPaymentsInit(klarnaCreditSessionResponse.body.client_token);
-                await klarnaPaymentsLoad();
-                this.paymentMethodSubsriptions.push(
-                  this.paymentDetails.get('billing_address').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(_ => klarnaPaymentsLoad()),
-                  this.customer.valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(_ => klarnaPaymentsLoad())
-                );
-              }
-
-              this.paymentMethodSubsriptions.push(
-                this.klarnaCreditSessionResponse.get('selected_payment_method_category').valueChanges.pipe(distinctUntilChanged(), debounceTime(500)).subscribe(_ => klarnaPaymentsLoad())
-              );
-            }
-          };
-          let klarnaPaymentsInit = async (client_token: string) => new Promise<any>(resolve => {
-            this.source.addControl('locale', new FormControl(null, Validators.required));
-            this.source.addControl('purchase_country', new FormControl(null, Validators.required));
-            this.source.addControl('tax_amount', new FormControl(null, Validators.required));
-            this.source.addControl('billing_address', new FormControl(null, Validators.required));
-            this.source.addControl('shipping_address', new FormControl(null));
-            this.source.addControl('customer', new FormControl(null));
-            this.source.addControl('products', new FormControl(null, Validators.required));
-            Klarna.Payments.init(
-              {
-                client_token: client_token
-              }
-            )
-              .then(resolve());
-          });
-          let klarnaPaymentsLoad = async (data: any = {}) => new Promise<any>(resolve => {
-            let paymentDetails = this.paymentDetails;
-            let customer = this.customer.value;
-            let source = this.source;
-            let klarnaCreditSession = this.klarnaCreditSession;
-            let billingAddress = paymentDetails.get('billing_address').value;
-            let billing_address = {
-              given_name: customer.given_name,
-              family_name: customer.family_name,
-              email: paymentDetails.get('customer.email').value,
-              title: customer.title,
-              street_address: billingAddress.address_line1,
-              street_address2: billingAddress.address_line2,
-              postal_code: billingAddress.zip,
-              city: billingAddress.city,
-              phone: `${customer.phone.country_code}${customer.phone.number}`,
-              country: billingAddress.country
-            };
-            data = {
-              purchase_country: klarnaCreditSession.value.purchase_country,
-              purchase_currency: paymentDetails.get('currency').value,
-              locale: 'en-gb',
-              billing_address: billing_address,
-              shipping_address: null,
-              order_amount: paymentDetails.get('amount').value,
-              order_tax_amount: 0,
-              order_lines: klarnaCreditSession.value.products,
-              customer: null
-            }
-            Klarna.Payments.load(
-              {
-                container: '#klarna-container',
-                payment_method_categories: [this.klarnaCreditSessionResponse.value.selected_payment_method_category],
-                instance_id: 'klarna-payments-instance'
-              },
-              data,
-              function (response) {
-                source.patchValue({
-                  locale: data.locale,
-                  purchase_country: data.purchase_country,
-                  tax_amount: data.order_tax_amount,
-                  billing_address: data.billing_address,
-                  shipping_address: data.shipping_address,
-                  customer: data.customer,
-                  products: data.order_lines
-                });
-                resolve(response);
-              }
-            )
-          });
-
-          this.klarnaCreditSession = this._formBuilder.group({});
-          this.klarnaCreditSession.addControl('purchase_country', new FormControl(this.paymentDetails.value.billing_address.country, Validators.required));
-          this.klarnaCreditSession.addControl('currency', new FormControl(this.paymentDetails.value.currency, Validators.required));
-          this.klarnaCreditSession.addControl('locale', new FormControl('en-gb', Validators.required));
-          this.klarnaCreditSession.addControl('amount', new FormControl(this.paymentDetails.value.amount, Validators.required));
-          this.klarnaCreditSession.addControl('tax_amount', new FormControl(0, Validators.required));
-          this.klarnaCreditSession.addControl(
-            'products',
-            this._formBuilder.array([
-              this._formBuilder.group({
-                name: ['Demo Purchase Item', Validators.required],
-                quantity: [1, Validators.required],
-                unit_price: [this.paymentDetails.value.amount, Validators.required],
-                tax_rate: [0, Validators.required],
-                total_amount: [this.paymentDetails.value.amount, Validators.required],
-                total_tax_amount: [0, Validators.required],
-              })
-            ])
-          );
-
-          this.paymentMethodSubsriptions.push(
-            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(purchaseCountry => this.klarnaCreditSession.get('purchase_country').setValue(purchaseCountry)),
-            this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => this.klarnaCreditSession.get('currency').setValue(currency)),
-            this.paymentDetails.get('amount').valueChanges.pipe(distinctUntilChanged(), debounceTime(1000)).subscribe(amount => this.klarnaCreditSession.patchValue({ amount: amount, products: [{ unit_price: amount, total_amount: amount }] })),
-            this.klarnaCreditSession.valueChanges.pipe(distinctUntilChanged(), filter(_ => Klarna)).subscribe(klarnaCreditSession => klarnaPaymentsLoad({
-              purchase_country: klarnaCreditSession.purchase_country,
-              purchase_currency: klarnaCreditSession.currency,
-              locale: 'en-gb',
-              order_amount: klarnaCreditSession.amount,
-              order_tax_amount: 0,
-              order_lines: klarnaCreditSession.products
-            }))
-          );
-
-          requestKlarnaCreditSession();
-
-          break;
-        }
         case 'sofort': {
           this.source.addControl('country_code', new FormControl({ value: this.paymentDetails.value.billing_address.country, disabled: true }, Validators.required));
           this.source.addControl('language_code', new FormControl({ value: (this.country.languages[0].iso639_1 as string).toUpperCase(), disabled: false }, Validators.required));
