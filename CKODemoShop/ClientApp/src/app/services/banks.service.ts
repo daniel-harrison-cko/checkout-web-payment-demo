@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { BehaviorSubject } from 'rxjs';
-import { IPaymentMethod } from '../interfaces/payment-method.interface';
 import { IBank } from '../interfaces/bank.interface';
 import { FormGroup, FormBuilder, AbstractControl } from '@angular/forms';
 
