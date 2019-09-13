@@ -178,6 +178,7 @@ export class PaymentsService {
   private subscriptions: Subscription[] = [];
   private paymentDetails: FormGroup;
   private paymentConsent: FormGroup;
+  private customer: FormGroup;
   private paymentRequest: any;
   private _makePayment: Function;
   private _processing: boolean;
@@ -196,6 +197,7 @@ export class PaymentsService {
   ) {
     this._paymentDetailsService.paymentDetails$.subscribe(paymentDetails => this.paymentDetails = paymentDetails);
     this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent);
+    this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customer => this.customer = customer);
     this.processing$.pipe(distinctUntilChanged()).subscribe(processing => this._processing = processing);
     this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.updateSourceType)).subscribe(sourceType => this.setupPaymentMethod(sourceType));
     this.paymentDetails.valueChanges.pipe(distinctUntilChanged()).subscribe(() => this.paymentRequest = this.paymentDetails.getRawValue());
@@ -634,6 +636,53 @@ export class PaymentsService {
         }
         case 'sepa': {
           this.setupPaymentAction(this.sourcesPaymentFlow, false, false);
+
+          this.paymentConsent.enable();
+
+          this.source.addControl('reference', new FormControl(this.paymentDetails.value.reference));
+          this.source.addControl(
+            'billing_address',
+            this._formBuilder.group({
+              address_line1: null,
+              address_line2: null,
+              city: null,
+              state: null,
+              zip: null,
+              country: null
+            })
+          );
+          this.source.addControl(
+            'phone',
+            this._formBuilder.group({
+              country_code: null,
+              number: null
+            })
+          );
+          this.source.addControl('customer', new FormControl(this.paymentDetails.get('customer').value));
+          this.source.addControl(
+            'source_data',
+            this._formBuilder.group({
+              first_name: [{ value: this.customer.value.given_name, disabled: true }, Validators.required],
+              last_name: [{ value: this.customer.value.family_name, disabled: true }, Validators.required],
+              account_iban: [{ value: 'DE25100100101234567893', disabled: false }, Validators.required],
+              // PBNKDEFFXXX is the required value for bic in Sandbox
+              bic: [{ value: 'PBNKDEFFXXX', disabled: true }, Validators.required],
+              billing_descriptor: [{ value: 'SEPA Demo Payment', disabled: false }, Validators.required],
+              mandate_type: [{ value: 'single', disabled: false }, Validators.required]
+            })
+          );
+
+          this.source.get('billing_address').setValue(this.paymentDetails.get('billing_address').value);
+
+          this.subscriptions.push(
+            this.paymentDetails.get('customer').valueChanges.pipe(distinctUntilChanged()).subscribe(customer => this.source.get('customer').setValue(customer)),
+            this.customer.valueChanges.pipe(distinctUntilChanged()).subscribe(customerFullName => {
+              this.source.get('source_data.first_name').setValue(customerFullName.given_name);
+              this.source.get('source_data.last_name').setValue(customerFullName.family_name);
+            }),
+            this.paymentDetails.get('billing_address').valueChanges.pipe(distinctUntilChanged()).subscribe(billingAddress => this.source.get('billing_address').setValue(billingAddress))
+          );
+
           break;
         }
         case 'sofort': {
