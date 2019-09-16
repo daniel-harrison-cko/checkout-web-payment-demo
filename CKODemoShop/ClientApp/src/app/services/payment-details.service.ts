@@ -1,7 +1,6 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject } from 'rxjs';
 import { FormGroup, FormBuilder, Validators } from '@angular/forms';
-import { ShopService } from './shop.service';
 
 @Injectable({
   providedIn: 'root'
@@ -9,7 +8,6 @@ import { ShopService } from './shop.service';
 
 export class PaymentDetailsService {
   constructor(
-    private _shopService: ShopService,
     private _formBuilder: FormBuilder
   ) { }
 
@@ -17,29 +15,23 @@ export class PaymentDetailsService {
   private paymentDetailsSource = new BehaviorSubject<FormGroup>(this.paymentDetailsTemplate);
   private customerSource = new BehaviorSubject<FormGroup>(this.customerTemplate);
   private paymentConsentSource = new BehaviorSubject<FormGroup>(this.paymentConsentTemplate);
-  private listenToValueChangesSource = new BehaviorSubject<boolean>(true);
 
   // Observables
   public paymentDetails$ = this.paymentDetailsSource.asObservable();
   public customer$ = this.customerSource.asObservable();
   public paymentConsent$ = this.paymentConsentSource.asObservable();
-  public listenToValueChanges$ = this.listenToValueChangesSource.asObservable();
 
   // Methods
   public updatePaymentDetails(paymentDetails: FormGroup) {
     this.paymentDetailsSource.next(paymentDetails);
   }
+
   public updateCustomer(customerFullName: FormGroup) {
     this.customerSource.next(customerFullName);
   }
+
   public updatePaymentConsent(paymentConsent: FormGroup) {
     this.paymentConsentSource.next(paymentConsent);
-  }
-  public resumeListeningToValueChanges() {
-    this.listenToValueChangesSource.next(true);
-  }
-  public stopListeningToValueChanges() {
-    this.listenToValueChangesSource.next(false);
   }
 
   get paymentConsentTemplate(): FormGroup {
