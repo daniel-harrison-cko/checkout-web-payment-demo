@@ -6,6 +6,7 @@ import { PaymentsService } from 'src/app/services/payments.service';
 import { distinctUntilChanged } from 'rxjs/operators';
 import { PaymentDetailsService } from 'src/app/services/payment-details.service';
 import { BanksService } from '../../services/banks.service';
+import { IPaymentMethod } from '../../interfaces/payment-method.interface';
 
 @Component({
   selector: 'app-payment-method-form',
@@ -21,6 +22,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
   klarnaCreditSessionResponse: FormGroup
 
   public paymentMethods = this._paymentsService.paymentMethods;
+  private availablePaymentMethods: IPaymentMethod[];
 
   constructor(
     private _paymentsService: PaymentsService,
@@ -35,14 +37,7 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
       this._banksService.bankForm$.pipe().subscribe(bankForm => this.bankForm = bankForm),
       this._paymentDetailsService.paymentDetails$.pipe(distinctUntilChanged()).subscribe(paymentDetails => this.paymentDetails = paymentDetails),
       this._paymentDetailsService.paymentConsent$.pipe(distinctUntilChanged()).subscribe(paymentConsent => this.paymentConsent = paymentConsent),
-      this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => {
-        let sourceType = this.paymentDetails.get('source.type').value;
-        if (sourceType) {
-          if (!this.sourceTypeSupportsCurrencyCountryPairing(sourceType)) {
-            this.paymentDetails.get('source.type').setValue(null);
-          }
-        }        
-      }),
+      this._paymentsService.availablePaymentMethods$.pipe(distinctUntilChanged()).subscribe(availablePaymentMethods => this.availablePaymentMethods = availablePaymentMethods),
       this.bankSearchInput.valueChanges.pipe(distinctUntilChanged()).subscribe(banksSearchInput => this._banksService.updateFilteredBanks(banksSearchInput))
     );
   }
@@ -51,17 +46,9 @@ export class PaymentMethodFormComponent implements OnInit, OnDestroy {
     this.subscriptions.forEach(subscription => subscription.unsubscribe());
   }
 
-  private sourceTypeSupportsCurrencyCountryPairing(sourceType: string): boolean {
-    if (!sourceType) {
-      return true;
-    }
-    let paymentMethod = this.paymentMethods.find(paymentMethod => paymentMethod.type == sourceType);
-    if (paymentMethod.restrictedCurrencyCountryPairings == null) {
-      return true;
-    } else if (paymentMethod.restrictedCurrencyCountryPairings[this.paymentDetails.value.currency]) {
-      return paymentMethod.restrictedCurrencyCountryPairings[this.paymentDetails.value.currency].includes(this.paymentDetails.value.billing_address.country);
-    }
-    return false;
+  private paymentMethodIsAvailable(sourceType: string): boolean {
+    if (!this.availablePaymentMethods) return true;
+    return this.availablePaymentMethods.map(availablePaymentMethod => availablePaymentMethod.type).includes(sourceType);
   }
 
   private currencyBaseAmount(currencyCode: string): number {

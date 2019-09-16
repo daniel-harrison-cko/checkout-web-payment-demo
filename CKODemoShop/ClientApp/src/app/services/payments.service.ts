@@ -202,18 +202,40 @@ export class PaymentsService {
     this._paymentDetailsService.customer$.pipe(distinctUntilChanged()).subscribe(customer => this.customer = customer);
     this.processing$.pipe(distinctUntilChanged()).subscribe(processing => this._processing = processing);
     this.paymentDetails.get('source.type').valueChanges.pipe(distinctUntilChanged(), filter(_ => this.updateSourceType)).subscribe(sourceType => this.setupPaymentMethod(sourceType));
+    this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => this.updateAvailablePaymentMethods({currency: currency, country: null}));
+    this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(country => this.updateAvailablePaymentMethods({currency: null, country: country}));
     this.paymentDetails.valueChanges.pipe(distinctUntilChanged()).subscribe(() => this.paymentRequest = this.paymentDetails.getRawValue());
+    this.updateAvailablePaymentMethods({country: this.paymentDetails.value.billing_address.country, currency: this.paymentDetails.value.currency});
   }
 
   // Subjects
   private processingSource = new BehaviorSubject<boolean>(false);
+  private availablePaymentMethodsSource = new BehaviorSubject<IPaymentMethod[]>(null);
 
   // Observables
   public processing$ = this.processingSource.asObservable();
+  public availablePaymentMethods$ = this.availablePaymentMethodsSource.asObservable();
 
   // Subjects Methods
   public setProcessing(isProcessing: boolean) {
     this.processingSource.next(isProcessing);
+  }
+
+  private updateAvailablePaymentMethods(data: { country: string, currency: string }) {
+    let country = data.country || (this.paymentDetails.value.billing_address.country as string);
+    let currency = data.currency || (this.paymentDetails.value.currency as string);
+    let availablePaymentMethods: IPaymentMethod[] = PAYMENT_METHODS.filter(paymentMethod => {
+      if (paymentMethod.restrictedCurrencyCountryPairings == null) return true;
+      if (paymentMethod.restrictedCurrencyCountryPairings[currency] != null) {
+        if ((paymentMethod.restrictedCurrencyCountryPairings[currency] as string[]).includes(country)) return true;
+      }
+      return false;
+    });
+    this.availablePaymentMethodsSource.next(availablePaymentMethods);
+
+    if (!availablePaymentMethods.map(availablePaymentMethod => availablePaymentMethod.type).includes(this.paymentDetails.value.source.type)) {
+      this.paymentDetails.get('source.type').reset();
+    };
   }
 
   // Payment Flow Methods
