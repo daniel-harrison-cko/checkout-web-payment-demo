@@ -357,6 +357,12 @@ body {
         [form-field="email"] {
           min-width: 300px;
         }
+
+        /*FRAMES*/
+        .card-frame {
+          height: 2 * $margin;
+        }
+
         /*CARD*/
         [form-field="card_name"], [form-field="card_number"] {
           flex: 1 0 100%;

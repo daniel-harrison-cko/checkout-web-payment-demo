@@ -3,7 +3,7 @@ import { IScript } from "./interfaces/script.interface";
 export const ScriptStore: IScript[] = [
   {
     name: 'cko-frames',
-    src: 'https://cdn.checkout.com/js/frames.js'
+    src: 'https://cdn.checkout.com/js/framesv2.min.js'
   },
   {
     name: 'cko-js',

@@ -440,27 +440,41 @@ export class PaymentsService {
           let initializeCkoFrames = async () => {
             let loadedScripts = await this._scriptService.load('cko-frames');
             if (loadedScripts.every(script => script.loaded)) {
-              let cardTokenisedCallback = (event) => {
+              let cardTokenized = (event) => this._ngZone.run(() => {
                 this.paymentRequest.source.type = 'token';
-                this.paymentRequest.source.token = event.data.cardToken;
+                this.paymentRequest.source.token = event.token;
                 this.standardPaymentFlow();
-              };
-              Frames.init({
-                publicKey: this._appConfigService.config.publicKey,
-                containerSelector: '.cko-container',
-                cardTokenised: function (event) {
-                  cardTokenisedCallback(event);
-                },
-                cardTokenisationFailed: function (event) {
-                  // catch the error
+              });
+              let cardTokenizationFailed = (event) => this._ngZone.run(() => {
+                console.error(event);
+              });
+              let cardValidationChanged = (event) => this._ngZone.run(() => {
+                let tokenControl = (this.source.get('token') as FormControl);
+                if (event.isValid) {
+                  tokenControl.setValue('await');
+                } else {
+                  tokenControl.reset();
                 }
+              });
+              this._ngZone.runOutsideAngular(() => {
+                Frames.init({
+                  publicKey: this._appConfigService.config.publicKey,
+                  style: {
+                    base: {
+                      borderBottom: '1px solid black'
+                    }
+                  }
+                });
+                Frames.addEventHandler(Frames.Events.CARD_TOKENIZED, cardTokenized);
+                Frames.addEventHandler(Frames.Events.CARD_TOKENIZATION_FAILED, cardTokenizationFailed);
+                Frames.addEventHandler(Frames.Events.CARD_VALIDATION_CHANGED, cardValidationChanged);
               });
             }
           }
 
           initializeCkoFrames();
 
-          this.source.addControl('token', new FormControl({ value: null, disabled: false }));
+          this.source.addControl('token', new FormControl({ value: null, disabled: false }, Validators.required));
 
           break;
         }
