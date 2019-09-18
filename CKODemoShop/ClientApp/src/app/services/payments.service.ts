@@ -127,6 +127,13 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     }
   },
   {
+    name: 'Multibanco',
+    type: 'multibanco',
+    restrictedCurrencyCountryPairings: {
+      'EUR': ['PT']
+    }
+  },
+  {
     name: 'PayPal',
     type: 'paypal',
     restrictedCurrencyCountryPairings: null
@@ -806,6 +813,20 @@ export class PaymentsService {
             this.source.get('card_token').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('user_defined_field3').reset()),
             this.source.get('user_defined_field5').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('ptlf').reset()),
             this.source.get('ptlf').valueChanges.pipe(distinctUntilChanged()).subscribe(_ => this.source.get('user_defined_field5').reset())
+          );
+
+          break;
+        }
+        case 'multibanco': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('account_holder_name', new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required));
+          this.source.addControl('payment_country', new FormControl({ value: this.paymentDetails.get('billing_address.country').value, disabled: true }, Validators.required));
+          this.source.addControl('billing_descriptor', new FormControl({ value: 'Multibanco Demo Payment', disabled: false }));
+
+          this.subscriptions.push(
+            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('account_holder_name').setValue(customerName)),
+            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(country => this.source.get('payment_country').setValue(country))
           );
 
           break;
