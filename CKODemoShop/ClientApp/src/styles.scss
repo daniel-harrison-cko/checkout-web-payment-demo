@@ -409,6 +409,10 @@ body {
         [form-field="knet_user_defined_field3"], [form-field="knet_card_token"], [form-field="knet_user_defined_field5"], [form-field="knet_ptlf"] {
           flex: 1 0 auto;
         }
+        /*MULTIBANCO*/
+        [form-field="multibanco_account_holder_name"], [form-field="multibanco_payment_country"], [form-field="multibanco_billing_descriptor"] {
+          flex: 1 0 100%;
+        }
         /*PAYPAL*/
         [form-field="paypal_invoice_number"] {
           flex: 1 0 100%;
