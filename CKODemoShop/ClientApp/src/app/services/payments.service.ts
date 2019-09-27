@@ -945,7 +945,7 @@ export class PaymentsService {
         case 'wechat': {
           this.setupPaymentAction(this.standardPaymentFlow);
 
-          this.source.addControl('wechat_type', new FormControl({ value: 'web', disabled: false }, Validators.required));
+          this.source.addControl('wechat_type', new FormControl({ value: 'Web', disabled: false }, Validators.required));
           this.source.addControl('description', new FormControl({ value: 'WeChat Pay Demo Payment', disabled: false }, Validators.required));
 
           break;

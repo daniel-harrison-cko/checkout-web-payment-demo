@@ -352,7 +352,12 @@
         <ng-container *ngIf="paymentDetails.value.source.type == 'wechat'">
           <div class="row">
             <mat-form-field form-field="wechatpay_wechat_type">
-              <input matInput placeholder="WeChat Pay Type" formControlName="wechat_type" required />
+              <mat-label>WeChat Pay Type</mat-label>
+              <mat-select formControlName="wechat_type" reqired>
+                <mat-option *ngFor="let wechat_type of ['Web', 'QR']" [value]="wechat_type">
+                  {{wechat_type}}
+                </mat-option>
+              </mat-select>
             </mat-form-field>
             <mat-form-field form-field="wechatpay_description">
               <input matInput placeholder="Description" formControlName="description" required />
