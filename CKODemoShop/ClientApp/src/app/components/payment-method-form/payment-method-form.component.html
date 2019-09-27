@@ -353,7 +353,7 @@
           <div class="row">
             <mat-form-field form-field="wechatpay_wechat_type">
               <mat-label>WeChat Pay Type</mat-label>
-              <mat-select formControlName="wechat_type" reqired>
+              <mat-select formControlName="wechat_type" required>
                 <mat-option *ngFor="let wechat_type of ['Web', 'QR']" [value]="wechat_type">
                   {{wechat_type}}
                 </mat-option>
