@@ -453,6 +453,10 @@ body {
         [form-field="sofort_country_code"], [form-field="sofort_language_code"] {
           flex: 1 0 100%;
         }
+        /*WECHATPAY*/
+        [form-field="wechatpay_wechat_type"], [form-field="wechatpay_description"] {
+          flex: 1 0 100%;
+        }
       }
     }
 

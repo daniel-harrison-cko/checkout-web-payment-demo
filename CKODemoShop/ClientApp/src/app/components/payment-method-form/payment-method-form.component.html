@@ -349,6 +349,16 @@
             </mat-form-field>
           </div>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'wechat'">
+          <div class="row">
+            <mat-form-field form-field="wechatpay_wechat_type">
+              <input matInput placeholder="WeChat Pay Type" formControlName="wechat_type" required />
+            </mat-form-field>
+            <mat-form-field form-field="wechatpay_description">
+              <input matInput placeholder="Description" formControlName="description" required />
+            </mat-form-field>
+          </div>
+        </ng-container>
       </mat-card-content>
     </mat-card>
     <mat-card *ngIf="paymentDetails.value.source.type == 'ach'" class="mandate">

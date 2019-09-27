@@ -24,15 +24,18 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'AUD', base: 100 },
   { iso4217: 'BRL', base: 100 },
   { iso4217: 'CHF', base: 100 },
+  { iso4217: 'CNY', base: 100 },
   { iso4217: 'EGP', base: 100 },
   { iso4217: 'EUR', base: 100 },
   { iso4217: 'GBP', base: 100 },
+  { iso4217: 'HKD', base: 100 },
   { iso4217: 'KWD', base: 1000 },
   { iso4217: 'NOK', base: 100 },
   { iso4217: 'NZD', base: 100 },
   { iso4217: 'PLN', base: 100 },
   { iso4217: 'QAR', base: 100 },
   { iso4217: 'SEK', base: 100 },
+  { iso4217: 'SGD', base: 100 },
   { iso4217: 'USD', base: 100 }
 ];
 const PAYMENT_METHODS: IPaymentMethod[] = [
@@ -173,6 +176,15 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     type: 'sofort',
     restrictedCurrencyCountryPairings: {
       'EUR': ['AT', 'BE', 'DE', 'ES', 'IT', 'NL']
+    }
+  },
+  {
+    name: 'WeChat Pay',
+    type: 'wechat',
+    restrictedCurrencyCountryPairings: {
+      'CNY': ['CN'],
+      'HKD': ['HK'],
+      'SGD': ['SG']
     }
   }
 ]
@@ -927,6 +939,14 @@ export class PaymentsService {
               this.source.get('country_code').setValue(countryCode);
             })
           );
+
+          break;
+        }
+        case 'wechat': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('wechat_type', new FormControl({ value: 'web', disabled: false }, Validators.required));
+          this.source.addControl('description', new FormControl({ value: 'WeChat Pay Demo Payment', disabled: false }, Validators.required));
 
           break;
         }
