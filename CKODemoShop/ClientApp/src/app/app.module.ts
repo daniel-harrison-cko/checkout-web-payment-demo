@@ -24,6 +24,7 @@ import { Location } from '@angular/common';
 import { AppConfigService } from './services/app-config.service';
 import { WebsocketsService } from './services/websockets.service';
 import { EnvironmentAlertComponent } from './components/environment-alert/environment-alert.component';
+import { PaymentErrorAlertComponent } from './components/payment-error-alert/payment-error-alert.component';
 
 const routes: Routes = [
   {
@@ -76,11 +77,13 @@ const routes: Routes = [
     CustomerDetailsFormComponent,
     RefundPromptComponent,
     EnvironmentAlertComponent,
+    PaymentErrorAlertComponent,
     LoginComponent
   ],
   entryComponents: [
     RefundPromptComponent,
-    EnvironmentAlertComponent
+    EnvironmentAlertComponent,
+    PaymentErrorAlertComponent
   ],
   imports: [
     HttpClientModule,
