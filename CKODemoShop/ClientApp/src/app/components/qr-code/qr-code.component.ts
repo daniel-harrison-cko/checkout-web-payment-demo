@@ -1,10 +1,10 @@
-import { Component, OnInit, OnDestroy, Input } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, OnChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { QRCodeService } from '../../services/qr-code.service';
 
 @Component({
-  selector: 'app-qr-code',
-  templateUrl: './qr-code.component.html'
+    selector: 'app-qr-code',
+    templateUrl: './qr-code.component.html'
 })
 
 export class QRCodeComponent implements OnInit, OnDestroy {
@@ -13,18 +13,22 @@ export class QRCodeComponent implements OnInit, OnDestroy {
     private blob: any;
     private qrCodeImage: any;
 
-  constructor(private _qrCodeService: QRCodeService) { }
+    constructor(private _qrCodeService: QRCodeService) { }
 
     ngOnInit() {
-        if (this.data != undefined) {
-          this.subscriptions.push(
-                this._qrCodeService.getQRCode(this.data).subscribe(blob => this.createImageFromBlob(blob))
-              );
-        }    
-  }
+        this.subscriptions.push(
+            this._qrCodeService.qrCodeBlob$.subscribe(blob => this.createImageFromBlob(blob))
+        );
+    }
 
-  ngOnDestroy() {
-    this.subscriptions.forEach(subscription => subscription.unsubscribe());
+    ngOnChanges(changes) {
+        if (changes.data.currentValue != undefined) {
+            this._qrCodeService.getQrCodeBlob(changes.data.currentValue);
+        }
+    }
+
+    ngOnDestroy() {
+        this.subscriptions.forEach(subscription => subscription.unsubscribe());
     }
 
     private createImageFromBlob(blob: Blob) {
