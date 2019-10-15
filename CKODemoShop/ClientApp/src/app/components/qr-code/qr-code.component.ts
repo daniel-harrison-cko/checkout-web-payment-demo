@@ -7,11 +7,11 @@ import { QRCodeService } from '../../services/qr-code.service';
     templateUrl: './qr-code.component.html'
 })
 
-export class QRCodeComponent implements OnInit, OnDestroy {
+export class QRCodeComponent implements OnInit, OnChanges, OnDestroy {
     @Input() data: string;
     private subscriptions: Subscription[] = [];
     private blob: any;
-    private qrCodeImage: any;
+    public qrCodeImage: any;
 
     constructor(private _qrCodeService: QRCodeService) { }
 
