@@ -377,6 +377,10 @@ body {
         [form-field="bancontact_account_holder_name"], [form-field="bancontact_payment_country"], [form-field="bancontact_billing_descriptor"] {
           flex: 1 0 100%;
         }
+        /*BENEFITPAY*/
+        [form-field="benefitpay_integration_type"] {
+          flex: 1 0 100%;
+        }
         /*BOLETO*/
         [form-field="boleto_customerName"], [form-field="boleto_birthDate"], [form-field="boleto_cpf"] {
           flex: 1 0 100%;
