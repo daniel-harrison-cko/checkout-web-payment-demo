@@ -22,6 +22,7 @@ declare var Klarna: any;
 
 const CURRENCIES: ICurrency[] = [
   { iso4217: 'AUD', base: 100 },
+  { iso4217: 'BHD', base: 1000 },
   { iso4217: 'BRL', base: 100 },
   { iso4217: 'CHF', base: 100 },
   { iso4217: 'CNY', base: 100 },
@@ -68,6 +69,13 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     type: 'bancontact',
     restrictedCurrencyCountryPairings: {
       'EUR': ['BE']
+    }
+  },
+  {
+    name: 'BenefitPay',
+    type: 'benefitpay',
+    restrictedCurrencyCountryPairings: {
+      'BHD': ['BH']
     }
   },
   {
@@ -569,6 +577,13 @@ export class PaymentsService {
           );
 
           break;
+        }
+        case 'benefitpay': {
+            this.setupPaymentAction(this.standardPaymentFlow);
+
+            this.source.addControl('integration_type', new FormControl({ value: 'web', disabled: true }, Validators.required));
+
+            break;
         }
         case 'boleto': {
           this.setupPaymentAction(this.standardPaymentFlow);

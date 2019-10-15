@@ -24,6 +24,7 @@ import { Location } from '@angular/common';
 import { AppConfigService } from './services/app-config.service';
 import { WebsocketsService } from './services/websockets.service';
 import { EnvironmentAlertComponent } from './components/environment-alert/environment-alert.component';
+import { QRCodeComponent } from './components/qr-code/qr-code.component';
 
 const routes: Routes = [
   {
@@ -76,7 +77,8 @@ const routes: Routes = [
     CustomerDetailsFormComponent,
     RefundPromptComponent,
     EnvironmentAlertComponent,
-    LoginComponent
+    LoginComponent,
+    QRCodeComponent
   ],
   entryComponents: [
     RefundPromptComponent,

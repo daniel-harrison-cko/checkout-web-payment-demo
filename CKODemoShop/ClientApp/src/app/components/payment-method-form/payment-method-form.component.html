@@ -85,6 +85,11 @@
             <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />
           </mat-form-field>
         </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'benefitpay'">
+          <mat-form-field form-field="benefitpay_integration_type">
+            <input matInput placeholder="Integration Type" formControlName="integration_type" required/>
+          </mat-form-field>
+        </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'boleto'">
           <mat-form-field form-field="boleto_customerName">
             <input matInput placeholder="Customer Name" formControlName="customerName" required />
