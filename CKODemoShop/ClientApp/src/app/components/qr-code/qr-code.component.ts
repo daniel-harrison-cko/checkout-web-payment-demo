@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy, Input, OnChanges } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { QRCodeService } from '../../services/qr-code.service';
+import { IPayment } from '../../interfaces/payment.interface';
 
 @Component({
     selector: 'app-qr-code',
@@ -8,12 +9,14 @@ import { QRCodeService } from '../../services/qr-code.service';
 })
 
 export class QRCodeComponent implements OnInit, OnChanges, OnDestroy {
-    @Input() data: string;
+    @Input() payment: IPayment;
     private subscriptions: Subscription[] = [];
     private blob: any;
     public qrCodeImage: any;
 
-    constructor(private _qrCodeService: QRCodeService) { }
+    constructor(
+        private _qrCodeService: QRCodeService,
+    ) { }
 
     ngOnInit() {
         this.subscriptions.push(
@@ -22,8 +25,8 @@ export class QRCodeComponent implements OnInit, OnChanges, OnDestroy {
     }
 
     ngOnChanges(changes) {
-        if (changes.data.currentValue != undefined) {
-            this._qrCodeService.getQrCodeBlob(changes.data.currentValue);
+        if (changes.payment.currentValue.source.qr_data != undefined) {
+            this._qrCodeService.getQrCodeBlob(changes.payment.currentValue.source.qr_data);
         }
     }
 

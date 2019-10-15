@@ -11,7 +11,7 @@
         <p>Requested on {{order.requested_on | date:'y-MMM-dd@HH:mm:ss (z)':'UTC'}}</p>
         <p>Amount {{order.amount / currencyBaseAmount(order.currency) | currency:order.currency:'symbol'}}</p>
         <ng-container *ngIf="order.source.type == 'benefitpay'">
-          <app-qr-code [data]="order.source.qr_data"></app-qr-code>
+          <app-qr-code [payment]="order"></app-qr-code>
         </ng-container>
         <mat-expansion-panel>
           <mat-expansion-panel-header>
