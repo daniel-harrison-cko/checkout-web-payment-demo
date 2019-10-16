@@ -27,6 +27,8 @@ export class QRCodeComponent implements OnInit, OnChanges, OnDestroy {
     ngOnChanges(changes) {
         if (changes.payment.currentValue.source.qr_data != undefined) {
             this._qrCodeService.getQrCodeBlob(changes.payment.currentValue.source.qr_data);
+        } else {
+            this.qrCodeImage = null;
         }
     }
 
