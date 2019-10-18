@@ -1,11 +1,11 @@
 <mat-card class="mat-elevation-z0">
   <mat-card-header>
     <mat-icon mat-card-avatar>error</mat-icon>
-    <mat-card-title>Error</mat-card-title>
-    <mat-card-subtitle>{{httpErrorResponse.status}} {{httpErrorResponse.statusText}}</mat-card-subtitle>
+    <mat-card-title>Error {{httpErrorResponse.paymentErrorResponse.http_status_code}}</mat-card-title>
+    <mat-card-subtitle>Request ID {{httpErrorResponse.paymentErrorResponse.request_id}}</mat-card-subtitle>
   </mat-card-header>
   <mat-card-content>
-    <p>{{httpErrorResponse.error}}</p>
+    <p>{{httpErrorResponse.paymentErrorResponse.message}}</p>
   </mat-card-content>
   <mat-card-actions>
     <button mat-flat-button color="primary" (click)="onClick()" cdkFocusInitial>OK Continue <mat-icon>check</mat-icon></button>

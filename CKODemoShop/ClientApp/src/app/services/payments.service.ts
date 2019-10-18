@@ -375,13 +375,14 @@ export class PaymentsService {
       .subscribe(
         response => this.handlePaymentResponse(response),
           error => {
-              console.log(error);
+              // error.error strangely returns a string that represents malformed JSON; this fixes it.
+              let errorString = (error.error as string).slice(0, (error.error as string).indexOf(',"target_site"')) + '}';
               this.dialog.open(
                   PaymentErrorAlertComponent,
                   {
                       width: '80%',
                       maxWidth: '500px',
-                      data: { error: error.error, status: error.status, statusText: error.statusText }
+                      data: { paymentErrorResponse: JSON.parse(errorString), status: error.status, statusText: error.statusText }
                   }
               )
               this.resetPayment();

@@ -2,7 +2,7 @@ import { Component, Inject } from '@angular/core';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material';
 
 export interface IApiException {
-  error: any;
+  paymentErrorResponse: any;
   status: number;
   statusText: string;
 }
@@ -17,7 +17,7 @@ export class PaymentErrorAlertComponent {
     public environmentAlertRef: MatDialogRef<PaymentErrorAlertComponent>,
     @Inject(MAT_DIALOG_DATA) public httpErrorResponse: IApiException
   ) {
-    console.log(httpErrorResponse);
+      console.log(httpErrorResponse);
   }
 
   onClick(): void {
