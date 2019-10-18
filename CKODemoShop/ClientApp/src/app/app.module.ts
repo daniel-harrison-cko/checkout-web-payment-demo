@@ -25,6 +25,7 @@ import { AppConfigService } from './services/app-config.service';
 import { WebsocketsService } from './services/websockets.service';
 import { EnvironmentAlertComponent } from './components/environment-alert/environment-alert.component';
 import { QRCodeComponent } from './components/qr-code/qr-code.component';
+import { PaymentErrorAlertComponent } from './components/payment-error-alert/payment-error-alert.component';
 
 const routes: Routes = [
   {
@@ -78,11 +79,13 @@ const routes: Routes = [
     RefundPromptComponent,
     EnvironmentAlertComponent,
     LoginComponent,
-    QRCodeComponent
+    QRCodeComponent,
+    PaymentErrorAlertComponent
   ],
   entryComponents: [
     RefundPromptComponent,
-    EnvironmentAlertComponent
+    EnvironmentAlertComponent,
+    PaymentErrorAlertComponent
   ],
   imports: [
     HttpClientModule,

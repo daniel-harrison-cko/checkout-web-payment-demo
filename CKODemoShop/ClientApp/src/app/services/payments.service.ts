@@ -14,6 +14,8 @@ import { ScriptService } from './script.service';
 import { AppConfigService } from './app-config.service';
 import { ShopService } from './shop.service';
 import { BanksService } from './banks.service';
+import { MatDialog } from '@angular/material';
+import { PaymentErrorAlertComponent } from '../components/payment-error-alert/payment-error-alert.component';
 
 declare var Frames: any;
 declare var google: any;
@@ -214,6 +216,7 @@ export class PaymentsService {
   public klarnaCreditSessionResponse: FormGroup = this._formBuilder.group({});
 
   constructor(
+    public dialog: MatDialog,
     private _appConfigService: AppConfigService,
     private _http: HttpClient,
     private _banksService: BanksService,
@@ -379,10 +382,20 @@ export class PaymentsService {
       .pipe(finalize(() => this.resetReference()))
       .subscribe(
         response => this.handlePaymentResponse(response),
-        error => {
-          console.warn(error);
-          this.resetPayment();
-        });
+          error => {
+              // error.error strangely returns a string that represents malformed JSON; this fixes it.
+              let errorString = (error.error as string).slice(0, (error.error as string).indexOf(',"target_site"')) + '}';
+              this.dialog.open(
+                  PaymentErrorAlertComponent,
+                  {
+                      width: '80%',
+                      maxWidth: '500px',
+                      data: { paymentErrorResponse: JSON.parse(errorString), status: error.status, statusText: error.statusText }
+                  }
+              )
+              this.resetPayment();
+          }
+      );
   };
 
   private sourcesPaymentFlow = () => {

@@ -346,7 +346,7 @@ namespace CKODemoShop.Controllers
             }
             catch (Exception e)
             {
-                return UnprocessableEntity(e.Message);
+                return UnprocessableEntity(e);
             }
         }
 
