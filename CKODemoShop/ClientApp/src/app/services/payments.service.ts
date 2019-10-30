@@ -717,7 +717,6 @@ export class PaymentsService {
                 document.querySelector('#klarna-container').innerHTML = '';
               }
               if ((klarnaCreditSessionResponse.body.payment_method_categories as []).length > 0) {
-                this.klarnaCreditSessionResponse.get('selected_payment_method_category').setValue(klarnaCreditSessionResponse.body.payment_method_categories[0].identifier);
                 await this._scriptService.load('klarna');
                 await klarnaPaymentsInit(klarnaCreditSessionResponse.body.client_token);
                 await klarnaPaymentsLoad();
