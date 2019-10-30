@@ -699,6 +699,7 @@ export class PaymentsService {
         case 'klarna': {
           this.paymentDetails.get('capture').setValue(false);
           this.setupPaymentAction(this.klarnaPaymentFlow);
+          this.klarnaCreditSessionResponse.enable();
 
           let requestKlarnaCreditSession = () => this.requestKlarnaSession(this.klarnaCreditSession.value).subscribe(klarnaCreditSessionResponse => handleKlarnaCreditSessionResponse(klarnaCreditSessionResponse));
           let handleKlarnaCreditSessionResponse = async (klarnaCreditSessionResponse: HttpResponse<any>) => {
@@ -1026,7 +1027,7 @@ export class PaymentsService {
   }
 
   get paymentButtonIsDisabled(): boolean {
-    return (this.paymentDetails ? this.paymentDetails.invalid : false) || (this.paymentConsent ? this.paymentConsent.invalid : false) || this._processing;
+    return (this.paymentDetails ? this.paymentDetails.invalid : false) || (this.paymentConsent ? this.paymentConsent.invalid : false) || (this.klarnaCreditSessionResponse ? this.klarnaCreditSessionResponse.invalid : false) || this._processing;
   }
 
   get currencies(): ICurrency[] {
@@ -1069,6 +1070,8 @@ export class PaymentsService {
     this.threeDs = true;
     this.paymentConsent.reset();
     this.paymentConsent.disable();
+    this.klarnaCreditSessionResponse.reset();
+    this.klarnaCreditSessionResponse.disable();
     this.setProcessing(false);
   }
 
