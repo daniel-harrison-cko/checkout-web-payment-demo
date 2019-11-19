@@ -9,10 +9,16 @@ exports.config = {
     './src/**/*.e2e-spec.ts'
   ],
   capabilities: {
-    'browserName': 'chrome'
+    browserName: 'chrome'
+  },
+  params: {
+    okta: {
+      username: 'username',
+      password: 'password'
+    }
   },
   directConnect: true,
-  baseUrl: 'http://localhost:4200/',
+  baseUrl: 'http://localhost:5000/',
   framework: 'jasmine',
   jasmineNodeOpts: {
     showColors: true,
