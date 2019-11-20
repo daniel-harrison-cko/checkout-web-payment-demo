@@ -7,15 +7,15 @@
   </div>
   <div class="row">
     <mat-card>
-      <mat-vertical-stepper [linear]="true" #stepper>
-        <mat-step>
+      <mat-vertical-stepper [linear]="true" #stepper id="paymentStepper">
+        <mat-step id="customerDetails">
           <ng-template matStepLabel>Customer Details</ng-template>
           <app-customer-details-form></app-customer-details-form>
           <div>
             <button mat-stroked-button matStepperNext>Next</button>
           </div>
         </mat-step>
-        <mat-step [stepControl]="paymentDetails">
+        <mat-step id="paymentDetails" [stepControl]="paymentDetails">
           <ng-template matStepLabel>Select a Payment Method</ng-template>
           <app-payment-method-form></app-payment-method-form>
         </mat-step>

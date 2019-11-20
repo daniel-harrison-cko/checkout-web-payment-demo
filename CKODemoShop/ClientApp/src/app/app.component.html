@@ -9,7 +9,7 @@
         <ng-container formGroupName="billing_address" *ngIf="countries">
           <mat-form-field form-field="country">
             <mat-select formControlName="country" [(value)]="paymentDetails.value.billing_address.country" matTooltip="Select the (billing address) payment country">
-              <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.nativeName}}&nbsp;({{country.alpha2Code}})">
+              <mat-option *ngFor="let country of countries" [value]="country.alpha2Code" title="{{country.nativeName}}&nbsp;({{country.alpha2Code}})" class="country-option">
                 <img class="flag" src="{{country.flag}}" /><span>&emsp;{{country.alpha2Code}}</span>
               </mat-option>
             </mat-select>
@@ -17,17 +17,17 @@
         </ng-container>
         <mat-form-field form-field="currency">
           <mat-select formControlName="currency" matTooltip="Select the payment currency">
-            <mat-option *ngFor="let currency of currencies" [value]="currency.iso4217">
+            <mat-option *ngFor="let currency of currencies" [value]="currency.iso4217" class="currency-option">
               {{currency.iso4217}}
             </mat-option>
           </mat-select>
         </mat-form-field>
       </form>
-      <button mat-icon-button [matMenuTriggerFor]="menu" class="toolbar-item">
+      <button id="menuButton" mat-icon-button [matMenuTriggerFor]="menu" class="toolbar-item">
         <mat-icon>account_circle</mat-icon>
       </button>
       <mat-menu #menu="matMenu">
-        <button mat-menu-item (click)="navigateTo('/user/orders')">
+        <button id="pastOrdersButton" mat-menu-item (click)="navigateTo('/user/orders')">
           <mat-icon>event</mat-icon>
           <span>Past Orders</span>
         </button>
@@ -36,8 +36,8 @@
             <mat-slide-toggle formControlName="hasWebhooks" (change)="toggleWebhooks($event)">Webhooks</mat-slide-toggle>
           </form>
         </button>
-        <button mat-menu-item [matMenuTriggerFor]="environments">Environments</button>
-        <button mat-menu-item (click)="logout()">
+        <button id="environmentsButton" mat-menu-item [matMenuTriggerFor]="environments">Environments</button>
+        <button id="logoutButton" mat-menu-item (click)="logout()">
           <mat-icon>power_settings_new</mat-icon>
           <span>Logout</span>
         </button>
