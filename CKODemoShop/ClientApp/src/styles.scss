@@ -310,7 +310,7 @@ body {
       flex-direction: column;
       justify-content: space-between;
 
-      .payment-configurators {
+      .payment-configurator {
         display: flex;
         flex: 1 1 auto;
         padding-bottom: $padding;
@@ -510,14 +510,14 @@ body {
     }
   }
 
-  .example-radio-group {
+  .radio-group {
     display: inline-flex;
     flex-direction: column;
     padding-top: $padding;
     padding-bottom: $padding;
   }
 
-  .example-radio-button {
+  .radio-button {
     margin: 5px;
   }
 

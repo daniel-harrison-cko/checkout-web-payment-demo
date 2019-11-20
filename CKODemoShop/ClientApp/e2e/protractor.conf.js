@@ -5,21 +5,32 @@ const { SpecReporter } = require('jasmine-spec-reporter');
 
 exports.config = {
   allScriptsTimeout: 11000,
-  specs: [
-    './src/**/*.e2e-spec.ts'
-  ],
   capabilities: {
     browserName: 'chrome'
   },
   params: {
     okta: {
+      domain: 'https://dev-320726.okta.com/',
       username: 'username',
       password: 'password'
+      },
+    klarna: {
+      country: 'DE',
+      currency: 'EUR',
+      dateOfBirth: '01.01.1970'
     }
   },
   directConnect: true,
   baseUrl: 'http://localhost:5000/',
   framework: 'jasmine',
+  suites: {
+    klarna: [
+        './src/**/login.e2e-spec.ts',
+        './src/**/klarna.e2e-spec.ts',
+        './src/**/refund.e2e-spec.ts',
+        './src/**/logout.e2e-spec.ts'
+    ]
+  },
   jasmineNodeOpts: {
     showColors: true,
     defaultTimeoutInterval: 30000,

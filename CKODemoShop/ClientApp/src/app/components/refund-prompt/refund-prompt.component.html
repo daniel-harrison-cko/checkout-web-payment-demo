@@ -22,6 +22,6 @@
   </form>    
 </div>
 <div mat-dialog-actions>
-  <button mat-button (click)="onNoClick()">No Thanks</button>
-  <button mat-button [mat-dialog-close]="refundDetails" color="primary" [disabled]="!refundPromptDetails.valid">Yes Refund</button>
+  <button mat-button id="refundCancelButton" (click)="onNoClick()">No Thanks</button>
+  <button mat-button id="refundConfirmButton" [mat-dialog-close]="refundDetails" color="primary" [disabled]="!refundPromptDetails.valid">Yes Refund</button>
 </div>
