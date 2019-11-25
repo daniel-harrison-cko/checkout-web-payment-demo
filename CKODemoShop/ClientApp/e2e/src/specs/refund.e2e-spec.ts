@@ -3,9 +3,17 @@ import { WebPaymentDemoPage } from '../pages/web-payment-demo-page.po';
 
 describe('Refund', () => {
     let webPaymentDemo: WebPaymentDemoPage;
+    let config: any;
 
     beforeAll(() => {
         webPaymentDemo = new WebPaymentDemoPage();
+        browser.getProcessedConfig()
+            .then(processedConfig => {
+                config = processedConfig;
+            })
+            .catch(error => {
+                console.error(error);
+            });
         browser.waitForAngularEnabled(false);
     });
 
@@ -37,7 +45,11 @@ describe('Refund', () => {
         it('should confirm refund', () => {
             webPaymentDemo.refundConfirmButton.click();
             browser.sleep(3000);
-            expect(webPaymentDemo.paymentStatus.getText()).toBe('Refunded');
+            if (browser.params[config.suite].deferredRefund) {
+
+            } else {
+                expect(webPaymentDemo.paymentStatus.getText()).toBe('Refunded');
+            }
         });
     });
 });

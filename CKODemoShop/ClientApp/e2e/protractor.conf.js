@@ -14,21 +14,34 @@ exports.config = {
       username: 'username',
       password: 'password'
       },
+    ideal: {
+      country: 'NL',
+      currency: 'EUR',
+      bank: 'INGBNL2A Issuer Simulation V3 - ING',
+      deferredRefund: true
+    },
     klarna: {
       country: 'DE',
       currency: 'EUR',
-      dateOfBirth: '01.01.1970'
+      dateOfBirth: '01.01.1970',
+      deferredRefund: false
     }
   },
   directConnect: true,
   baseUrl: 'http://localhost:5000/',
   framework: 'jasmine',
   suites: {
+    ideal: [
+      './src/**/login.e2e-spec.ts',
+      './src/**/ideal.e2e-spec.ts',
+      './src/**/refund.e2e-spec.ts',
+      './src/**/logout.e2e-spec.ts'
+    ],
     klarna: [
-        './src/**/login.e2e-spec.ts',
-        './src/**/klarna.e2e-spec.ts',
-        './src/**/refund.e2e-spec.ts',
-        './src/**/logout.e2e-spec.ts'
+      './src/**/login.e2e-spec.ts',
+      './src/**/klarna.e2e-spec.ts',
+      './src/**/refund.e2e-spec.ts',
+      './src/**/logout.e2e-spec.ts'
     ]
   },
   jasmineNodeOpts: {
