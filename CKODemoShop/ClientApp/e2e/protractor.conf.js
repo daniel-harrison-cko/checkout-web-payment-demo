@@ -5,15 +5,45 @@ const { SpecReporter } = require('jasmine-spec-reporter');
 
 exports.config = {
   allScriptsTimeout: 11000,
-  specs: [
-    './src/**/*.e2e-spec.ts'
-  ],
   capabilities: {
-    'browserName': 'chrome'
+    browserName: 'chrome'
+  },
+  params: {
+    okta: {
+      domain: 'https://dev-320726.okta.com/',
+      username: 'username',
+      password: 'password'
+      },
+    ideal: {
+      country: 'NL',
+      currency: 'EUR',
+      bank: 'INGBNL2A Issuer Simulation V3 - ING',
+      deferredRefund: true
+    },
+    klarna: {
+      country: 'DE',
+      currency: 'EUR',
+      dateOfBirth: '01.01.1970',
+      deferredRefund: false
+    }
   },
   directConnect: true,
-  baseUrl: 'http://localhost:4200/',
+  baseUrl: 'http://localhost:5000/',
   framework: 'jasmine',
+  suites: {
+    ideal: [
+      './src/**/login.e2e-spec.ts',
+      './src/**/ideal.e2e-spec.ts',
+      './src/**/refund.e2e-spec.ts',
+      './src/**/logout.e2e-spec.ts'
+    ],
+    klarna: [
+      './src/**/login.e2e-spec.ts',
+      './src/**/klarna.e2e-spec.ts',
+      './src/**/refund.e2e-spec.ts',
+      './src/**/logout.e2e-spec.ts'
+    ]
+  },
   jasmineNodeOpts: {
     showColors: true,
     defaultTimeoutInterval: 30000,
