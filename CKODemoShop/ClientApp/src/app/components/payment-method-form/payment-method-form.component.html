@@ -173,7 +173,7 @@
             <input type="text" placeholder="Your bank" aria-label="Bank" matInput formControlName="bankSearchInput" [matAutocomplete]="auto" (input)="selectedBankControl.reset()" required>
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="onBankSelectionChanged($event)">
               <mat-option>--</mat-option>
-              <mat-option *ngFor="let bank of filteredBanks" [value]="bank">
+              <mat-option class="bank" *ngFor="let bank of filteredBanks" [value]="bank">
                 <span class="monospace">{{bank.bic}}</span> {{bank.name}}
               </mat-option>
             </mat-autocomplete>
