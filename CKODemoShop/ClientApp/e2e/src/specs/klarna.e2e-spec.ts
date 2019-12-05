@@ -1,22 +1,34 @@
 import { browser, ExpectedConditions } from 'protractor';
 import { WebPaymentDemoPage } from '../pages/web-payment-demo-page.po';
 import { KlarnaConfiguration } from '../pages/klarna-configuration.po';
+import { LoginPage } from '../pages/login-page.po';
 
 describe('Klarna', () => {
     let webPaymentDemo: WebPaymentDemoPage;
+    let loginPage: LoginPage;
     let klarnaConfiguration: KlarnaConfiguration;
 
     beforeAll(() => {
         webPaymentDemo = new WebPaymentDemoPage();
+        loginPage = new LoginPage();
         klarnaConfiguration = new KlarnaConfiguration();
         browser.waitForAngularEnabled(false);
+        webPaymentDemo.navigateTo('/');
     });
 
     beforeEach(() => {
         browser.waitForAngular();
     });
 
-    describe('on open Web Payment Demo', () => {
+    describe('on login', () => {
+
+        it('should route to Okta login', () => {
+            browser.wait(ExpectedConditions.urlContains(browser.params.okta.domain), 5000, 'did not route to Okta login');
+        });
+
+        it('should succeed login with demo account', () => {
+            loginPage.login();
+        });
 
         it('should confirm environment alert', () => {
             browser.wait(ExpectedConditions.presenceOf(webPaymentDemo.environmentAlert), 15000, 'environmentAlert is not present')
@@ -113,6 +125,50 @@ describe('Klarna', () => {
                     browser.sleep(3000);
                     expect(webPaymentDemo.paymentStatus.getText()).toBe('Captured');
                 });            
+        });
+    });
+
+    describe('on make refund', () => {
+
+        beforeEach(() => {
+            browser.waitForAngular();
+        });
+
+        afterEach(() => {
+            browser.sleep(200);
+        });
+
+        afterAll(() => {
+            browser.sleep(3000);
+        });
+
+        it('should click refund', () => {
+            webPaymentDemo.clickRefundButton();
+            browser.wait(ExpectedConditions.presenceOf(webPaymentDemo.refundPrompt), 100, 'refundPrompt is not present');
+            expect(webPaymentDemo.refundPrompt.isPresent()).toBe(true);
+        });
+
+        it('should configure refund', () => {
+            webPaymentDemo.configureRefund();
+            expect(webPaymentDemo.refundConfirmButton.isEnabled()).toBe(true);
+        });
+
+        it('should confirm refund', () => {
+            webPaymentDemo.refundConfirmButton.click();
+            browser.sleep(3000);
+            if (browser.params.klarna.deferredRefund) {
+
+            } else {
+                expect(webPaymentDemo.paymentStatus.getText()).toBe('Refunded');
+            }
+        });
+    });
+
+    describe('on logout', () => {
+
+        it('should log out', () => {
+            webPaymentDemo.logout();
+            browser.wait(ExpectedConditions.urlContains('/login'), 10000, 'logout was unsuccessful');
         });
     });
 });

@@ -1,6 +1,5 @@
-import { browser, by, element, ExpectedConditions } from 'protractor';
+import { browser, by, element } from 'protractor';
 import { Page } from './page.po';
-import { protractor } from 'protractor/built/ptor';
 
 export class IdealConfiguration extends Page {
     bankInput = element(by.css('mat-form-field[form-field="ideal_bank"] input'));
