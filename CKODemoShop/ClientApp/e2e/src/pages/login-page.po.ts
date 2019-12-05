@@ -38,13 +38,13 @@ export class LoginPage extends Page {
         this.password.clear();
     }
 
-    login(username: string, password: string) {
+    login() {
         let deferred = protractor.promise.defer();
         // Entering non angular site, tell webdriver to switch to synchronous mode.
         browser.waitForAngularEnabled(false);
         this.username.isPresent().then(() => {
-            this.username.sendKeys(username);
-            this.password.sendKeys(password);
+            this.username.sendKeys(browser.params.okta.username);
+            this.password.sendKeys(browser.params.okta.password);
             this.oktaLoginButton.click();
             return deferred.fulfill();
         }).catch(error => {

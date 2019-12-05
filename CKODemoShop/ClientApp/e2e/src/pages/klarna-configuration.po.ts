@@ -20,7 +20,7 @@ export class KlarnaConfiguration extends Page {
                 .then(() => {
                     element(by.id('purchase-approval-date-of-birth')).getWebElement().then(element => this.dateOfBirth = element);
                     element(by.id('purchase-approval-continue')).getWebElement().then(element => this.purchaseApprovalButton = element);
-                });            
+                });
         });
     }
 

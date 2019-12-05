@@ -117,11 +117,11 @@
           "builder": "@angular-devkit/build-angular:protractor",
           "options": {
             "protractorConfig": "e2e/protractor.conf.js",
-            "devServerTarget": "ClientApp:serve"
+            "devServerTarget": ""
           },
           "configurations": {
-            "production": {
-              "devServerTarget": "ClientApp:serve:production"
+            "headless": {
+              "protractorConfig": "e2e/protractor-headless.conf.js"
             }
           }
         },
