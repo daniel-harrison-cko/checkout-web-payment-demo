@@ -12,7 +12,8 @@ exports.config = {
     },
     specs: [
         './src/**/ideal.e2e-spec.ts',
-        './src/**/klarna.e2e-spec.ts'
+        './src/**/klarna.e2e-spec.ts',
+        './src/**/oxxo.e2e-spec.ts'
     ],
     params: {
         okta: {
@@ -31,6 +32,11 @@ exports.config = {
             currency: 'EUR',
             dateOfBirth: '01.01.1970',
             deferredRefund: false
+        },
+        oxxo: {
+            country: 'MX',
+            currency: 'MXN',
+            deferredRefund: true
         }
     },
     directConnect: true,

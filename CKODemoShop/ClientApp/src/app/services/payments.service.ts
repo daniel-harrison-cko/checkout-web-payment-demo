@@ -33,6 +33,7 @@ const CURRENCIES: ICurrency[] = [
   { iso4217: 'GBP', base: 100 },
   { iso4217: 'HKD', base: 100 },
   { iso4217: 'KWD', base: 1000 },
+  { iso4217: 'MXN', base: 100 },
   { iso4217: 'NOK', base: 100 },
   { iso4217: 'NZD', base: 100 },
   { iso4217: 'PLN', base: 100 },
@@ -144,6 +145,13 @@ const PAYMENT_METHODS: IPaymentMethod[] = [
     type: 'multibanco',
     restrictedCurrencyCountryPairings: {
       'EUR': ['PT']
+    }
+  },
+  {
+    name: 'OXXO',
+    type: 'oxxo',
+    restrictedCurrencyCountryPairings: {
+      'MXN': ['MX']
     }
   },
   {
@@ -871,6 +879,26 @@ export class PaymentsService {
 
           break;
         }
+        case 'oxxo': {
+          this.setupPaymentAction(this.standardPaymentFlow);
+
+          this.source.addControl('integration_type', new FormControl({ value: 'redirect', disabled: true }, Validators.required));
+          this.source.addControl('country', new FormControl({ value: this.paymentDetails.get('billing_address.country').value, disabled: true }, Validators.required));
+          this.source.addControl('payer', new FormGroup({
+            name: new FormControl({ value: this.paymentDetails.get('customer.name').value, disabled: true }, Validators.required),
+            email: new FormControl({ value: this.paymentDetails.get('customer.email').value, disabled: true }, Validators.required),
+            document: new FormControl({ value: 'WAKB700101HMCYNR06', disabled: false }, Validators.required),
+          }));
+
+          this.subscriptions.push(
+            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('payer.name').setValue(customerName)),
+            this.paymentDetails.get('customer.email').valueChanges.pipe(distinctUntilChanged()).subscribe(customerEmail => this.source.get('payer.email').setValue(customerEmail)),
+            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(country => this.source.get('country').setValue(country))
+          );
+
+          break;
+        }
+
         case 'paypal': {
           this.setupPaymentAction(this.standardPaymentFlow);
 

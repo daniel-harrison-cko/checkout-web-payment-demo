@@ -417,6 +417,14 @@ body {
         [form-field="multibanco_account_holder_name"], [form-field="multibanco_payment_country"], [form-field="multibanco_billing_descriptor"] {
           flex: 1 0 100%;
         }
+        /*OXXO*/
+        [form-field="oxxo_integration_type"], [form-field="oxxo_country"] {
+          flex: 1 0 100%;
+        }
+
+        [form-field="oxxo_payer_name"], [form-field="oxxo_payer_email"], [form-field="oxxo_payer_document"] {
+          flex: 1 0 auto;
+        }
         /*PAYPAL*/
         [form-field="paypal_invoice_number"] {
           flex: 1 0 100%;
