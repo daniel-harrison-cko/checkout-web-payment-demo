@@ -87,7 +87,7 @@
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'benefitpay'">
           <mat-form-field form-field="benefitpay_integration_type">
-            <input matInput placeholder="Integration Type" formControlName="integration_type" required/>
+            <input matInput placeholder="Integration Type" formControlName="integration_type" required />
           </mat-form-field>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'boleto'">
@@ -258,6 +258,30 @@
           <mat-form-field form-field="multibanco_billing_descriptor">
             <input matInput placeholder="Billing Descriptor" formControlName="billing_descriptor" />
           </mat-form-field>
+        </ng-container>
+        <ng-container *ngIf="paymentDetails.value.source.type == 'oxxo'">
+          <mat-form-field form-field="oxxo_integration_type">
+            <mat-label>Integration Type</mat-label>
+            <mat-select formControlName="integration_type" required>
+              <mat-option value="redirect">Redirect</mat-option>
+            </mat-select>
+            <mat-hint>Currently only "Redirect"</mat-hint>
+          </mat-form-field>
+          <mat-form-field form-field="oxxo_country">
+            <input matInput placeholder="Country" formControlName="country" required />
+          </mat-form-field>
+          <div formGroupName="payer" class="row">
+            <mat-form-field form-field="oxxo_payer_name">
+              <input matInput placeholder="Name" formControlName="name" required />
+            </mat-form-field>
+            <mat-form-field form-field="oxxo_payer_email">
+              <input matInput placeholder="Email" formControlName="email" required />
+            </mat-form-field>
+            <mat-form-field form-field="oxxo_payer_document">
+              <input matInput placeholder="Document" formControlName="document" required />
+              <mat-hint>Mexican CURP (Clave Única de Registro de Población)</mat-hint>
+            </mat-form-field>
+          </div>
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'paypal'">
           <mat-form-field form-field="paypal_invoice_number">
