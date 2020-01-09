@@ -36,6 +36,40 @@
             <input matInput placeholder="CVV" formControlName="cvv" autocomplete="cc-csc" />
             <mat-error *ngIf="paymentDetails.get('source.cvv').hasError('minlength') || paymentDetails.get('source.cvv').hasError('maxlength')">Your CVV must have 3-4 digits</mat-error>
           </mat-form-field>
+          <mat-accordion id="processing">
+            <mat-expansion-panel class="mat-elevation-z0">
+              <mat-expansion-panel-header>
+                <mat-panel-title>Processing</mat-panel-title>
+              </mat-expansion-panel-header>
+              <div class="row" [formGroup]="paymentDetails">
+                <div formGroupName="processing">
+                  <mat-form-field form-field="processing_mid">
+                    <input matInput placeholder="MID" formControlName="mid" />
+                  </mat-form-field>
+                  <ng-container *ngIf="paymentDetails.value.billing_address.country == 'BR'">
+                    <h4>dLocal</h4>
+                    <div class="row" formGroupName="dlocal">
+                      <mat-form-field form-field="processing_dlocal_country">
+                        <input matInput placeholder="Country" formControlName="country" required />
+                      </mat-form-field>
+                      <div class="row" formGroupName="payer">
+                        <mat-form-field form-field="processing_dlocal_payer_name">
+                          <input matInput placeholder="Name" formControlName="name" required />
+                        </mat-form-field>
+                        <mat-form-field form-field="processing_dlocal_payer_email">
+                          <input matInput placeholder="Email" formControlName="email" required />
+                        </mat-form-field>
+                        <mat-form-field form-field="processing_dlocal_payer_document">
+                          <input matInput placeholder="Document" formControlName="document" required />
+                        </mat-form-field>
+                      </div>
+                    </div>
+                  </ng-container>
+                </div>
+              </div>
+            </mat-expansion-panel>
+          </mat-accordion>
+          
         </ng-container>
         <ng-container *ngIf="paymentDetails.value.source.type == 'ach'">
           <div formGroupName="source_data" class="row">

@@ -243,7 +243,7 @@ export class PaymentsService {
     this.paymentDetails.get('currency').valueChanges.pipe(distinctUntilChanged()).subscribe(currency => this.updateAvailablePaymentMethods({currency: currency, country: null}));
     this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(country => this.updateAvailablePaymentMethods({currency: null, country: country}));
     this.paymentDetails.valueChanges.pipe(distinctUntilChanged()).subscribe(() => this.paymentRequest = this.paymentDetails.getRawValue());
-    this.updateAvailablePaymentMethods({country: this.paymentDetails.value.billing_address.country, currency: this.paymentDetails.value.currency});
+    this.updateAvailablePaymentMethods({ country: this.paymentDetails.value.billing_address.country, currency: this.paymentDetails.value.currency });
   }
 
   // Subjects
@@ -513,6 +513,33 @@ export class PaymentsService {
           break;
         }
         case 'card': {
+          let setCardProcessing = (country: string) => {
+            Object.keys(this.processing.controls).forEach(key => {
+              if (key != 'mid') {
+                this.processing.removeControl(key);
+              } else {
+                this.processing.get(key).reset();
+              }
+            });
+            switch (country) {
+              case 'BR': {
+                this.processing.addControl('dlocal', new FormGroup({
+                  country: new FormControl({ value: country, disabled: true }, Validators.required),
+                  payer: new FormGroup({
+                    document: new FormControl({ value: '000.000.000-00', disabled: false }, Validators.required),
+                    name: new FormControl({ value: this.paymentDetails.value.customer.name, disabled: false }, Validators.required),
+                    email: new FormControl({ value: this.paymentDetails.value.customer.email, disabled: false }, Validators.required)
+                  })
+                }));
+                break;
+              };
+              default: {
+                break;
+              }
+            }
+            console.log(this.processing.value);
+          }
+
           this.paymentDetails.get('capture').setValue(true);
           this.setupPaymentAction(this.standardPaymentFlow, true, true);
 
@@ -522,6 +549,13 @@ export class PaymentsService {
           this.source.addControl('name', new FormControl({ value: this.paymentDetails.value.customer.name, disabled: true }));
           this.source.addControl('cvv', new FormControl({ value: '100', disabled: false }, Validators.compose([Validators.minLength(3), Validators.maxLength(4)])));
           this.source.addControl('billing_address', new FormControl({ value: this.paymentDetails.value.billing_address, disabled: true }));
+
+          setCardProcessing(this.paymentDetails.value.billing_address.country);
+
+          this.subscriptions.push(
+            this.paymentDetails.get('billing_address.country').valueChanges.pipe(distinctUntilChanged()).subscribe(country => setCardProcessing(country)),
+            this.paymentDetails.get('customer.name').valueChanges.pipe(distinctUntilChanged()).subscribe(customerName => this.source.get('name').setValue(customerName))
+          );
 
           break;
         }
@@ -1052,6 +1086,10 @@ export class PaymentsService {
   // Getters and Setters
   get source(): FormGroup {
     return <FormGroup>this.paymentDetails.get('source');
+  }
+
+  get processing(): FormGroup {
+    return <FormGroup>this.paymentDetails.get('processing');
   }
 
   get paymentButtonIsDisabled(): boolean {

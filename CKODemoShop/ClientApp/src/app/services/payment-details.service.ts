@@ -60,6 +60,9 @@ export class PaymentDetailsService {
       source: this._formBuilder.group({
         type: [null, Validators.required]
       }),
+      processing: this._formBuilder.group({
+        mid: [null]
+      }),
       customer: this._formBuilder.group({
         id: null,
         email: ['bruce@wayne-enterprises.com', Validators.compose([Validators.email, Validators.required])],
