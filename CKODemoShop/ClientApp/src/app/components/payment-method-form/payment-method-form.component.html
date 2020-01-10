@@ -44,23 +44,23 @@
               <div class="row" [formGroup]="paymentDetails">
                 <div formGroupName="processing">
                   <mat-form-field form-field="processing_mid">
-                    <input matInput placeholder="MID" formControlName="mid" />
+                    <input matInput placeholder="MID" formControlName="mid" matTooltip="Overrides the default merchant/acceptor identifier (MID) configured on your account"/>
                   </mat-form-field>
                   <ng-container *ngIf="paymentDetails.value.billing_address.country == 'BR'">
                     <h4>dLocal</h4>
                     <div class="row" formGroupName="dlocal">
                       <mat-form-field form-field="processing_dlocal_country">
-                        <input matInput placeholder="Country" formControlName="country" required />
+                        <input matInput placeholder="Country" formControlName="country" matTooltip="The customer's country." required />
                       </mat-form-field>
                       <div class="row" formGroupName="payer">
                         <mat-form-field form-field="processing_dlocal_payer_name">
-                          <input matInput placeholder="Name" formControlName="name" required />
+                          <input matInput placeholder="Name" formControlName="name" matTooltip="The cardholder's full name" required />
                         </mat-form-field>
                         <mat-form-field form-field="processing_dlocal_payer_email">
-                          <input matInput placeholder="Email" formControlName="email" required />
+                          <input matInput placeholder="Email" formControlName="email" matTooltip="The cardholder's email address" required />
                         </mat-form-field>
                         <mat-form-field form-field="processing_dlocal_payer_document">
-                          <input matInput placeholder="Document" formControlName="document" required />
+                          <input matInput placeholder="Document" formControlName="document" matTooltip="The cardholder's personal identification number" required />
                         </mat-form-field>
                       </div>
                     </div>
