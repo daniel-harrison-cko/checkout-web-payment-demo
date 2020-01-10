@@ -365,6 +365,15 @@ body {
         [form-field="card_expiry_month"], [form-field="card_expiry_year"], [form-field="card_cvv"] {
           flex: 1 0 auto;
         }
+        /*PROCESSING*/
+        mat-accordion#processing {
+          flex: 1 0 100%;
+          margin-top: $margin;
+        }
+
+        [form-field="processing_mid"], [form-field="processing_dlocal_country"], [form-field="processing_dlocal_payer_name"], [form-field="processing_dlocal_payer_email"], [form-field="processing_dlocal_payer_document"] {
+          flex: 1 0 100%;
+        }
         /*ACH*/
         [form-field="ach_source_data_account_holder_name"], [form-field="ach_source_data_billing_descriptor"] {
           flex: 1 0 100%;
